@@ -1,0 +1,6 @@
+lib/
+
+*.swp
+
+build/
+vs2019/
