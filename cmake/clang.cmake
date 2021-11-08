@@ -11,6 +11,10 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/include)
 
 add_library(Clang::LibTooling INTERFACE IMPORTED)
 
+if(WIN32)
+	target_link_libraries(Clang::LibTooling INTERFACE Version.lib)
+endif()
+
 target_link_libraries(Clang::LibTooling INTERFACE
 		clangAnalysis.lib
 		clangAST.lib
