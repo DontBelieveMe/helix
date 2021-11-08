@@ -69,6 +69,22 @@ void ParserASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
 				printf("\tparam '%s' ('%s')\n", pname.c_str(), ptype.c_str());
 			}
 		}
+		else if (it->getKind() == clang::Decl::Kind::Record)
+		{
+			clang::Decl* decl = *it;
+			const clang::RecordDecl* record = llvm::dyn_cast<clang::RecordDecl>(decl);
+			assert(record);
+			const std::string name = record->getNameAsString();
+			printf("struct '%s'\n", name.c_str());
+
+			for (clang::FieldDecl* field : record->fields())
+			{
+				const std::string fname = field->getNameAsString();
+				const std::string ftype = field->getType().getCanonicalType().getAsString();
+
+				printf("\tfield '%s' ('%s')\n", fname.c_str(), ftype.c_str());
+			}
+		}
 	}
 }
 
