@@ -19,6 +19,7 @@ add_library(helix-ir
 	src/value.cpp
 	src/types.h
 	src/types.cpp
+	src/hash.h
 )
 
 add_executable(helix
@@ -34,6 +35,7 @@ target_compile_options(helix PRIVATE /wd26812 /W4)
 add_executable(unit-tests
 	src/tests/test_intrusive_list.cpp
 	src/tests/test_bytecode.cpp
+	src/tests/test_value.cpp
 	src/tests/main.cpp
 	src/tests/catch.hpp
 )

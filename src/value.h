@@ -88,6 +88,9 @@ namespace Helix
 
 		static ConstantInt* Create(const Type* ty, Integer value);
 
+		inline Integer GetIntegralValue() const { return m_Integer; }
+		inline const Type* GetType() const { return m_Type; }
+
 	private:
 		Integer     m_Integer = 0;
 		const Type* m_Type    = nullptr;
