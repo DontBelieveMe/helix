@@ -1,0 +1,56 @@
+#pragma once
+
+#include "intrusive_list.h"
+#include "value.h"
+
+namespace Helix
+{
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	enum Opcode
+	{
+		kInsnStart_BinaryOps,
+			kInsn_IAdd,
+			kInsn_ISub,
+			kInsn_IMul,
+			kInsn_IDiv,
+			kInsn_FAdd,
+			kInsn_FSub,
+			kInsn_FMul,
+			kInsn_FDiv,
+
+			kInsn_And,
+			kInsn_Or,
+			kInsn_Shl,
+			kInsn_Shr,
+			kInsn_Xor,
+		kInsnEnd_BinaryOps
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class Instruction : public intrusive_list_node, public Value
+	{
+	public:
+		Instruction(Opcode opcode)
+			: m_Opcode(opcode) { }
+
+		Opcode GetOpcode() const { return m_Opcode; }
+
+	private:
+		Opcode m_Opcode;
+
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class BinOp : public Instruction
+	{
+	public:
+		BinOp(Opcode opcode)
+			: Instruction(opcode)
+		{ }
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}
