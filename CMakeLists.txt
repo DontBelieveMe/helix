@@ -22,6 +22,8 @@ add_library(helix-ir
 	src/hash.h
 	src/helix.h
 	src/helix.cpp
+	src/print.h
+	src/print.cpp
 )
 
 add_executable(helix
@@ -38,6 +40,7 @@ add_executable(unit-tests
 	src/tests/test_intrusive_list.cpp
 	src/tests/test_bytecode.cpp
 	src/tests/test_value.cpp
+	src/tests/test_print.cpp
 	src/tests/main.cpp
 	src/tests/catch.hpp
 )

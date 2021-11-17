@@ -39,6 +39,8 @@ namespace Helix
 
 	class Instruction : public intrusive_list_node
 	{
+		using OperandList = std::vector<Value*>;
+
 	public:
 		virtual ~Instruction() { }
 
@@ -57,8 +59,8 @@ namespace Helix
 		inline Value* GetOperand(size_t index) const { return m_Operands[index]; }
 
 	protected:
-		Opcode              m_Opcode = kInsn_Undefined;
-		std::vector<Value*> m_Operands;
+		Opcode      m_Opcode = kInsn_Undefined;
+		OperandList m_Operands;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

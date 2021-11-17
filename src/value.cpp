@@ -37,6 +37,7 @@ namespace std
 using IntegerCacheMap = std::unordered_map<IntegerSignature, ConstantInt*>;
 
 static IntegerCacheMap s_IntegerCache;
+static size_t          s_VirtualRegisterSlot = 1;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -44,6 +45,7 @@ VirtualRegisterName* VirtualRegisterName::Create(const Type* type, const char* n
 {
 	VirtualRegisterName* vreg = new VirtualRegisterName(type);
 	vreg->m_DebugName = name;
+	vreg->m_Slot      = s_VirtualRegisterSlot++;
 	return vreg;
 }
 

@@ -43,7 +43,7 @@ namespace Helix
 		Value(ValueType type, const Type* ty): m_ValueID(type), m_Type(ty) { }
 
 		template <typename T>
-		bool IsA()
+		bool IsA() const
 		{
 			return m_ValueID == ValueTraits<T>::ID;
 		}
@@ -66,6 +66,15 @@ namespace Helix
 		return static_cast<T*>(v);
 	}
 
+	template <typename T>
+	inline const T* value_cast(const Value* v)
+	{
+		if (!v->IsA<T>())
+			return nullptr;
+
+		return static_cast<const T*>(v);
+	}
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	class VirtualRegisterName : public Value
@@ -77,9 +86,11 @@ namespace Helix
 		static VirtualRegisterName* Create(const Type* type);
 
 		const char* GetDebugName() const { return m_DebugName; }
+		size_t GetSlot() const { return m_Slot; }
 
 	private:
 		const char* m_DebugName = nullptr;
+		size_t      m_Slot      = 0;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
