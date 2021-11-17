@@ -1,0 +1,32 @@
+#include "types.h"
+
+using namespace Helix;
+
+#define BUILTIN_TYPE(name) \
+	static const Type* s_##name; \
+	const Type* BuiltinTypes::Get##name() { return s_##name; }
+
+BUILTIN_TYPE(Int8);
+BUILTIN_TYPE(Int16);
+BUILTIN_TYPE(Int32);
+BUILTIN_TYPE(Int64);
+
+BUILTIN_TYPE(Float32);
+BUILTIN_TYPE(Float64);
+
+const Type* Type::Create(TypeID base)
+{
+	const Type* type = new Type(base);
+	return type;
+}
+
+void BuiltinTypes::Init()
+{
+	s_Int8 = Type::Create(kType_Int8);
+	s_Int16 = Type::Create(kType_Int16);
+	s_Int32 = Type::Create(kType_Int32);
+	s_Int64 = Type::Create(kType_Int64);
+
+	s_Float32 = Type::Create(kType_Float32);
+	s_Float64 = Type::Create(kType_Float64);
+}

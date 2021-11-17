@@ -1,4 +1,5 @@
 #include "frontend.h"
+#include "instructions.h"
 
 int main(int argc, const char** argv)
 {

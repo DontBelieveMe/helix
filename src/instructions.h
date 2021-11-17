@@ -3,6 +3,8 @@
 #include "intrusive_list.h"
 #include "value.h"
 
+#include <vector>
+
 namespace Helix
 {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,22 +26,33 @@ namespace Helix
 			kInsn_Shl,
 			kInsn_Shr,
 			kInsn_Xor,
-		kInsnEnd_BinaryOps
+		kInsnEnd_BinaryOps,
+
+		kInsn_Undefined
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	class Instruction : public intrusive_list_node, public Value
+	class Instruction : public intrusive_list_node
 	{
 	public:
+		Instruction(Opcode opcode, size_t nOperands)
+			: m_Opcode(opcode)
+		{
+			m_Operands.resize(nOperands);
+		}
+
 		Instruction(Opcode opcode)
 			: m_Opcode(opcode) { }
 
 		Opcode GetOpcode() const { return m_Opcode; }
 
-	private:
-		Opcode m_Opcode;
+		inline size_t GetCountOperands() const { return m_Operands.size(); }
+		inline Value* GetOperand(size_t index) const { return m_Operands[index]; }
 
+	protected:
+		Opcode              m_Opcode = kInsn_Undefined;
+		std::vector<Value*> m_Operands;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,10 +60,10 @@ namespace Helix
 	class BinOp : public Instruction
 	{
 	public:
-		BinOp(Opcode opcode)
-			: Instruction(opcode)
-		{ }
+		BinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	BinOp* CreateBinaryOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
 }
