@@ -138,3 +138,59 @@ TEST_CASE("Muliple random insertions (insert_before)", "[intrusive_list]")
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("insert_before end() on empty list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+	Helix::intrusive_list<MyInteger> ints;
+
+	MyInteger* a = alloc.Parent(new MyInteger(123));
+
+	ints.insert_before(ints.end(), a);
+
+	REQUIRE(ints.begin()->value == 123);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("insert_before begin() on empty list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+	Helix::intrusive_list<MyInteger> ints;
+
+	MyInteger* a = alloc.Parent(new MyInteger(123));
+
+	ints.insert_before(ints.begin(), a);
+
+	REQUIRE(ints.begin()->value == 123);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("insert_after begin() on empty list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+	Helix::intrusive_list<MyInteger> ints;
+
+	MyInteger* a = alloc.Parent(new MyInteger(123));
+
+	ints.insert_after(ints.begin(), a);
+
+	REQUIRE(ints.begin()->value == 123);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("insert_after end() on empty list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+	Helix::intrusive_list<MyInteger> ints;
+
+	MyInteger* a = alloc.Parent(new MyInteger(123));
+
+	ints.insert_after(ints.end(), a);
+
+	REQUIRE(ints.begin()->value == 123);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

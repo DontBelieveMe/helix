@@ -112,9 +112,16 @@ namespace Helix
 
 		iterator insert_after(const iterator& where, T* value)
 		{
-			(void) where;
-			(void) value;
-			return end();
+			T* node = where.m_node;
+			T* next = static_cast<T*>(node->get_next());
+
+			node->set_next(value);
+			next->set_prev(value);
+
+			value->set_prev(node);
+			value->set_next(next);
+
+			return iterator(value);
 		}
 
 		void push_back(T* value) { this->insert_before(end(), value); }
