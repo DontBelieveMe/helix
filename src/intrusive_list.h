@@ -112,6 +112,8 @@ namespace Helix
 
 		iterator insert_after(const iterator& where, T* value)
 		{
+			(void) where;
+			(void) value;
 			return end();
 		}
 

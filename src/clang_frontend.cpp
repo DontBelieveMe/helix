@@ -92,6 +92,9 @@ void ParserASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
 
 std::unique_ptr<clang::ASTConsumer> ParserAction::CreateASTConsumer(clang::CompilerInstance& ci, clang::StringRef inFile)
 {
+	(void) ci;
+	(void) inFile;
+
 	return std::make_unique<ParserASTConsumer>();
 }
 
