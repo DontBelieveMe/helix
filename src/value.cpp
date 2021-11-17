@@ -40,18 +40,18 @@ static IntegerCacheMap s_IntegerCache;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VirtualRegisterName* VirtualRegisterName::Create(const char* name)
+VirtualRegisterName* VirtualRegisterName::Create(const Type* type, const char* name)
 {
-	VirtualRegisterName* vreg = new VirtualRegisterName();
+	VirtualRegisterName* vreg = new VirtualRegisterName(type);
 	vreg->m_DebugName = name;
 	return vreg;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VirtualRegisterName* VirtualRegisterName::Create()
+VirtualRegisterName* VirtualRegisterName::Create(const Type* type)
 {
-	return VirtualRegisterName::Create(nullptr);
+	return VirtualRegisterName::Create(type, nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,8 +63,7 @@ ConstantInt* ConstantInt::Create(const Type* ty, Integer value)
 	if (it != s_IntegerCache.end())
 		return it->second;
 
-	ConstantInt* ci = new ConstantInt();
-	ci->m_Type      = ty;
+	ConstantInt* ci = new ConstantInt(ty);
 	ci->m_Integer   = value;
 
 	const IntegerSignature sig { ty, value };

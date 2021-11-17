@@ -6,7 +6,7 @@ namespace Helix
 {
 	class Instruction;
 	
-	class BasicBlock
+	class BasicBlock : public intrusive_list_node
 	{
 	private:
 		using InstructionList = intrusive_list<Instruction>;

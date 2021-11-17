@@ -40,16 +40,19 @@ namespace Helix
 	class Value
 	{
 	public:
-		Value(ValueType type): m_Type(type) { }
+		Value(ValueType type, const Type* ty): m_ValueID(type), m_Type(ty) { }
 
 		template <typename T>
 		bool IsA()
 		{
-			return m_Type == ValueTraits<T>::ID;
+			return m_ValueID == ValueTraits<T>::ID;
 		}
 
+		inline const Type* GetType() const { return m_Type; }
+
 	private:
-		ValueType m_Type = kValue_Undefined;
+		ValueType m_ValueID = kValue_Undefined;
+		const Type*  m_Type = nullptr;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,10 +71,10 @@ namespace Helix
 	class VirtualRegisterName : public Value
 	{
 	public:
-		VirtualRegisterName(): Value(kValue_VirtualRegisterName) { }
+		VirtualRegisterName(const Type* ty): Value(kValue_VirtualRegisterName, ty) { }
 
-		static VirtualRegisterName* Create(const char* name);
-		static VirtualRegisterName* Create();
+		static VirtualRegisterName* Create(const Type* type, const char* name);
+		static VirtualRegisterName* Create(const Type* type);
 
 		const char* GetDebugName() const { return m_DebugName; }
 
@@ -84,16 +87,14 @@ namespace Helix
 	class ConstantInt : public Value
 	{
 	public:
-		ConstantInt(): Value(kValue_ConstantInt) { }
+		ConstantInt(const Type* ty): Value(kValue_ConstantInt, ty) { }
 
 		static ConstantInt* Create(const Type* ty, Integer value);
 
 		inline Integer GetIntegralValue() const { return m_Integer; }
-		inline const Type* GetType() const { return m_Type; }
 
 	private:
 		Integer     m_Integer = 0;
-		const Type* m_Type    = nullptr;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,7 +102,7 @@ namespace Helix
 	class ConstantFloat : public Value
 	{
 	public:
-		ConstantFloat(): Value(kValue_ConstantFloat) { }		
+		ConstantFloat(const Type* ty): Value(kValue_ConstantFloat, ty) { }
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

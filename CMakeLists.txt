@@ -20,6 +20,8 @@ add_library(helix-ir
 	src/types.h
 	src/types.cpp
 	src/hash.h
+	src/helix.h
+	src/helix.cpp
 )
 
 add_executable(helix

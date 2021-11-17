@@ -1,13 +1,45 @@
 #include "catch.hpp"
+
 #include "..\instructions.h"
+#include "..\basic_block.h"
 
 using namespace Helix;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+TEST_CASE("Inserting an instruction into a basic block", "[Bytecode]")
+{
+	const Type* i32 = BuiltinTypes::GetInt32();
+
+	VirtualRegisterName* lhs = VirtualRegisterName::Create(i32, "lhs");
+	VirtualRegisterName* rhs = VirtualRegisterName::Create(i32, "rhs");
+	VirtualRegisterName* result = VirtualRegisterName::Create(i32, "temp");
+	VirtualRegisterName* result2 = VirtualRegisterName::Create(i32, "temp");
+
+	Instruction* add = Helix::CreateBinOp(kInsn_IAdd, lhs, rhs, result);
+	Instruction* sub = Helix::CreateBinOp(kInsn_ISub, result, rhs, result2);
+
+	BasicBlock bb;
+
+	auto it = bb.InsertBefore(bb.end(), add);
+	bb.InsertAfter(it, sub);
+
+	Instruction* expected[] = { add, sub };
+
+	bool matches = true;
+	size_t index = 0;
+	for (const Instruction& insn : bb) {
+		matches &= (&insn == expected[index]);
+		index++;
+	}
+	REQUIRE(matches);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST_CASE("value_cast", "[Bytecode]")
 {
-	Value* value = VirtualRegisterName::Create("MyValue");
+	Value* value = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "MyValue");
 
 	ConstantInt*         ci   = value_cast<ConstantInt>(value);
 	VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(value);
@@ -21,11 +53,13 @@ TEST_CASE("value_cast", "[Bytecode]")
 
 TEST_CASE("CreateBinOp Register/Register/Register", "[Bytecode]")
 {
-	VirtualRegisterName* lhs    = VirtualRegisterName::Create("left");
-	VirtualRegisterName* rhs    = VirtualRegisterName::Create("right");
-	VirtualRegisterName* output = VirtualRegisterName::Create("output");
+	const Type* i32 = BuiltinTypes::GetInt32();
 
-	BinOp* add = Helix::CreateBinaryOp(
+	VirtualRegisterName* lhs    = VirtualRegisterName::Create(i32, "left");
+	VirtualRegisterName* rhs    = VirtualRegisterName::Create(i32, "right");
+	VirtualRegisterName* output = VirtualRegisterName::Create(i32, "output");
+
+	BinOpInsn* add = Helix::CreateBinOp(
 		kInsn_IAdd,
 		lhs,
 		rhs,
@@ -45,9 +79,9 @@ TEST_CASE("CreateBinOp ConstantInt/ConstantInt/Register", "[Bytecode]")
 	ConstantInt* lhs = ConstantInt::Create(BuiltinTypes::GetInt32(), 123);
 	ConstantInt* rhs = ConstantInt::Create(BuiltinTypes::GetInt32(), 54);
 
-	VirtualRegisterName* output = VirtualRegisterName::Create("output");
+	VirtualRegisterName* output = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "output");
 
-	BinOp* add = Helix::CreateBinaryOp(
+	BinOpInsn* add = Helix::CreateBinOp(
 		kInsn_IAdd,
 		lhs,
 		rhs,

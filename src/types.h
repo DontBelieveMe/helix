@@ -36,6 +36,7 @@ namespace Helix
 	namespace BuiltinTypes
 	{
 		void Init();
+		void Destroy();
 
 		const Type* GetInt32();
 		const Type* GetInt64();

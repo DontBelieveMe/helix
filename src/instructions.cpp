@@ -1,21 +1,48 @@
 #include "instructions.h"
 
+using namespace Helix;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Helix::BinOp* Helix::CreateBinaryOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
+Helix::BinOpInsn* Helix::CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
 {
-	Helix::BinOp* op = new Helix::BinOp(opcode, lhs, rhs, result);
-	return op;
+	return new BinOpInsn(opcode, lhs, rhs, result);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Helix::BinOp::BinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
+BinOpInsn::BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
 	: Instruction(opcode, 3)
 {
 	m_Operands[0] = lhs;
 	m_Operands[1] = rhs;
 	m_Operands[2] = result;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+StoreInsn::StoreInsn(Value* src, VirtualRegisterName* dst)
+	: Instruction(kInsn_Store, 2)
+{
+	m_Operands[0] = src;
+	m_Operands[1] = dst;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+LoadInsn::LoadInsn(VirtualRegisterName* src, VirtualRegisterName* dst)
+	: Instruction(kInsn_Load, 2)
+{
+	m_Operands[0] = src;
+	m_Operands[1] = dst;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+StackAllocInsn::StackAllocInsn(VirtualRegisterName* dst)
+	: Instruction(kInsn_StackAlloc, 1)
+{
+	m_Operands[0] = dst;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

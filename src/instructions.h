@@ -28,6 +28,10 @@ namespace Helix
 			kInsn_Xor,
 		kInsnEnd_BinaryOps,
 
+		kInsn_Load,
+		kInsn_Store,
+		kInsn_StackAlloc,
+
 		kInsn_Undefined
 	};
 
@@ -36,6 +40,8 @@ namespace Helix
 	class Instruction : public intrusive_list_node
 	{
 	public:
+		virtual ~Instruction() { }
+
 		Instruction(Opcode opcode, size_t nOperands)
 			: m_Opcode(opcode)
 		{
@@ -57,13 +63,51 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	class BinOp : public Instruction
+	class BinOpInsn : public Instruction
 	{
 	public:
-		BinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+		BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	BinOp* CreateBinaryOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+	class StoreInsn : public Instruction
+	{
+	public:
+		StoreInsn(Value* src, VirtualRegisterName* dst);
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class LoadInsn : public Instruction
+	{
+	public:
+		LoadInsn(VirtualRegisterName* src, VirtualRegisterName* dst);
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class StackAllocInsn : public Instruction
+	{
+	public:
+		StackAllocInsn(VirtualRegisterName* dst);
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/// Create a binary operation such that `<op> <lhs>, <rhs>, <result>`
+	BinOpInsn* CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+
+	/// Create a store instruction that stores value 'src' at memory location
+	/// given by 'dst' (`store <src>, <dst>`)
+	StoreInsn* CreateStore(Value* src, VirtualRegisterName* dst);
+
+	/// Create a load instruction that loads a value from the memory address given in 'src'
+	/// to the register 'dst' (`load <src>, <dst>`)
+	LoadInsn* CreateLoad(VirtualRegisterName* src, VirtualRegisterName* dst);
+
+	/// Create a stack_alloc instruction that allocates space on the stack and returns
+	/// a pointer (memory address) to that space in register 'dst'.
+	/// The type of register 'dst' specifies the amount of memory that should be allocated.
+	StackAllocInsn* CreateStackAlloc(VirtualRegisterName* dst);
 }
