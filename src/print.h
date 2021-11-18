@@ -1,6 +1,7 @@
 #pragma once
 
 #include "instructions.h"
+#include "basic_block.h"
 
 namespace Helix
 {
@@ -30,9 +31,8 @@ namespace Helix
 		}
 
 	private:
-		FILE* m_File = nullptr;
-
-		char* m_StringBuf = nullptr;
+		FILE*  m_File          = nullptr;
+		char*  m_StringBuf     = nullptr;
 		size_t m_StringBufSize = 0;
 		size_t m_StringBufHead = 0;
 	};
@@ -41,4 +41,13 @@ namespace Helix
 
 	void Print(TextOutputStream& out, const Instruction& insn);
 	void Print(TextOutputStream& out, const Value& value);
+	void Print(TextOutputStream& out, const BasicBlock& bb);
+
+	/// Utility funciton for printing any 'Print(...)' overloaded type to stdout
+	template <typename T>
+	inline void DebugDump(const T& value)
+	{
+		TextOutputStream out(stdout);
+		Print(out, value);
+	}
 }

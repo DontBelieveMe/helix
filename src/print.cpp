@@ -40,7 +40,7 @@ void Helix::Print(TextOutputStream& out, const Value& value)
 		const char* name = vreg->GetDebugName();
 
 		if (name) {
-			out.Write("%s", name);
+			out.Write("%%%s", name);
 		} else {
 			out.Write("%%%zu", vreg->GetSlot());
 		}
@@ -74,6 +74,27 @@ void Helix::Print(TextOutputStream& out, const Instruction& insn)
 		if (i < nOperands - 1) {
 			out.Write(", ");
 		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Helix::Print(TextOutputStream& out, const BasicBlock& bb)
+{
+	const char* name = bb.GetName();
+
+	if (name) {
+		out.Write(".%s", name);
+	} else {
+		out.Write(".<unnamed>");
+	}
+
+	out.Write(":\n");
+
+	for (const Instruction& insn : bb) {
+		out.Write("\t");
+		Print(out, insn);
+		out.Write("\n");
 	}
 }
 

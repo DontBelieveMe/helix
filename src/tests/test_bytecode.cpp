@@ -2,6 +2,7 @@
 
 #include "..\instructions.h"
 #include "..\basic_block.h"
+#include "..\print.h"
 
 using namespace Helix;
 
@@ -14,21 +15,21 @@ TEST_CASE("Inserting an instruction into a basic block", "[Bytecode]")
 	VirtualRegisterName* lhs = VirtualRegisterName::Create(i32, "lhs");
 	VirtualRegisterName* rhs = VirtualRegisterName::Create(i32, "rhs");
 	VirtualRegisterName* result = VirtualRegisterName::Create(i32, "temp");
-	VirtualRegisterName* result2 = VirtualRegisterName::Create(i32, "temp");
+	VirtualRegisterName* result2 = VirtualRegisterName::Create(i32, "temp2");
 
 	Instruction* add = Helix::CreateBinOp(kInsn_IAdd, lhs, rhs, result);
 	Instruction* sub = Helix::CreateBinOp(kInsn_ISub, result, rhs, result2);
 
-	BasicBlock bb;
+	BasicBlock *bb = BasicBlock::Create("head");
 
-	auto it = bb.InsertBefore(bb.end(), add);
-	bb.InsertAfter(it, sub);
+	auto it = bb->InsertBefore(bb->end(), add);
+	bb->InsertAfter(it, sub);
 
 	Instruction* expected[] = { add, sub };
 
 	bool matches = true;
 	size_t index = 0;
-	for (const Instruction& insn : bb) {
+	for (const Instruction& insn : *bb) {
 		matches &= (&insn == expected[index]);
 		index++;
 	}

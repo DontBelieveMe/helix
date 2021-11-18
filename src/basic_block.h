@@ -11,6 +11,8 @@ namespace Helix
 	private:
 		using InstructionList = intrusive_list<Instruction>;
 
+		BasicBlock() = default;
+
 	public:
 		using iterator       = InstructionList::iterator;
 		using const_iterator = InstructionList::const_iterator;
@@ -23,7 +25,13 @@ namespace Helix
 		iterator InsertBefore(iterator where, Instruction* insn);
 		iterator InsertAfter(iterator where, Instruction* insn);
 
-	public:
+		static BasicBlock* Create(const char* name);
+		static BasicBlock* Create();
+
+		const char* GetName() const { return Name; }
+
+	private:
 		InstructionList Instructions;
+		const char*     Name;
 	};
 }
