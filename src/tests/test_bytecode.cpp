@@ -8,6 +8,38 @@ using namespace Helix;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+TEST_CASE("Creating a condtional branch", "[Bytecode]")
+{
+	BasicBlock* trueTarget = BasicBlock::Create("true");
+	BasicBlock* falseTarget = BasicBlock::Create("false");
+
+	Value* trueConstant = ConstantInt::Create(BuiltinTypes::GetInt32(), 1);
+
+	BasicBlock* head = BasicBlock::Create("head");
+	Instruction* cbr = Helix::CreateConditionalBranch(trueTarget, falseTarget, trueConstant);
+	head->InsertBefore(head->end(), cbr);
+
+	REQUIRE(value_cast<BasicBlock>(cbr->GetOperand(0)) == trueTarget);
+	REQUIRE(value_cast<BasicBlock>(cbr->GetOperand(1)) == falseTarget);
+	REQUIRE(cbr->GetOperand(2) == trueConstant);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("Creating an unconditional branch", "[Bytecode]")
+{
+	BasicBlock* head = BasicBlock::Create("head");
+	BasicBlock* target = BasicBlock::Create("target");
+	
+	Instruction* br = Helix::CreateUnconditionalBranch(target);
+	head->InsertBefore(head->end(), br);
+
+	BasicBlock* tmp = value_cast<BasicBlock>(br->GetOperand(0));
+	REQUIRE(tmp == target);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST_CASE("Inserting an instruction into a basic block", "[Bytecode]")
 {
 	const Type* i32 = BuiltinTypes::GetInt32();

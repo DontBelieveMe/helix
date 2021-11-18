@@ -32,6 +32,8 @@ namespace Helix
 		kValue_VirtualRegisterName,
 		kValue_ConstantInt,
 		kValue_ConstantFloat,
+		kValue_BasicBlock,
+		kValue_Function,
 		kValue_Undefined
 	};
 
@@ -123,5 +125,4 @@ namespace Helix
 	IMPLEMENT_VALUE_TRAITS(ConstantFloat, kValue_ConstantFloat);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }

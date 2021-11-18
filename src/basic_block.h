@@ -1,17 +1,18 @@
 #pragma once
 
 #include "intrusive_list.h"
+#include "value.h"
 
 namespace Helix
 {
 	class Instruction;
 	
-	class BasicBlock : public intrusive_list_node
+	class BasicBlock : public Value
 	{
 	private:
 		using InstructionList = intrusive_list<Instruction>;
 
-		BasicBlock() = default;
+		BasicBlock();
 
 	public:
 		using iterator       = InstructionList::iterator;
@@ -34,4 +35,6 @@ namespace Helix
 		InstructionList Instructions;
 		const char*     Name;
 	};
+
+	IMPLEMENT_VALUE_TRAITS(BasicBlock, kValue_BasicBlock);
 }

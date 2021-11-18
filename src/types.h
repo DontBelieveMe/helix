@@ -14,6 +14,8 @@ namespace Helix
 		kType_Int32,
 		kType_Int64,
 
+		kType_LabelType,
+
 		kType_Undefined
 	};
 
@@ -31,6 +33,7 @@ namespace Helix
 		TypeID m_BaseID = kType_Undefined;
 	};
 
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	namespace BuiltinTypes
@@ -45,6 +48,8 @@ namespace Helix
 
 		const Type* GetFloat32();
 		const Type* GetFloat64();
+
+		const Type* GetLabelType();
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

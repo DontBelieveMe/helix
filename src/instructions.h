@@ -7,6 +7,8 @@
 
 namespace Helix
 {
+	class BasicBlock;
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	enum Opcode
@@ -32,7 +34,15 @@ namespace Helix
 		kInsn_Store,
 		kInsn_StackAlloc,
 
-		kInsn_Undefined
+		kInsn_Cbr,
+		kInsn_Br,
+		kInsn_Call,
+		kInsn_Ret,
+
+		kInsn_FCmp,
+		kInsn_ICmp,
+
+		kInsn_Undefined,
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +105,62 @@ namespace Helix
 		StackAllocInsn(VirtualRegisterName* dst);
 	};
 
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class ConditionalBranchInsn : public Instruction
+	{
+	public:
+		ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* falseBB, Value* cond);
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class UnconditionalBranchInsn : public Instruction
+	{
+	public:
+		UnconditionalBranchInsn(BasicBlock* bb);
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class CallInsn : public Instruction
+	{
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class RetInsn : public Instruction
+	{
+	public:
+		RetInsn(): Instruction(kInsn_Ret, 0) { }
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class CompareInsn : public Instruction
+	{
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/// Create a comparison instruction that compares 'lhs' and 'rhs' and stores the result to the given
+	/// 'result' register.
+	CompareInsn* CreateCompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+
+	/// Create a conditional branch that, if the given 'cond' value evaluates to true
+	/// jumps to the basic block 'trueBB', and if it's false jump to falseBB.
+	ConditionalBranchInsn* CreateConditionalBranch(BasicBlock* trueBB, BasicBlock* falseBB, Value* cond);
+
+	/// Create a unconditional branch that will always jump to the given basic block.
+	UnconditionalBranchInsn* CreateUnconditionalBranch(BasicBlock* bb);
+
+	/// Create a call that executes the given function, passing the given list of parameters.
+	/// Contrl flow is returned to the instruction after the call.
+	CallInsn* CreateCall(/* Function* fn*/);
+
+	/// Create a return instruction, that returns no value from the current function (void)
+	RetInsn* CreateRet();
 
 	/// Create a binary operation such that `<op> <lhs>, <rhs>, <result>`
 	BinOpInsn* CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
