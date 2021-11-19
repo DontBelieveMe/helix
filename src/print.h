@@ -2,6 +2,7 @@
 
 #include "instructions.h"
 #include "basic_block.h"
+#include "function.h"
 
 namespace Helix
 {
@@ -42,6 +43,7 @@ namespace Helix
 	void Print(TextOutputStream& out, const Instruction& insn);
 	void Print(TextOutputStream& out, const Value& value);
 	void Print(TextOutputStream& out, const BasicBlock& bb);
+	void Print(TextOutputStream& out, const Function& fn);
 
 	/// Utility funciton for printing any 'Print(...)' overloaded type to stdout
 	template <typename T>
