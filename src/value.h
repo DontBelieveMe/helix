@@ -78,6 +78,37 @@ namespace Helix
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	class Function;
+	class BasicBlock;
+
+	class FunctionBranchTarget : public Value
+	{
+	public:
+		FunctionBranchTarget(Function* parent)
+			: Value(kValue_Function, BuiltinTypes::GetFunctionType()),
+		      m_Parent(parent)
+		{ }
+
+		Function* GetParent() const { return m_Parent; }
+
+	private:
+		Function* m_Parent;
+	};
+
+	class BlockBranchTarget : public Value
+	{
+	public:
+		BlockBranchTarget(BasicBlock* parent)
+			: Value(kValue_BasicBlock, BuiltinTypes::GetLabelType()),
+		      m_Parent(parent)
+		{ }
+
+		BasicBlock* GetParent() const { return m_Parent; }
+
+	private:
+		BasicBlock* m_Parent;
+	};
 
 	class VirtualRegisterName : public Value
 	{
@@ -123,6 +154,9 @@ namespace Helix
 	IMPLEMENT_VALUE_TRAITS(VirtualRegisterName, kValue_VirtualRegisterName);
 	IMPLEMENT_VALUE_TRAITS(ConstantInt, kValue_ConstantInt);
 	IMPLEMENT_VALUE_TRAITS(ConstantFloat, kValue_ConstantFloat);
+
+	IMPLEMENT_VALUE_TRAITS(FunctionBranchTarget, kValue_Function);
+	IMPLEMENT_VALUE_TRAITS(BlockBranchTarget, kValue_BasicBlock);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

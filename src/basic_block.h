@@ -2,12 +2,11 @@
 
 #include "intrusive_list.h"
 #include "value.h"
+#include "instructions.h"
 
 namespace Helix
 {
-	class Instruction;
-	
-	class BasicBlock : public Value
+	class BasicBlock : public intrusive_list_node, public Value
 	{
 	private:
 		using InstructionList = intrusive_list<Instruction>;
@@ -31,10 +30,11 @@ namespace Helix
 
 		const char* GetName() const { return Name; }
 
+		BlockBranchTarget* GetBranchTarget() { return &BranchTarget; }
+
 	private:
 		InstructionList Instructions;
 		const char*     Name;
+		BlockBranchTarget BranchTarget;
 	};
-
-	IMPLEMENT_VALUE_TRAITS(BasicBlock, kValue_BasicBlock);
 }

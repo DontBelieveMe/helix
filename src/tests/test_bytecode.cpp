@@ -72,8 +72,8 @@ TEST_CASE("Creating a condtional branch", "[Bytecode]")
 	Instruction* cbr = Helix::CreateConditionalBranch(trueTarget, falseTarget, trueConstant);
 	head->InsertBefore(head->end(), cbr);
 
-	REQUIRE(value_cast<BasicBlock>(cbr->GetOperand(0)) == trueTarget);
-	REQUIRE(value_cast<BasicBlock>(cbr->GetOperand(1)) == falseTarget);
+	REQUIRE(value_cast<BlockBranchTarget>(cbr->GetOperand(0))->GetParent() == trueTarget);
+	REQUIRE(value_cast<BlockBranchTarget>(cbr->GetOperand(1))->GetParent() == falseTarget);
 	REQUIRE(cbr->GetOperand(2) == trueConstant);
 }
 
@@ -87,8 +87,8 @@ TEST_CASE("Creating an unconditional branch", "[Bytecode]")
 	Instruction* br = Helix::CreateUnconditionalBranch(target);
 	head->InsertBefore(head->end(), br);
 
-	BasicBlock* tmp = value_cast<BasicBlock>(br->GetOperand(0));
-	REQUIRE(tmp == target);
+	BlockBranchTarget* tmp = value_cast<BlockBranchTarget>(br->GetOperand(0));
+	REQUIRE(tmp->GetParent() == target);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

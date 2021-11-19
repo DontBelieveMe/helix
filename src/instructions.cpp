@@ -64,8 +64,8 @@ RetInsn* Helix::CreateRet()
 ConditionalBranchInsn::ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* falseBB, Value* cond)
 	: Instruction(kInsn_Cbr, 3)
 {
-	m_Operands[0] = trueBB;
-	m_Operands[1] = falseBB;
+	m_Operands[0] = trueBB->GetBranchTarget();
+	m_Operands[1] = falseBB->GetBranchTarget();
 	m_Operands[2] = cond;
 }
 
@@ -74,7 +74,7 @@ ConditionalBranchInsn::ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* fal
 UnconditionalBranchInsn::UnconditionalBranchInsn(BasicBlock* bb)
 	: Instruction(kInsn_Br, 1)
 {
-	m_Operands[0] = bb;
+	m_Operands[0] = bb->GetBranchTarget();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -29,6 +29,13 @@ namespace Helix
 		intrusive_list_node* m_prev = nullptr;
 	};
 
+	template <typename T>
+	class typed_intrusive_node
+	{
+	public:
+	private:
+	};
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	template <typename T>

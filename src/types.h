@@ -15,6 +15,7 @@ namespace Helix
 		kType_Int64,
 
 		kType_LabelType,
+		kType_FunctionType,
 
 		kType_Undefined
 	};
@@ -50,6 +51,7 @@ namespace Helix
 		const Type* GetFloat64();
 
 		const Type* GetLabelType();
+		const Type* GetFunctionType();
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
