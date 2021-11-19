@@ -8,6 +8,59 @@ using namespace Helix;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+TEST_CASE("Verify opcode categories", "[Bytecode]")
+{
+	REQUIRE(IsCompare(kInsn_FCmp));
+	REQUIRE(IsCompare(kInsn_ICmp));
+	REQUIRE(!IsCompare(kInsn_IAdd));
+	REQUIRE(IsBinaryOp(kInsn_IAdd));
+
+	REQUIRE(IsTerminator(kInsn_Cbr));
+	REQUIRE(IsBranch(kInsn_Cbr));
+
+	REQUIRE(IsTerminator(kInsn_Ret));
+	REQUIRE(IsBranch(kInsn_Ret));
+
+	REQUIRE(!IsTerminator(kInsn_Call));
+	REQUIRE(IsBranch(kInsn_Call));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("Creating a floating point compare", "[Bytecode]")
+{
+	BasicBlock* bb = BasicBlock::Create();
+
+	Value* lhs = ConstantInt::Create(BuiltinTypes::GetInt32(), 0);
+	Value* rhs = ConstantInt::Create(BuiltinTypes::GetInt32(), 1);
+
+	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
+
+	Instruction* fcmp = Helix::CreateCompare(kInsn_FCmp, lhs, rhs, result);
+
+	REQUIRE(fcmp->GetOperand(0) == lhs);
+	REQUIRE(fcmp->GetOperand(1) == rhs);
+	REQUIRE(fcmp->GetOperand(2) == result);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("Creating a integral compare", "[Bytecode]")
+{
+	BasicBlock* bb = BasicBlock::Create();
+
+	Value* v = ConstantInt::Create(BuiltinTypes::GetInt32(), 454);
+	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
+
+	Instruction* fcmp = Helix::CreateCompare(kInsn_ICmp, v, v, result);
+
+	REQUIRE(fcmp->GetOperand(0) == v);
+	REQUIRE(fcmp->GetOperand(1) == v);
+	REQUIRE(fcmp->GetOperand(2) == result);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST_CASE("Creating a condtional branch", "[Bytecode]")
 {
 	BasicBlock* trueTarget = BasicBlock::Create("true");

@@ -13,7 +13,7 @@ namespace Helix
 
 	enum Opcode
 	{
-		kInsnStart_BinaryOps,
+		kInsnStart_BinaryOp,
 			kInsn_IAdd,
 			kInsn_ISub,
 			kInsn_IMul,
@@ -28,22 +28,40 @@ namespace Helix
 			kInsn_Shl,
 			kInsn_Shr,
 			kInsn_Xor,
-		kInsnEnd_BinaryOps,
+		kInsnEnd_BinaryOp,
 
 		kInsn_Load,
 		kInsn_Store,
 		kInsn_StackAlloc,
 
-		kInsn_Cbr,
-		kInsn_Br,
-		kInsn_Call,
-		kInsn_Ret,
+		kInsnStart_Branch,
+			kInsnStart_Terminator,
+				kInsn_Cbr,
+				kInsn_Br,
+				kInsn_Ret,
+			kInsnEnd_Terminator,
 
-		kInsn_FCmp,
-		kInsn_ICmp,
+			kInsn_Call,
+		kInsnEnd_Branch,
+
+		kInsnStart_Compare,
+			kInsn_FCmp,
+			kInsn_ICmp,
+		kInsnEnd_Compare,
 
 		kInsn_Undefined,
 	};
+
+#define IMPLEMENT_OPCODE_CATEGORY_IDENTITY(category) \
+	constexpr inline bool Is##category(Opcode opc) \
+	{ \
+		return opc > kInsnStart_##category && opc < kInsnEnd_##category; \
+	}
+
+	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Compare)
+	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(BinaryOp)
+	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Branch)
+	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Terminator)
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -140,13 +158,21 @@ namespace Helix
 
 	class CompareInsn : public Instruction
 	{
+	public:
+		CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
+			: Instruction(cmpOpcode, 3)
+		{
+			m_Operands[0] = lhs;
+			m_Operands[1] = rhs;
+			m_Operands[2] = result;
+		}
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/// Create a comparison instruction that compares 'lhs' and 'rhs' and stores the result to the given
 	/// 'result' register.
-	CompareInsn* CreateCompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+	CompareInsn* CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
 
 	/// Create a conditional branch that, if the given 'cond' value evaluates to true
 	/// jumps to the basic block 'trueBB', and if it's false jump to falseBB.

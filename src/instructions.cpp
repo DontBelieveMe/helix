@@ -5,6 +5,13 @@ using namespace Helix;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+CompareInsn* Helix::CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
+{
+	return new CompareInsn(cmpOpcode, lhs, rhs, result);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 BinOpInsn* Helix::CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
 {
 	return new BinOpInsn(opcode, lhs, rhs, result);
