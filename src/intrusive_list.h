@@ -49,6 +49,9 @@ namespace Helix
 		friend intrusive_list<T>;
 
 	public:
+		intrusive_list_iterator()
+			: m_node(nullptr) { }
+
 		intrusive_list_iterator(T* node)
 			: m_node(node) { }
 
