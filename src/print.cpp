@@ -22,6 +22,12 @@ const char* Helix::GetOpcodeName(Opcode opcode)
 	case kInsn_Load:       return "load";
 	case kInsn_Store:      return "store";
 	case kInsn_StackAlloc: return "stack_alloc";
+	case kInsn_Ret:        return "ret";
+	case kInsn_Br:         return "br";
+	case kInsn_Cbr:        return "cbr";
+	case kInsn_Call:       return "call";
+	case kInsn_FCmp:       return "fcmp";
+	case kInsn_ICmp:       return "icmp";
 
 	case kInsn_Undefined:
 	default:
