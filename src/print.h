@@ -45,7 +45,7 @@ namespace Helix
 	void Print(TextOutputStream& out, const BasicBlock& bb);
 	void Print(TextOutputStream& out, const Function& fn);
 
-	/// Utility funciton for printing any 'Print(...)' overloaded type to stdout
+	/// Utility function for printing any 'Print(...)' overloaded type to stdout
 	template <typename T>
 	inline void DebugDump(const T& value)
 	{
