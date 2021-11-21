@@ -55,6 +55,9 @@ namespace Helix
 		intrusive_list_iterator(T* node)
 			: m_node(node) { }
 
+		bool is_valid() const
+			{ return m_node != nullptr; }
+
 		bool operator==(const intrusive_list_iterator<T>& other) const
 			{ return m_node == other.m_node; }
 
