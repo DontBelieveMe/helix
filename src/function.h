@@ -31,6 +31,7 @@ namespace Helix
 		}
 
 		iterator InsertBefore(iterator where, BasicBlock* bb);
+		iterator InsertAfter(iterator where, BasicBlock* bb);
 
 		inline std::string GetName() const { return m_Name; }
 
