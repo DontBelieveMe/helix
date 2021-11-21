@@ -83,7 +83,7 @@ void Helix::Print(TextOutputStream& out, const Instruction& insn)
 void Helix::Print(TextOutputStream& out, const Function& fn)
 {
 	const std::string& name = fn.GetName();
-	out.Write("function %s() {\n");
+	out.Write("function %s() {\n", name.c_str());
 	for (const BasicBlock& bb : fn) {
 		Print(out, bb);
 	}
