@@ -33,48 +33,25 @@ target_link_libraries(Clang::LibTooling INTERFACE
 		clangToolingSyntax.lib
 		LLVMAggressiveInstCombine.lib
 		LLVMAnalysis.lib
-		LLVMAsmParser.lib
-		LLVMAsmPrinter.lib
 		LLVMBinaryFormat.lib
 		LLVMBitReader.lib
 		LLVMBitstreamReader.lib
-		LLVMBitWriter.lib
-		LLVMCFGuard.lib
-		LLVMCodeGen.lib
 		LLVMCore.lib
-		LLVMCoverage.lib
 		LLVMDebugInfoCodeView.lib
-		LLVMDebugInfoDWARF.lib
-		LLVMDebugInfoMSF.lib
 		LLVMDemangle.lib
-		LLVMExtensions.lib
 		LLVMFrontendOpenMP.lib
-		LLVMGlobalISel.lib
 		LLVMInstCombine.lib
-		LLVMInstrumentation.lib
-		LLVMIRReader.lib
-		LLVMLinker.lib
 		LLVMMC.lib
-		LLVMMCDisassembler.lib
 		LLVMMCParser.lib
-		LLVMObjCARCOpts.lib
 		LLVMObject.lib
 		LLVMOption.lib
 		LLVMProfileData.lib
 		LLVMRemarks.lib
 		LLVMScalarOpts.lib
-		LLVMSelectionDAG.lib
 		LLVMSupport.lib
 		LLVMTableGen.lib
 		LLVMTableGenGlobalISel.lib
-		LLVMTarget.lib
 		LLVMTextAPI.lib
 		LLVMTransformUtils.lib
-		LLVMVectorize.lib
-		LLVMX86AsmParser.lib
-		LLVMX86CodeGen.lib
-		LLVMX86Desc.lib
-		LLVMX86Disassembler.lib
-		LLVMX86Info.lib
 )
 
