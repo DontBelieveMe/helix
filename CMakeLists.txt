@@ -26,6 +26,7 @@ add_library(helix-ir
 	src/print.cpp
 	src/function.h
 	src/function.cpp
+	src/core.h
 )
 
 add_executable(helix
