@@ -1,4 +1,5 @@
 #include "frontend.h"
+#include "helix.h"
 
 #include <stdio.h>
 
@@ -11,9 +12,13 @@
 // ****************** IGNORE WARNINGS START ******************
 #pragma warning(push, 0) 
 
+#include <clang/AST/ASTConsumer.h>
+#include <clang/AST/RecursiveASTVisitor.h>
+#include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendActions.h>
-#include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
+
+#include <clang/Tooling/CommonOptionsParser.h>
 
 #include <llvm/Support/CommandLine.h>
 
@@ -28,11 +33,161 @@ static llvm::cl::extrahelp      MoreHelp("\nHelix C/C++ Compiler...\n");
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class ParserASTConsumer : public clang::ASTConsumer
+class CodeGenerator : public clang::RecursiveASTVisitor<CodeGenerator>
+{
+public:
+	bool VisitFunctionDecl(clang::FunctionDecl* decl);
+	bool VisitReturnStmt(clang::ReturnStmt* returnStmt);
+	bool VisitVarDecl(clang::VarDecl* varDecl);
+
+	std::vector<Helix::Function*> GetFunctions() { return m_Functions; }
+
+private:
+	Helix::BasicBlock* CreateBasicBlock()
+	{
+		Helix::BasicBlock* bb = Helix::BasicBlock::Create();
+		m_InstructionIterator = bb->begin();
+		return bb;
+	}
+
+	void EmitBasicBlock(Helix::BasicBlock* bb)
+	{
+		m_BasicBlockIterator = m_CurrentFunction->InsertAfter(m_BasicBlockIterator, bb);
+	}
+
+	void EmitInsn(Helix::Instruction* insn)
+	{
+		m_InstructionIterator = m_BasicBlockIterator->InsertAfter(m_InstructionIterator, insn);
+	}
+
+private:
+	Helix::Value* DoExpr(clang::Expr* expr);
+	Helix::Value* DoIntegerLiteral(clang::IntegerLiteral* integerLiteral);
+	Helix::Value* DoBinOp(clang::BinaryOperator* binOp);
+
+private:
+	std::vector<Helix::Function*>    m_Functions;
+	Helix::Function::block_iterator  m_BasicBlockIterator;
+	Helix::BasicBlock::insn_iterator m_InstructionIterator;
+	Helix::Function*                 m_CurrentFunction = nullptr;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoIntegerLiteral(clang::IntegerLiteral* integerLiteral)
+{
+	const llvm::APInt integerLiteralValue = integerLiteral->getValue();
+	const Helix::Integer val = Helix::Integer(integerLiteralValue.getZExtValue());
+	const Helix::Type* ty = Helix::BuiltinTypes::GetInt32();
+
+	return Helix::ConstantInt::Create(ty, val);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
+{
+	Helix::Value* lhs = this->DoExpr(binOp->getLHS());
+	Helix::Value* rhs = this->DoExpr(binOp->getRHS());
+
+	Helix::Opcode opc = Helix::kInsn_Undefined;
+
+	switch (binOp->getOpcode()) {
+	case clang::BO_Add: opc = Helix::kInsn_IAdd; break;
+	case clang::BO_Sub: opc = Helix::kInsn_ISub; break;
+	case clang::BO_Div: opc = Helix::kInsn_IDiv; break;
+	case clang::BO_Mul: opc = Helix::kInsn_IMul; break;
+	default:
+		assert(false);
+	}
+
+	Helix::VirtualRegisterName* result = Helix::VirtualRegisterName::Create(Helix::BuiltinTypes::GetInt32(), "temp");
+	EmitInsn(Helix::CreateBinOp(opc, lhs, rhs, result));
+	return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
+{
+	switch (expr->getStmtClass()) {
+	case clang::Stmt::IntegerLiteralClass:
+		return DoIntegerLiteral(clang::dyn_cast<clang::IntegerLiteral>(expr));
+	case clang::Stmt::BinaryOperatorClass: {
+		return DoBinOp(clang::dyn_cast<clang::BinaryOperator>(expr));
+	default:
+		break;
+	}
+	}
+	return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CodeGenerator::VisitVarDecl(clang::VarDecl* varDecl)
+{
+	if (varDecl->hasInit()) {
+		clang::Expr* initExpr = varDecl->getInit();
+
+		this->DoExpr(initExpr);
+	}
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CodeGenerator::VisitReturnStmt(clang::ReturnStmt* returnStmt)
+{
+	clang::Expr* retValue = returnStmt->getRetValue();
+
+	if (retValue) {
+		this->DoExpr(retValue);
+	}
+
+	EmitInsn(Helix::CreateRet());
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
+{
+	using namespace Helix;
+
+	m_CurrentFunction    = Function::Create(functionDecl->getNameAsString());
+	m_BasicBlockIterator = m_CurrentFunction->begin();
+
+	m_Functions.push_back(m_CurrentFunction);
+
+	EmitBasicBlock(CreateBasicBlock());
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class CodeGenerator_ASTConsumer : public clang::ASTConsumer
 {
 public:
 	virtual void HandleTranslationUnit(clang::ASTContext& ctx);
+
+private:
+	CodeGenerator m_CodeGen;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeGenerator_ASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
+{
+	m_CodeGen.TraverseDecl(ctx.getTranslationUnitDecl());
+
+	const std::vector<Helix::Function*> functions = m_CodeGen.GetFunctions();
+
+	for (Helix::Function* fn : functions) {
+		Helix::DebugDump(*fn);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -45,57 +200,11 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ParserASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
-{
-	clang::TranslationUnitDecl* tu = ctx.getTranslationUnitDecl();
-
-	for (auto it = tu->decls_begin(); it != tu->decls_end(); it++) {
-		if(it->getKind() == clang::Decl::Kind::Function) {
-			const clang::FunctionDecl* fn = it->getAsFunction();
-			const std::string name = fn->getNameAsString();
-
-			printf("function '%s'\n", name.c_str());
-
-			clang::QualType returnType = fn->getReturnType().getCanonicalType();
-
-			const std::string returnTypeString = returnType.getAsString();
-
-			printf("\ttype: '%s'\n", returnTypeString.c_str());
-
-			for (clang::ParmVarDecl* param : fn->parameters()) {
-				const std::string pname = param->getNameAsString();
-				const std::string ptype = param->getType().getCanonicalType().getAsString();
-
-				printf("\tparam '%s' ('%s')\n", pname.c_str(), ptype.c_str());
-			}
-		}
-		else if (it->getKind() == clang::Decl::Kind::Record)
-		{
-			clang::Decl* decl = *it;
-			const clang::RecordDecl* record = llvm::dyn_cast<clang::RecordDecl>(decl);
-			assert(record);
-			const std::string name = record->getNameAsString();
-			printf("struct '%s'\n", name.c_str());
-
-			for (clang::FieldDecl* field : record->fields())
-			{
-				const std::string fname = field->getNameAsString();
-				const std::string ftype = field->getType().getCanonicalType().getAsString();
-
-				printf("\tfield '%s' ('%s')\n", fname.c_str(), ftype.c_str());
-			}
-		}
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 std::unique_ptr<clang::ASTConsumer> ParserAction::CreateASTConsumer(clang::CompilerInstance& ci, clang::StringRef inFile)
 {
-	(void) ci;
-	(void) inFile;
+	(void) ci; (void) inFile;
 
-	return std::make_unique<ParserASTConsumer>();
+	return std::make_unique<CodeGenerator_ASTConsumer>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
