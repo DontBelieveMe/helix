@@ -1,6 +1,10 @@
 #pragma once
 
 #include "instructions.h"
+#include "function.h"
+#include "basic_block.h"
+#include "types.h"
+#include "value.h"
 #include "print.h"
 
 namespace Helix
