@@ -15,6 +15,9 @@ namespace Helix
 		using iterator       = BlockList::iterator;
 		using const_iterator = BlockList::const_iterator;
 
+		using block_iterator = iterator;
+		using const_block_iterator = const_iterator;
+
 		iterator       begin()       { return m_Blocks.begin(); }
 		iterator       end()         { return m_Blocks.end();   }
 		const_iterator begin() const { return m_Blocks.begin(); }

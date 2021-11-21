@@ -17,6 +17,9 @@ namespace Helix
 		using iterator       = InstructionList::iterator;
 		using const_iterator = InstructionList::const_iterator;
 
+		using insn_iterator       = iterator;
+		using const_insn_iterator = const_iterator;
+
 		iterator       begin()       { return Instructions.begin(); }
 		iterator       end()         { return Instructions.end();   }
 		const_iterator begin() const { return Instructions.begin(); }
