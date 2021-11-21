@@ -1,5 +1,6 @@
 #include "frontend.h"
 #include "helix.h"
+#include "core.h"
 
 #include <stdio.h>
 
@@ -52,11 +53,13 @@ private:
 
 	void EmitBasicBlock(Helix::BasicBlock* bb)
 	{
+		helix_assert(m_BasicBlockIterator.is_valid(), "Cannot emit basic block - invalid iterator");
 		m_BasicBlockIterator = m_CurrentFunction->InsertAfter(m_BasicBlockIterator, bb);
 	}
 
 	void EmitInsn(Helix::Instruction* insn)
 	{
+		helix_assert(m_InstructionIterator.is_valid(), "Cannot emit instruction - invalid iterator");
 		m_InstructionIterator = m_BasicBlockIterator->InsertAfter(m_InstructionIterator, insn);
 	}
 
@@ -64,6 +67,8 @@ private:
 	Helix::Value* DoExpr(clang::Expr* expr);
 	Helix::Value* DoIntegerLiteral(clang::IntegerLiteral* integerLiteral);
 	Helix::Value* DoBinOp(clang::BinaryOperator* binOp);
+	Helix::Value* DoImplicitCastExpr(clang::ImplicitCastExpr* implicitCastExpr);
+	Helix::Value* DoDeclRefExpr(clang::DeclRefExpr* declRefExpr);
 
 private:
 	std::vector<Helix::Function*>    m_Functions;
@@ -74,9 +79,20 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Helix::Value* CodeGenerator::DoDeclRefExpr(clang::DeclRefExpr* declRefExpr)
+{
+	helix_warn("DeclRefExpr ignored");
+	return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Helix::Value* CodeGenerator::DoIntegerLiteral(clang::IntegerLiteral* integerLiteral)
 {
 	const llvm::APInt integerLiteralValue = integerLiteral->getValue();
+
+	helix_assert(integerLiteralValue.getBitWidth() <= 64, "Cannot codegen for integers > 64 bits in width");
+
 	const Helix::Integer val = Helix::Integer(integerLiteralValue.getZExtValue());
 	const Helix::Type* ty = Helix::BuiltinTypes::GetInt32();
 
@@ -98,12 +114,21 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 	case clang::BO_Div: opc = Helix::kInsn_IDiv; break;
 	case clang::BO_Mul: opc = Helix::kInsn_IMul; break;
 	default:
-		assert(false);
+		helix_unreachable("Unsupported binary expression");
+		break;
 	}
 
 	Helix::VirtualRegisterName* result = Helix::VirtualRegisterName::Create(Helix::BuiltinTypes::GetInt32(), "temp");
 	EmitInsn(Helix::CreateBinOp(opc, lhs, rhs, result));
 	return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoImplicitCastExpr(clang::ImplicitCastExpr* implicitCastExpr)
+{
+	helix_warn("ImplicitCastExpr ignored");
+	return this->DoExpr(implicitCastExpr->getSubExpr());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,7 +140,12 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		return DoIntegerLiteral(clang::dyn_cast<clang::IntegerLiteral>(expr));
 	case clang::Stmt::BinaryOperatorClass: {
 		return DoBinOp(clang::dyn_cast<clang::BinaryOperator>(expr));
+	case clang::Stmt::ImplicitCastExprClass:
+		return DoImplicitCastExpr(clang::dyn_cast<clang::ImplicitCastExpr>(expr));
+	case clang::Stmt::DeclRefExprClass:
+		return DoDeclRefExpr(clang::dyn_cast<clang::DeclRefExpr>(expr));
 	default:
+		helix_unreachable("Cannot codegen for unsupported expression type");
 		break;
 	}
 	}
@@ -130,6 +160,8 @@ bool CodeGenerator::VisitVarDecl(clang::VarDecl* varDecl)
 		clang::Expr* initExpr = varDecl->getInit();
 
 		this->DoExpr(initExpr);
+	} else {
+		helix_unreachable("Variable declarations without initialisers not supported");
 	}
 
 	return true;
