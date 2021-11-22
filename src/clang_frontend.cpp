@@ -173,20 +173,24 @@ bool CodeGenerator::VisitVarDecl(clang::VarDecl* varDecl)
 {
 	using namespace Helix;
 
-	VirtualRegisterName* vreg = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
-	StackAllocInsn* alloc = Helix::CreateStackAlloc(vreg);
+	// Create a register used to store the address of this variable on the stack...
+	VirtualRegisterName* variableAddressRegister = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
 
-	EmitInsn(alloc);
+	// ... and then actually create the instruction to allocate space for the variable.
+	//
+	//              #FIXME(bwilks): This needs to pass some type information so that
+	//                              it knows how much space to allocate :)
+	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister));
 
 	if (varDecl->hasInit()) {
-		clang::Expr* initExpr = varDecl->getInit();
+		// Evaluate the RHS assignment of this var decl and store it at the
+		// address allocated for this stack var.
+		Helix::Value* value = this->DoExpr(varDecl->getInit());
+		EmitInsn(Helix::CreateStore(value, variableAddressRegister));
 
-		Helix::Value* value = this->DoExpr(initExpr);
-
-		StoreInsn* store = Helix::CreateStore(value, vreg);
-		EmitInsn(store);
-
-		m_ValueMap.insert({varDecl, vreg});
+		// Then create a mapping for this variable declaration so that later uses of this
+		// variable know which address to load from.
+		m_ValueMap.insert({varDecl, variableAddressRegister});
 	} else {
 		helix_unreachable("Variable declarations without initialisers not supported");
 	}
@@ -220,13 +224,23 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 {
 	using namespace Helix;
 
-	m_CurrentFunction    = Function::Create(functionDecl->getNameAsString());
+	// Create the function
+	m_CurrentFunction = Function::Create(functionDecl->getNameAsString());
+
+	// Reset the basic block insert point so that the next basic block will be created
+	// at the start of the new function.
+	//
+	// Create a new basic block so that we can start inserting instructions straight
+	// away, without having to explicitly create one later.
 	m_BasicBlockIterator = m_CurrentFunction->begin();
+	EmitBasicBlock(CreateBasicBlock());
+
+	// And clear the value map, since variables don't persist accross functions.
 	m_ValueMap.clear();
 
+	// Add the new function to the list of functions that we've generated code for in
+	// this translation unit.
 	m_Functions.push_back(m_CurrentFunction);
-
-	EmitBasicBlock(CreateBasicBlock());
 
 	return true;
 }
