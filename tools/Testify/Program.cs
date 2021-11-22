@@ -65,17 +65,43 @@ namespace Testify
             XmlNode expectedOutputNode = xmlDocument.GetElementsByTagName("ExpectedOutput")[0];
             XmlNode flagsNode = xmlDocument.GetElementsByTagName("Flags")[0];
 
-            string expectedOutputString = expectedOutputNode.InnerText.Trim();
+            string expectedOutputString = expectedOutputNode.InnerText.Trim().Replace("\r\n", "\n");
             string flagsString = flagsNode.InnerText;
             string sourceFile = testfile.Replace(".xml", ".c");
             flagsString = sourceFile + " " + flagsString;
             flagsString += " --";
 
+            bool useRegex = false;
+
+            XmlNodeList testFlags = xmlDocument.GetElementsByTagName("TestFlag");
+
+            foreach (XmlNode flag in testFlags)
+            {
+                string name = flag.Attributes["name"].Value;
+                string value = flag.Attributes["value"].Value;
+
+                if (name == "regex")
+                {
+                    useRegex = Convert.ToBoolean(value);
+                }
+            }
+
             Console.Write("{0}... ", sourceFile);
 
             ProgramOutput output = RunExternalProcess("vs2019/Debug/helix.exe", flagsString);
 
-            bool matchesExpectedOuptut = Regex.IsMatch(output.Stdout, expectedOutputString, RegexOptions.Multiline);
+            string stdout = output.Stdout.Trim().Replace("\r\n", "\n");
+
+            bool matchesExpectedOuptut = false;
+            
+            if (useRegex)
+            {
+                matchesExpectedOuptut = Regex.IsMatch(stdout, expectedOutputString, RegexOptions.Multiline);
+            }
+            else
+            {
+                matchesExpectedOuptut = (stdout == expectedOutputString);
+            }
 
             if (matchesExpectedOuptut)
             {
@@ -93,7 +119,8 @@ namespace Testify
                 Console.WriteLine("------------------------- Expected --------------------------");
                 Console.WriteLine(expectedOutputString);
                 Console.WriteLine("------------------------- Actual ----------------------------");
-                Console.WriteLine(output.Stdout);
+                Console.WriteLine(stdout);
+                Console.WriteLine("-------------------------------------------------------------");
                 stats.Fails++;
             }
 
