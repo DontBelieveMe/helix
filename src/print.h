@@ -3,6 +3,9 @@
 #include "instructions.h"
 #include "basic_block.h"
 #include "function.h"
+#include "core.h"
+
+#include <unordered_map>
 
 namespace Helix
 {
@@ -69,6 +72,40 @@ namespace Helix
 		char*  m_StringBuf     = nullptr;
 		size_t m_StringBufSize = 0;
 		size_t m_StringBufHead = 0;
+	};
+
+	class SlotTracker
+	{
+	public:
+		size_t GetValueSlot(const Value* value)
+		{
+			auto it = m_ValueSlots.find(value);
+
+			if (it == m_ValueSlots.end()) {
+				size_t size = m_ValueSlots.size();
+				m_ValueSlots[value] = size;
+				return size;
+			}
+
+			return it->second;
+		}
+
+		size_t GetBasicBlockSlot(const BasicBlock* bb)
+		{
+			auto it = m_BlockSlots.find(bb);
+
+			if (it == m_BlockSlots.end()) {
+				size_t size = m_BlockSlots.size();
+				m_BlockSlots[bb] = size;
+				return size;
+			}
+
+			return it->second;
+		}
+
+	private:
+		std::unordered_map<const Value*, size_t>      m_ValueSlots;
+		std::unordered_map<const BasicBlock*, size_t> m_BlockSlots;
 	};
 
 	/// For a given opcode return a statically allocated string representing

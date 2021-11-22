@@ -1,5 +1,7 @@
 #include "print.h"
 
+using namespace Helix;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const char* kColour_Keyword  = Helix::TextOutputStream::kColour_Green;
@@ -62,7 +64,7 @@ const char* Helix::GetTypeName(Helix::TypeID id)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Helix::Print(TextOutputStream& out, const Value& value)
+static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value& value)
 {
 	if (const ConstantInt* ci = value_cast<ConstantInt>(&value)) {
 		out.SetColour(kColour_Number); out.Write("%llu", ci->GetIntegralValue()); out.ResetColour();
@@ -73,7 +75,8 @@ void Helix::Print(TextOutputStream& out, const Value& value)
 		if (name) {
 			out.Write("%%%s", name);
 		} else {
-			out.Write("%%%zu", vreg->GetSlot());
+			const size_t slot = slots.GetValueSlot(&value);
+			out.Write("%%%zu", slot);
 		}
 	}
 
@@ -87,7 +90,7 @@ void Helix::Print(TextOutputStream& out, const Value& value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Helix::Print(TextOutputStream& out, const Instruction& insn)
+static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instruction& insn)
 {
 	const char* opcodeName = Helix::GetOpcodeName(insn.GetOpcode());
 
@@ -105,7 +108,7 @@ void Helix::Print(TextOutputStream& out, const Instruction& insn)
 		Value* pValue = insn.GetOperand(i);
 
 		if (pValue) {
-			Print(out, *pValue);
+			InternalPrint(slots, out, *pValue);
 		}
 		else {
 			out.Write("?");
@@ -117,10 +120,30 @@ void Helix::Print(TextOutputStream& out, const Instruction& insn)
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void InternalPrint(SlotTracker slots, TextOutputStream& out, const BasicBlock& bb)
+{
+	const char* name = bb.GetName();
+
+	if (name) {
+		out.Write(".%s", name);
+	} else {
+		out.Write(".%zu", slots.GetBasicBlockSlot(&bb));
+	}
+
+	out.Write(":\n");
+
+	for (const Instruction& insn : bb) {
+		out.Write("\t");
+		InternalPrint(slots, out, insn);
+		out.Write("\n");
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Helix::Print(TextOutputStream& out, const Function& fn)
+static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Function& fn)
 {
 	// Need to write out the word 'function' separately in order to be able to
 	// highlight/colourise it properly.
@@ -131,7 +154,7 @@ void Helix::Print(TextOutputStream& out, const Function& fn)
 	out.Write("%s() {\n", name.c_str());
 
 	for (const BasicBlock& bb : fn) {
-		Print(out, bb);
+		InternalPrint(slots, out, bb);
 	}
 
 	out.Write("}\n");
@@ -139,23 +162,34 @@ void Helix::Print(TextOutputStream& out, const Function& fn)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Helix::Print(TextOutputStream& out, const BasicBlock& bb)
+void Helix::Print(TextOutputStream& out, const Value& value)
 {
-	const char* name = bb.GetName();
+	SlotTracker slots;
+	InternalPrint(slots, out, value);
+}
 
-	if (name) {
-		out.Write(".%s", name);
-	} else {
-		out.Write(".?");
-	}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	out.Write(":\n");
+void Helix::Print(TextOutputStream& out, const Instruction& value)
+{
+	SlotTracker slots;
+	InternalPrint(slots, out, value);
+}
 
-	for (const Instruction& insn : bb) {
-		out.Write("\t");
-		Print(out, insn);
-		out.Write("\n");
-	}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Helix::Print(TextOutputStream& out, const BasicBlock& value)
+{
+	SlotTracker slots;
+	InternalPrint(slots, out, value);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Helix::Print(TextOutputStream& out, const Function& value)
+{
+	SlotTracker slots;
+	InternalPrint(slots, out, value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
