@@ -78,6 +78,7 @@ private:
 	Helix::Value* DoImplicitCastExpr(clang::ImplicitCastExpr* implicitCastExpr);
 	Helix::Value* DoDeclRefExpr(clang::DeclRefExpr* declRefExpr);
 	Helix::Value* DoParenExpr(clang::ParenExpr* parenExpr);
+	Helix::Value* DoAssignment(clang::BinaryOperator* binOp);
 
 private:
 	std::vector<Helix::Function*>    m_Functions;
@@ -87,6 +88,20 @@ private:
 
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoAssignment(clang::BinaryOperator* binOp)
+{
+	clang::DeclRefExpr* lhsExpression = clang::dyn_cast<clang::DeclRefExpr>(binOp->getLHS());
+
+	Helix::VirtualRegisterName* variableAddress = this->FindValueForDecl(lhsExpression->getDecl());
+	Helix::Value* rhs = this->DoExpr(binOp->getRHS());
+
+	EmitInsn(Helix::CreateStore(rhs, variableAddress));
+
+	return rhs;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -126,6 +141,10 @@ Helix::Value* CodeGenerator::DoIntegerLiteral(clang::IntegerLiteral* integerLite
 
 Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 {
+	if (binOp->getOpcode() == clang::BO_Assign) {
+		return this->DoAssignment(binOp);
+	}
+
 	Helix::Value* lhs = this->DoExpr(binOp->getLHS());
 	Helix::Value* rhs = this->DoExpr(binOp->getRHS());
 
