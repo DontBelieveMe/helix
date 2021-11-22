@@ -1,5 +1,19 @@
-int main()
+int add()
 {
-	int a = 1 + 2 * 3;
-	return a * 2;
+	return 1 + 2;
+}
+
+int mul()
+{
+	return 3 * 4;
+}
+
+int div()
+{
+	return 6 / 2;
+}
+
+int sub()
+{
+	return 1 - 1;
 }
