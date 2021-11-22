@@ -200,11 +200,17 @@ bool CodeGenerator::VisitReturnStmt(clang::ReturnStmt* returnStmt)
 {
 	clang::Expr* retValue = returnStmt->getRetValue();
 
+	Helix::RetInsn* retInsn = nullptr;
+
 	if (retValue) {
-		this->DoExpr(retValue);
+		Helix::Value* value = this->DoExpr(retValue);
+		retInsn = Helix::CreateRet(value);
+	} else {
+		retInsn = Helix::CreateRet();
 	}
 
-	EmitInsn(Helix::CreateRet());
+	this->EmitInsn(retInsn);
+
 	return true;
 }
 

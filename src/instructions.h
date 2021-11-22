@@ -151,6 +151,9 @@ namespace Helix
 	class RetInsn : public Instruction
 	{
 	public:
+		RetInsn(Value* value): Instruction(kInsn_Ret, 1)
+			{ m_Operands[0] = value; }
+
 		RetInsn(): Instruction(kInsn_Ret, 0) { }
 	};
 
@@ -187,6 +190,9 @@ namespace Helix
 
 	/// Create a return instruction, that returns no value from the current function (void)
 	RetInsn* CreateRet();
+
+	/// Create a return instruction that returns a single value from the current function.
+	RetInsn* CreateRet(Value* value);
 
 	/// Create a binary operation such that `<op> <lhs>, <rhs>, <result>`
 	BinOpInsn* CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
