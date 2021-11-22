@@ -104,6 +104,14 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instr
 		out.Write(" ");
 	}
 
+	if (insn.GetOpcode() == kInsn_StackAlloc) {
+		const StackAllocInsn& stackAlloc = static_cast<const StackAllocInsn&>(insn);
+		const char* typeName = Helix::GetTypeName(stackAlloc.GetType()->GetTypeID());
+		const size_t count = stackAlloc.GetCount();
+
+		out.Write("%sx%zu, ", typeName, count);
+	}
+
 	for (size_t i = 0; i < nOperands; ++i) {
 		Value* pValue = insn.GetOperand(i);
 

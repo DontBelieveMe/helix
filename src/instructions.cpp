@@ -47,9 +47,9 @@ LoadInsn* Helix::CreateLoad(VirtualRegisterName* src, VirtualRegisterName* dst)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-StackAllocInsn* Helix::CreateStackAlloc(VirtualRegisterName* dst)
+StackAllocInsn* Helix::CreateStackAlloc(VirtualRegisterName* dst, const Type* type, size_t count)
 {
-	return new StackAllocInsn(dst);
+	return new StackAllocInsn(dst, type, count);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,8 +114,8 @@ LoadInsn::LoadInsn(VirtualRegisterName* src, VirtualRegisterName* dst)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-StackAllocInsn::StackAllocInsn(VirtualRegisterName* dst)
-	: Instruction(kInsn_StackAlloc, 1)
+StackAllocInsn::StackAllocInsn(VirtualRegisterName* dst, const Type* type, size_t count)
+	: Instruction(kInsn_StackAlloc, 1), m_Type(type), m_Count(count)
 {
 	m_Operands[0] = dst;
 }

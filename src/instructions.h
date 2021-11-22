@@ -120,7 +120,14 @@ namespace Helix
 	class StackAllocInsn : public Instruction
 	{
 	public:
-		StackAllocInsn(VirtualRegisterName* dst);
+		StackAllocInsn(VirtualRegisterName* dst, const Type* type, size_t count);
+
+		const Type* GetType() const  { return m_Type; }
+		size_t      GetCount() const { return m_Count; }
+
+	private:
+		const Type*  m_Type  = nullptr;
+		size_t       m_Count = 0;
 	};
 
 
@@ -208,5 +215,5 @@ namespace Helix
 	/// Create a stack_alloc instruction that allocates space on the stack and returns
 	/// a pointer (memory address) to that space in register 'dst'.
 	/// The type of register 'dst' specifies the amount of memory that should be allocated.
-	StackAllocInsn* CreateStackAlloc(VirtualRegisterName* dst);
+	StackAllocInsn* CreateStackAlloc(VirtualRegisterName* dst, const Type* type, size_t count);
 }

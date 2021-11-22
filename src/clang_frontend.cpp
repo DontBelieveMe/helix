@@ -179,7 +179,7 @@ void CodeGenerator::DoVarDecl(clang::VarDecl* varDecl)
 	//
 	//              #FIXME(bwilks): This needs to pass some type information so that
 	//                              it knows how much space to allocate :)
-	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister));
+	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister, BuiltinTypes::GetInt32(), 1));
 
 	if (varDecl->hasInit()) {
 		// Evaluate the RHS assignment of this var decl and store it at the
