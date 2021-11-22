@@ -31,6 +31,8 @@ namespace Helix
 
 		static const Type* Create(TypeID base);
 
+		TypeID GetTypeID() const { return m_BaseID; }
+
 	private:
 		TypeID m_BaseID = kType_Undefined;
 	};

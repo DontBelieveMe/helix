@@ -4,8 +4,7 @@
 
 const char* Helix::GetOpcodeName(Opcode opcode)
 {
-	switch (opcode)
-	{
+	switch (opcode) {
 	case kInsn_IAdd:       return "iadd";
 	case kInsn_ISub:       return "isub";
 	case kInsn_IMul:       return "imul";
@@ -37,6 +36,26 @@ const char* Helix::GetOpcodeName(Opcode opcode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const char* GetTypeName(Helix::TypeID id)
+{
+	switch (id) {
+	case Helix::kType_Float32: return "f32";
+	case Helix::kType_Float64: return "f64";
+	case Helix::kType_Int8: return "i8";
+	case Helix::kType_Int16: return "i16";
+	case Helix::kType_Int32: return "i32";
+	case Helix::kType_Int64: return "i64";
+	case Helix::kType_LabelType: return "label";
+	case Helix::kType_FunctionType: return "function";
+	case Helix::kType_Pointer: return "ptr";
+	case Helix::kType_Undefined:
+	default:
+		return "?";
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Helix::Print(TextOutputStream& out, const Value& value)
 {
 	if (const ConstantInt* ci = value_cast<ConstantInt>(&value)) {
@@ -52,6 +71,10 @@ void Helix::Print(TextOutputStream& out, const Value& value)
 		}
 	}
 
+	const Type* ty = value.GetType();
+	const char* typeName = GetTypeName(ty->GetTypeID());
+
+	out.Write(".%s", typeName);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
