@@ -146,7 +146,7 @@ void Helix::Print(TextOutputStream& out, const BasicBlock& bb)
 	if (name) {
 		out.Write(".%s", name);
 	} else {
-		out.Write(".<unnamed>");
+		out.Write(".?");
 	}
 
 	out.Write(":\n");

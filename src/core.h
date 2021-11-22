@@ -9,5 +9,10 @@
 #define helix_unreachable(desc) \
 	assert(false)
 
+/*
 #define helix_warn(message, ...) \
 	printf("[Warning] "); printf(message, __VA_ARGS__); fputc('\n', stdout)
+*/
+
+#define helix_warn(message, ...) (void)0
+
