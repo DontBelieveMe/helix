@@ -16,6 +16,7 @@ namespace Helix
 
 		kType_LabelType,
 		kType_FunctionType,
+		kType_Pointer,
 
 		kType_Undefined
 	};
@@ -52,6 +53,7 @@ namespace Helix
 
 		const Type* GetLabelType();
 		const Type* GetFunctionType();
+		const Type* GetPointer();
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
