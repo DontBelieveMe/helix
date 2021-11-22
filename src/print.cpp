@@ -80,7 +80,7 @@ void Helix::Print(TextOutputStream& out, const Value& value)
 	const Type* typePtr  = value.GetType();
 	const char* typeName = GetTypeName(typePtr->GetTypeID());
 
-	out.Write(".");
+	out.Write(":");
 
 	out.SetColour(kColour_Typename); out.Write("%s", typeName); out.ResetColour();
 }
