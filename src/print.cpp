@@ -2,6 +2,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static const char* kColour_Keyword  = Helix::TextOutputStream::kColour_Green;
+static const char* kColour_Number   = Helix::TextOutputStream::kColour_Cyan;
+static const char* kColour_Typename = Helix::TextOutputStream::kColour_Red;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const char* Helix::GetOpcodeName(Opcode opcode)
 {
 	switch (opcode) {
@@ -36,18 +42,18 @@ const char* Helix::GetOpcodeName(Opcode opcode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* GetTypeName(Helix::TypeID id)
+const char* Helix::GetTypeName(Helix::TypeID id)
 {
 	switch (id) {
-	case Helix::kType_Float32: return "f32";
-	case Helix::kType_Float64: return "f64";
-	case Helix::kType_Int8: return "i8";
-	case Helix::kType_Int16: return "i16";
-	case Helix::kType_Int32: return "i32";
-	case Helix::kType_Int64: return "i64";
-	case Helix::kType_LabelType: return "label";
+	case Helix::kType_Float32:      return "f32";
+	case Helix::kType_Float64:      return "f64";
+	case Helix::kType_Int8:         return "i8";
+	case Helix::kType_Int16:        return "i16";
+	case Helix::kType_Int32:        return "i32";
+	case Helix::kType_Int64:        return "i64";
+	case Helix::kType_LabelType:    return "label";
 	case Helix::kType_FunctionType: return "function";
-	case Helix::kType_Pointer: return "ptr";
+	case Helix::kType_Pointer:      return "ptr";
 	case Helix::kType_Undefined:
 	default:
 		return "?";
@@ -59,7 +65,7 @@ const char* GetTypeName(Helix::TypeID id)
 void Helix::Print(TextOutputStream& out, const Value& value)
 {
 	if (const ConstantInt* ci = value_cast<ConstantInt>(&value)) {
-		out.Write("%llu", ci->GetIntegralValue());
+		out.SetColour(kColour_Number); out.Write("%llu", ci->GetIntegralValue()); out.ResetColour();
 	}
 	else if (const VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(&value)) {
 		const char* name = vreg->GetDebugName();
@@ -71,10 +77,12 @@ void Helix::Print(TextOutputStream& out, const Value& value)
 		}
 	}
 
-	const Type* ty = value.GetType();
-	const char* typeName = GetTypeName(ty->GetTypeID());
+	const Type* typePtr  = value.GetType();
+	const char* typeName = GetTypeName(typePtr->GetTypeID());
 
-	out.Write(".%s", typeName);
+	out.Write(".");
+
+	out.SetColour(kColour_Typename); out.Write("%s", typeName); out.ResetColour();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +90,10 @@ void Helix::Print(TextOutputStream& out, const Value& value)
 void Helix::Print(TextOutputStream& out, const Instruction& insn)
 {
 	const char* opcodeName = Helix::GetOpcodeName(insn.GetOpcode());
-	out.Write("%s", opcodeName);
+
+	// Write out the instruction name/opcode (not technically a keyword??? but is
+	// a reserved identifier so highlight it as a keyword.
+	out.SetColour(kColour_Keyword); out.Write("%s", opcodeName); out.ResetColour();
 
 	const size_t nOperands = insn.GetCountOperands();
 
@@ -111,11 +122,18 @@ void Helix::Print(TextOutputStream& out, const Instruction& insn)
 
 void Helix::Print(TextOutputStream& out, const Function& fn)
 {
+	// Need to write out the word 'function' separately in order to be able to
+	// highlight/colourise it properly.
+	out.SetColour(kColour_Keyword); out.Write("function "); out.ResetColour();
+
 	const std::string& name = fn.GetName();
-	out.Write("function %s() {\n", name.c_str());
+
+	out.Write("%s() {\n", name.c_str());
+
 	for (const BasicBlock& bb : fn) {
 		Print(out, bb);
 	}
+
 	out.Write("}\n");
 }
 
