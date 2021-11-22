@@ -63,6 +63,14 @@ private:
 		m_InstructionIterator = m_BasicBlockIterator->InsertAfter(m_InstructionIterator, insn);
 	}
 
+	Helix::VirtualRegisterName* FindValueForDecl(clang::ValueDecl* decl)
+	{
+		auto it = m_ValueMap.find(decl);
+		if (it == m_ValueMap.end())
+			return nullptr;
+		return it->second;
+	}
+
 private:
 	Helix::Value* DoExpr(clang::Expr* expr);
 	Helix::Value* DoIntegerLiteral(clang::IntegerLiteral* integerLiteral);
@@ -75,14 +83,21 @@ private:
 	Helix::Function::block_iterator  m_BasicBlockIterator;
 	Helix::BasicBlock::insn_iterator m_InstructionIterator;
 	Helix::Function*                 m_CurrentFunction = nullptr;
+
+	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Helix::Value* CodeGenerator::DoDeclRefExpr(clang::DeclRefExpr* declRefExpr)
 {
-	helix_warn("DeclRefExpr ignored");
-	return nullptr;
+	// Contains the pointer to the value on the stack
+	Helix::VirtualRegisterName* stackAddressRegister = FindValueForDecl(declRefExpr->getDecl());
+	helix_assert(stackAddressRegister, "Value not generated for declaration");
+
+	Helix::VirtualRegisterName* value = Helix::VirtualRegisterName::Create(Helix::BuiltinTypes::GetInt32());
+	EmitInsn(Helix::CreateLoad(stackAddressRegister, value));
+	return value;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +133,7 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 		break;
 	}
 
-	Helix::VirtualRegisterName* result = Helix::VirtualRegisterName::Create(Helix::BuiltinTypes::GetInt32(), "temp");
+	Helix::VirtualRegisterName* result = Helix::VirtualRegisterName::Create(Helix::BuiltinTypes::GetInt32());
 	EmitInsn(Helix::CreateBinOp(opc, lhs, rhs, result));
 	return result;
 }
@@ -156,10 +171,22 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 
 bool CodeGenerator::VisitVarDecl(clang::VarDecl* varDecl)
 {
+	using namespace Helix;
+
+	VirtualRegisterName* vreg = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+	StackAllocInsn* alloc = Helix::CreateStackAlloc(vreg);
+
+	EmitInsn(alloc);
+
 	if (varDecl->hasInit()) {
 		clang::Expr* initExpr = varDecl->getInit();
 
-		this->DoExpr(initExpr);
+		Helix::Value* value = this->DoExpr(initExpr);
+
+		StoreInsn* store = Helix::CreateStore(value, vreg);
+		EmitInsn(store);
+
+		m_ValueMap.insert({varDecl, vreg});
 	} else {
 		helix_unreachable("Variable declarations without initialisers not supported");
 	}
@@ -189,6 +216,7 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 
 	m_CurrentFunction    = Function::Create(functionDecl->getNameAsString());
 	m_BasicBlockIterator = m_CurrentFunction->begin();
+	m_ValueMap.clear();
 
 	m_Functions.push_back(m_CurrentFunction);
 
