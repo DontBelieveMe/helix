@@ -8,3 +8,4 @@ vs2019/
 tools/Testify/bin
 tools/Testify/obj
 tools/Testify/.vs
+tools/Testify/Properties/launchSettings.json
