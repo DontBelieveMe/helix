@@ -6,6 +6,21 @@
 	</TestFlags>
 
 	<ExpectedOutput>
+function f0() {
+.0:
+	stack_alloc %0:ptr
+	store 10:i32, %0:ptr
+	store 30:i32, %0:ptr
+	load %0:ptr, %1:i32
+	ret %1:i32
+}
+function f1() {
+.0:
+	stack_alloc %0:ptr
+	store 50:i32, %0:ptr
+	load %0:ptr, %1:i32
+	ret %1:i32
+}
 function f2() {
 .0:
 	stack_alloc %0:ptr

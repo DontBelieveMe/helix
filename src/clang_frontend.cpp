@@ -129,6 +129,11 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 	case clang::Stmt::DeclStmtClass:
 		this->DoDeclStmt(clang::dyn_cast<clang::DeclStmt>(stmt));
 		break;
+
+	case clang::Stmt::BinaryOperatorClass:
+		this->DoBinOp(clang::dyn_cast<clang::BinaryOperator>(stmt));
+		break;
+	
 	default:
 		helix_unreachable("Unknown statment type");
 		break;
