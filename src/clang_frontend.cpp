@@ -187,13 +187,11 @@ bool CodeGenerator::VisitVarDecl(clang::VarDecl* varDecl)
 		// address allocated for this stack var.
 		Helix::Value* value = this->DoExpr(varDecl->getInit());
 		EmitInsn(Helix::CreateStore(value, variableAddressRegister));
-
-		// Then create a mapping for this variable declaration so that later uses of this
-		// variable know which address to load from.
-		m_ValueMap.insert({varDecl, variableAddressRegister});
-	} else {
-		helix_unreachable("Variable declarations without initialisers not supported");
 	}
+
+	// Then create a mapping for this variable declaration so that later uses of this
+	// variable know which address to load from.
+	m_ValueMap.insert({varDecl, variableAddressRegister});
 
 	return true;
 }
