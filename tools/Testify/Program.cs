@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -28,6 +30,23 @@ namespace Testify
         public double CalculateFailPercentage()
         {
             return (Fails / (double)TotalRuns) * 100;
+        }
+
+        public List<long> ExecutionTimes = new List<long>();
+
+        public long GetSmallestExecutionTime()
+        {
+            return ExecutionTimes.Min();
+        }
+
+        public long GetLargestExecutionTime()
+        {
+            return ExecutionTimes.Max();
+        }
+
+        public double GetAverageExecutionTime()
+        {
+            return ExecutionTimes.Average();
         }
     }
 
@@ -88,7 +107,11 @@ namespace Testify
 
             Console.Write("{0}... ", sourceFile);
 
+            Stopwatch timer = Stopwatch.StartNew();
             ProgramOutput output = RunExternalProcess("vs2019/Debug/helix.exe", flagsString);
+            timer.Stop();
+
+            stats.ExecutionTimes.Add(timer.ElapsedMilliseconds);
 
             string stdout = output.Stdout.Trim().Replace("\r\n", "\n");
 
@@ -129,11 +152,15 @@ namespace Testify
         static void Main(string[] args)
         {
             TestsuiteStats stats = new TestsuiteStats();
-            
+
+            Stopwatch timer = Stopwatch.StartNew();
+
             foreach (string file in Directory.GetFiles("testsuite\\f0", "*.xml", SearchOption.AllDirectories))
             {
                 RunTestFromXmlDefinition(file, stats);
             }
+
+            timer.Stop();
 
             Console.WriteLine();
             Console.WriteLine("[Summary]");
@@ -150,7 +177,17 @@ namespace Testify
             Console.ResetColor();
             Console.WriteLine(":  {0} ({1}%)", stats.Fails, stats.CalculateFailPercentage());
 
-            Console.WriteLine("\tTotal:  {0}", stats.TotalRuns);
+            Console.WriteLine();
+            Console.WriteLine("Executing {0} tests took {1}s (average of {4}ms each, range {2}ms -> {3}ms)",
+                stats.TotalRuns, timer.ElapsedMilliseconds / 1000.0, stats.GetSmallestExecutionTime(), stats.GetLargestExecutionTime(),stats.GetAverageExecutionTime());
+            Console.WriteLine();
+
+//            Console.WriteLine("\tTotal:  {0}", stats.TotalRuns);
+  //          Console.WriteLine();
+            //Console.WriteLine("\tTotal Runtime: {0}s", timer.ElapsedMilliseconds / 1000.0);
+            //Console.WriteLine("\t   [Smallest]: {0}ms", stats.GetSmallestExecutionTime());
+            //Console.WriteLine("\t   [Largest]:  {0}ms", stats.GetLargestExecutionTime());
+            //Console.WriteLine("\t   [Average]:  {0}ms", stats.GetAverageExecutionTime());
         }
     }
 }
