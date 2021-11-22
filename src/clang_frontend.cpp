@@ -77,6 +77,7 @@ private:
 	Helix::Value* DoBinOp(clang::BinaryOperator* binOp);
 	Helix::Value* DoImplicitCastExpr(clang::ImplicitCastExpr* implicitCastExpr);
 	Helix::Value* DoDeclRefExpr(clang::DeclRefExpr* declRefExpr);
+	Helix::Value* DoParenExpr(clang::ParenExpr* parenExpr);
 
 private:
 	std::vector<Helix::Function*>    m_Functions;
@@ -86,6 +87,13 @@ private:
 
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoParenExpr(clang::ParenExpr* parenExpr)
+{
+	return this->DoExpr(parenExpr->getSubExpr());
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -159,6 +167,9 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		return DoImplicitCastExpr(clang::dyn_cast<clang::ImplicitCastExpr>(expr));
 	case clang::Stmt::DeclRefExprClass:
 		return DoDeclRefExpr(clang::dyn_cast<clang::DeclRefExpr>(expr));
+	case clang::Stmt::ParenExprClass:
+		return DoParenExpr(clang::dyn_cast<clang::ParenExpr>(expr));
+
 	default:
 		helix_unreachable("Cannot codegen for unsupported expression type");
 		break;
