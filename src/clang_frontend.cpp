@@ -38,8 +38,6 @@ class CodeGenerator : public clang::RecursiveASTVisitor<CodeGenerator>
 {
 public:
 	bool VisitFunctionDecl(clang::FunctionDecl* decl);
-	bool VisitReturnStmt(clang::ReturnStmt* returnStmt);
-	bool VisitVarDecl(clang::VarDecl* varDecl);
 
 	std::vector<Helix::Function*> GetFunctions() { return m_Functions; }
 
@@ -72,6 +70,13 @@ private:
 	}
 
 private:
+	void DoDecl(clang::Decl* decl);
+	void DoStmt(clang::Stmt* stmt);
+	void DoReturnStmt(clang::ReturnStmt* returnStmt);
+	void DoDeclStmt(clang::DeclStmt* stmt);
+	void DoVarDecl(clang::VarDecl* varDecl);
+	void DoCompoundStmt(clang::CompoundStmt* compoundStmt);
+
 	Helix::Value* DoExpr(clang::Expr* expr);
 	Helix::Value* DoIntegerLiteral(clang::IntegerLiteral* integerLiteral);
 	Helix::Value* DoBinOp(clang::BinaryOperator* binOp);
@@ -88,6 +93,100 @@ private:
 
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeGenerator::DoDecl(clang::Decl* decl)
+{
+	switch (decl->getKind()) {
+	case clang::Decl::Var:
+		this->DoVarDecl(clang::dyn_cast<clang::VarDecl>(decl));
+		break;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeGenerator::DoCompoundStmt(clang::CompoundStmt* compoundStmt)
+{
+	for (clang::Stmt* stmt : compoundStmt->body())
+		this->DoStmt(stmt);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeGenerator::DoStmt(clang::Stmt* stmt)
+{
+	switch (stmt->getStmtClass()) {
+	case clang::Stmt::CompoundStmtClass:
+		this->DoCompoundStmt(clang::dyn_cast<clang::CompoundStmt>(stmt));
+		break;
+
+	case clang::Stmt::ReturnStmtClass:
+		this->DoReturnStmt(clang::dyn_cast<clang::ReturnStmt>(stmt));
+		break;
+
+	case clang::Stmt::DeclStmtClass:
+		this->DoDeclStmt(clang::dyn_cast<clang::DeclStmt>(stmt));
+		break;
+	default:
+		helix_unreachable("Unknown statment type");
+		break;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeGenerator::DoReturnStmt(clang::ReturnStmt* returnStmt)
+{
+	clang::Expr* retValue = returnStmt->getRetValue();
+
+	Helix::RetInsn* retInsn = nullptr;
+
+	if (retValue) {
+		Helix::Value* value = this->DoExpr(retValue);
+		retInsn = Helix::CreateRet(value);
+	} else {
+		retInsn = Helix::CreateRet();
+	}
+
+	this->EmitInsn(retInsn);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeGenerator::DoDeclStmt(clang::DeclStmt* declStmt)
+{
+	helix_assert(declStmt->isSingleDecl());
+	this->DoDecl(declStmt->getSingleDecl());
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeGenerator::DoVarDecl(clang::VarDecl* varDecl)
+{
+	using namespace Helix;
+
+	// Create a register used to store the address of this variable on the stack...
+	VirtualRegisterName* variableAddressRegister = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+
+	// ... and then actually create the instruction to allocate space for the variable.
+	//
+	//              #FIXME(bwilks): This needs to pass some type information so that
+	//                              it knows how much space to allocate :)
+	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister));
+
+	if (varDecl->hasInit()) {
+		// Evaluate the RHS assignment of this var decl and store it at the
+		// address allocated for this stack var.
+		Helix::Value* value = this->DoExpr(varDecl->getInit());
+		EmitInsn(Helix::CreateStore(value, variableAddressRegister));
+	}
+
+	// Then create a mapping for this variable declaration so that later uses of this
+	// variable know which address to load from.
+	m_ValueMap.insert({varDecl, variableAddressRegister});
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -199,55 +298,6 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CodeGenerator::VisitVarDecl(clang::VarDecl* varDecl)
-{
-	using namespace Helix;
-
-	// Create a register used to store the address of this variable on the stack...
-	VirtualRegisterName* variableAddressRegister = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
-
-	// ... and then actually create the instruction to allocate space for the variable.
-	//
-	//              #FIXME(bwilks): This needs to pass some type information so that
-	//                              it knows how much space to allocate :)
-	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister));
-
-	if (varDecl->hasInit()) {
-		// Evaluate the RHS assignment of this var decl and store it at the
-		// address allocated for this stack var.
-		Helix::Value* value = this->DoExpr(varDecl->getInit());
-		EmitInsn(Helix::CreateStore(value, variableAddressRegister));
-	}
-
-	// Then create a mapping for this variable declaration so that later uses of this
-	// variable know which address to load from.
-	m_ValueMap.insert({varDecl, variableAddressRegister});
-
-	return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool CodeGenerator::VisitReturnStmt(clang::ReturnStmt* returnStmt)
-{
-	clang::Expr* retValue = returnStmt->getRetValue();
-
-	Helix::RetInsn* retInsn = nullptr;
-
-	if (retValue) {
-		Helix::Value* value = this->DoExpr(retValue);
-		retInsn = Helix::CreateRet(value);
-	} else {
-		retInsn = Helix::CreateRet();
-	}
-
-	this->EmitInsn(retInsn);
-
-	return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 {
 	using namespace Helix;
@@ -269,6 +319,9 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 	// Add the new function to the list of functions that we've generated code for in
 	// this translation unit.
 	m_Functions.push_back(m_CurrentFunction);
+
+	if (functionDecl->hasBody())
+		this->DoStmt(functionDecl->getBody());
 
 	return true;
 }
