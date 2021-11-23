@@ -13,6 +13,7 @@ namespace Testify
     {
         public string Stdout;
         public string Stderr;
+        public int ExitCode;
     }
 
     class TestsuiteStats
@@ -77,6 +78,7 @@ namespace Testify
         {
             StringBuilder stdout = new StringBuilder();
             StringBuilder stderr = new StringBuilder();
+            int exitCode;
 
             using (Process process = new Process())
             {
@@ -92,9 +94,10 @@ namespace Testify
                 process.Start();
                 process.BeginOutputReadLine();
                 process.WaitForExit();
+                exitCode = process.ExitCode;
             }
 
-            return new ProgramOutput { Stderr = stderr.ToString(), Stdout = stdout.ToString() };
+            return new ProgramOutput { Stderr = stderr.ToString(), Stdout = stdout.ToString(),  ExitCode = exitCode };
         }
 
         static void RunTestFromXmlDefinition(string testfile, TestsuiteStats stats, Options opts)
@@ -147,7 +150,9 @@ namespace Testify
                 matchesExpectedOuptut = (stdout == expectedOutputString);
             }
 
-            if (matchesExpectedOuptut)
+            bool expectedExitCode = output.ExitCode == 0;
+
+            if (matchesExpectedOuptut && expectedExitCode)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("[pass]");
@@ -160,7 +165,7 @@ namespace Testify
                 Console.WriteLine("[fail]");
                 Console.ResetColor();
 
-                if (opts.DumpDiffs)
+                if (!matchesExpectedOuptut && opts.DumpDiffs)
                 {
                     Console.WriteLine("------------------------- Expected --------------------------");
                     Console.WriteLine(expectedOutputString);
