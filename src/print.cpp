@@ -76,6 +76,8 @@ const char* Helix::GetTypeName(Helix::TypeID id)
 
 static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value& value)
 {
+	bool isBranchTarget = false;
+
 	if (const ConstantInt* ci = value_cast<ConstantInt>(&value)) {
 		out.SetColour(kColour_Number); out.Write("%llu", ci->GetIntegralValue()); out.ResetColour();
 	}
@@ -89,13 +91,21 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 			out.Write("%%%zu", slot);
 		}
 	}
+	else if(const BlockBranchTarget* bbt = value_cast<BlockBranchTarget>(&value)) {
+		BasicBlock* bb = bbt->GetParent();
+		out.Write(".%zu", slots.GetBasicBlockSlot(bb));
+		isBranchTarget = true;
+	}
 
-	const Type* typePtr  = value.GetType();
-	const char* typeName = GetTypeName(typePtr->GetTypeID());
+	if (!isBranchTarget) {
+		const Type* typePtr  = value.GetType();
+		const char* typeName = GetTypeName(typePtr->GetTypeID());
 
-	out.Write(":");
+		out.Write(":");
 
-	out.SetColour(kColour_Typename); out.Write("%s", typeName); out.ResetColour();
+		out.SetColour(kColour_Typename); out.Write("%s", typeName); out.ResetColour();
+	}
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
