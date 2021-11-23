@@ -76,6 +76,7 @@ private:
 	void DoDeclStmt(clang::DeclStmt* stmt);
 	void DoVarDecl(clang::VarDecl* varDecl);
 	void DoCompoundStmt(clang::CompoundStmt* compoundStmt);
+	void DoIfStmt(clang::IfStmt* ifStmt);
 
 	Helix::Value* DoExpr(clang::Expr* expr);
 	Helix::Value* DoIntegerLiteral(clang::IntegerLiteral* integerLiteral);
@@ -92,7 +93,68 @@ private:
 	Helix::Function*                 m_CurrentFunction = nullptr;
 
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
+
+	std::stack<Helix::BasicBlock*> m_BranchTailStack;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeGenerator::DoIfStmt(clang::IfStmt* ifStmt)
+{
+	using namespace Helix;
+
+	Value* conditionResultRegister = this->DoExpr(ifStmt->getCond());
+
+	BasicBlock* thenBB = BasicBlock::Create();
+	BasicBlock* elseBB = BasicBlock::Create();
+	BasicBlock* tailBB = BasicBlock::Create();
+
+	elseBB->SetComment("else");
+	tailBB->SetComment("tail");
+	thenBB->SetComment("then");
+
+	this->EmitInsn(Helix::CreateConditionalBranch(thenBB, elseBB, conditionResultRegister));
+
+	auto eu = Helix::CreateUnconditionalBranch(tailBB);
+	auto tu = Helix::CreateUnconditionalBranch(tailBB);
+
+	eu->SetComment("Branch to tail (from else)");
+	tu->SetComment("Branch to tail (from then)");
+
+	BasicBlock* parentTail = nullptr;
+	if (!m_BranchTailStack.empty())
+		parentTail = m_BranchTailStack.top();
+
+	m_BranchTailStack.push(tailBB);
+
+ 	this->EmitBasicBlock(thenBB);
+	m_InstructionIterator = thenBB->begin();
+	this->DoStmt(ifStmt->getThen());
+
+	if (!thenBB->HasTerminator())
+		thenBB->InsertBefore(thenBB->end(), tu);
+
+	this->EmitBasicBlock(elseBB);
+	m_InstructionIterator = elseBB->begin();
+	this->DoStmt(ifStmt->getElse());
+	
+	if (!elseBB->HasTerminator())
+		elseBB->InsertBefore(elseBB->end(), eu);
+
+	m_BranchTailStack.pop();
+
+	this->EmitBasicBlock(tailBB);
+	m_InstructionIterator = tailBB->begin();
+
+	if (parentTail) {
+		auto a = Helix::CreateUnconditionalBranch(parentTail);
+		a->SetComment("Branch to parent tail"); 
+
+		if (!tailBB->HasTerminator())
+			tailBB->InsertBefore(tailBB->end(), a);
+//		m_InstructionIterator = parentTail->begin();
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -132,6 +194,10 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 
 	case clang::Stmt::BinaryOperatorClass:
 		this->DoBinOp(clang::dyn_cast<clang::BinaryOperator>(stmt));
+		break;
+
+	case clang::Stmt::IfStmtClass:
+		this->DoIfStmt(clang::dyn_cast<clang::IfStmt>(stmt));
 		break;
 	
 	default:
