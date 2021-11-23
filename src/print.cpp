@@ -126,6 +126,13 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instr
 			out.Write(", ");
 		}
 	}
+
+	if (Options::GetDebugAnnotateIR() && insn.HasComment()) {
+		out.SetColour(TextOutputStream::kColour_Purple);
+		const std::string& comment = insn.GetComment();
+		out.Write("  # %s", comment.c_str());
+		out.ResetColour();
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,7 +147,16 @@ static void InternalPrint(SlotTracker slots, TextOutputStream& out, const BasicB
 		out.Write(".%zu", slots.GetBasicBlockSlot(&bb));
 	}
 
-	out.Write(":\n");
+	out.Write(":");
+
+	if (Options::GetDebugAnnotateIR() && bb.HasComment()) {
+		const std::string& comment = bb.GetComment();
+		out.SetColour(TextOutputStream::kColour_Purple);
+		out.Write("  # %s", comment.c_str());
+		out.ResetColour();
+	}
+
+	out.Write("\n");
 
 	for (const Instruction& insn : bb) {
 		out.Write("\t");

@@ -35,9 +35,16 @@ namespace Helix
 
 		BlockBranchTarget* GetBranchTarget() { return &BranchTarget; }
 
+		bool HasTerminator() const;
+
+		bool HasComment() const { return Comment.length() > 0; }
+		void SetComment(const std::string& comment) { Comment = comment; }
+		std::string GetComment() const { return Comment; }
+
 	private:
 		InstructionList Instructions;
 		const char*     Name;
 		BlockBranchTarget BranchTarget;
+		std::string Comment;
 	};
 }

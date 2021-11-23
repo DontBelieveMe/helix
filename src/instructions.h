@@ -4,6 +4,7 @@
 #include "value.h"
 
 #include <vector>
+#include <string>
 
 namespace Helix
 {
@@ -86,9 +87,15 @@ namespace Helix
 		inline size_t GetCountOperands() const { return m_Operands.size(); }
 		inline Value* GetOperand(size_t index) const { return m_Operands[index]; }
 
+		void SetComment(const std::string& comment) { m_DebugComment = comment; }
+		std::string GetComment() const { return m_DebugComment; }
+
+		bool HasComment() const { return m_DebugComment.length() > 0; }
+
 	protected:
 		Opcode      m_Opcode = kInsn_Undefined;
 		OperandList m_Operands;
+		std::string m_DebugComment;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
