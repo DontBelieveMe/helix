@@ -140,6 +140,7 @@ namespace Helix
 		void push_back(T* value) { this->insert_before(end(), value); }
 
 		T& back() { return *static_cast<T*>(m_sentinel.get_prev()); }
+		const T& back() const { return *static_cast<T*>(m_sentinel.get_prev()); }
 
 	private:
 		intrusive_list_node m_sentinel;
