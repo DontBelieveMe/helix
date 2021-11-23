@@ -93,8 +93,6 @@ private:
 	Helix::Function*                 m_CurrentFunction = nullptr;
 
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
-
-	std::stack<Helix::BasicBlock*> m_BranchTailStack;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,51 +107,32 @@ void CodeGenerator::DoIfStmt(clang::IfStmt* ifStmt)
 	BasicBlock* elseBB = BasicBlock::Create();
 	BasicBlock* tailBB = BasicBlock::Create();
 
-	elseBB->SetComment("else");
-	tailBB->SetComment("tail");
-	thenBB->SetComment("then");
-
 	this->EmitInsn(Helix::CreateConditionalBranch(thenBB, elseBB, conditionResultRegister));
 
-	auto eu = Helix::CreateUnconditionalBranch(tailBB);
-	auto tu = Helix::CreateUnconditionalBranch(tailBB);
+	// Handle 'then' part of the if (e.g. what's executed when the condition is true)
+	{
+ 		this->EmitBasicBlock(thenBB);
+		m_InstructionIterator = thenBB->begin();
+		this->DoStmt(ifStmt->getThen());
 
-	eu->SetComment("Branch to tail (from else)");
-	tu->SetComment("Branch to tail (from then)");
+		if (!Helix::IsTerminator(m_InstructionIterator->GetOpcode())) {
+			this->EmitInsn(Helix::CreateUnconditionalBranch(tailBB));
+		}
+	}
 
-	BasicBlock* parentTail = nullptr;
-	if (!m_BranchTailStack.empty())
-		parentTail = m_BranchTailStack.top();
+	// Handle 'else' part of the if (e.g. what's executed when the condition is false)
+	{
+		this->EmitBasicBlock(elseBB);
+		m_InstructionIterator = elseBB->begin();
+		this->DoStmt(ifStmt->getElse());
 
-	m_BranchTailStack.push(tailBB);
-
- 	this->EmitBasicBlock(thenBB);
-	m_InstructionIterator = thenBB->begin();
-	this->DoStmt(ifStmt->getThen());
-
-	if (!thenBB->HasTerminator())
-		thenBB->InsertBefore(thenBB->end(), tu);
-
-	this->EmitBasicBlock(elseBB);
-	m_InstructionIterator = elseBB->begin();
-	this->DoStmt(ifStmt->getElse());
+		if (!Helix::IsTerminator(m_InstructionIterator->GetOpcode())) {
+			this->EmitInsn(Helix::CreateUnconditionalBranch(tailBB));
+		}
+	}
 	
-	if (!elseBB->HasTerminator())
-		elseBB->InsertBefore(elseBB->end(), eu);
-
-	m_BranchTailStack.pop();
-
 	this->EmitBasicBlock(tailBB);
 	m_InstructionIterator = tailBB->begin();
-
-	if (parentTail) {
-		auto a = Helix::CreateUnconditionalBranch(parentTail);
-		a->SetComment("Branch to parent tail"); 
-
-		if (!tailBB->HasTerminator())
-			tailBB->InsertBefore(tailBB->end(), a);
-//		m_InstructionIterator = parentTail->begin();
-	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
