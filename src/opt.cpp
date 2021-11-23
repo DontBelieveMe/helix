@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-static bool s_DisableTerminalColouring = false;
+static bool s_DisableTerminalColouring = true;
 static bool s_DebugAnnotateIR = false;
 
 void Helix::Options::Parse(int argc, const char** argv)
