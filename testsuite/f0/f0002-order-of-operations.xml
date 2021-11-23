@@ -8,7 +8,7 @@
 	<ExpectedOutput>
 function main() {
 .0:
-	stack_alloc %0:ptr
+	stack_alloc i32x1, %0:ptr
 	imul 2:i32, 6:i32, %1:i32
 	idiv %1:i32, 2:i32, %2:i32
 	iadd 1:i32, %2:i32, %3:i32
