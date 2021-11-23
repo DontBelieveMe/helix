@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdint.h>
+#include <vector>
+#include <algorithm>
 
 #include "types.h"
 
@@ -16,6 +18,26 @@
 
 namespace Helix
 {
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class Instruction;
+
+	class Use
+	{
+	public:
+		Use(Instruction* insn, uint16_t index)
+			: m_User(insn), m_OperandIndex(index)
+		{ }
+
+		bool operator==(const Use& other) const
+			{ return m_User == other.m_User && m_OperandIndex == other.m_OperandIndex; }
+
+	private:
+		Instruction* m_User;
+		uint16_t     m_OperandIndex;
+	};
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	using Integer = uint64_t;
@@ -41,7 +63,13 @@ namespace Helix
 
 	class Value
 	{
+	private:
+		using UseList = std::vector<Use>;
+
 	public:
+		using use_iterator = UseList::iterator;
+		using const_use_iterator = UseList::const_iterator;
+
 		Value(ValueType type, const Type* ty): m_ValueID(type), m_Type(ty) { }
 
 		template <typename T>
@@ -52,9 +80,25 @@ namespace Helix
 
 		inline const Type* GetType() const { return m_Type; }
 
+		void AddUse(Instruction* user, uint16_t operandIndex)
+			{ m_Users.push_back({user, operandIndex}); }
+
+		void RemoveUse(Instruction* user, uint16_t operandIndex)
+		{
+			m_Users.erase(std::remove(m_Users.begin(), m_Users.end(), Use(user, operandIndex)), m_Users.end());
+		}
+
+		use_iterator uses_begin() { return m_Users.begin(); }
+		use_iterator uses_end() { return m_Users.end(); }
+
+		size_t GetCountUses() const { return m_Users.size(); }
+
+		const Use GetUse(size_t index) const { return m_Users[index]; }
+
 	private:
 		ValueType m_ValueID = kValue_Undefined;
 		const Type*  m_Type = nullptr;
+		UseList m_Users;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

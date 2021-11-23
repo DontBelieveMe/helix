@@ -1,6 +1,7 @@
 #include "basic_block.h"
 #include "instructions.h"
 #include "types.h"
+#include "core.h"
 
 using namespace Helix;
 
@@ -22,6 +23,16 @@ BasicBlock* BasicBlock::Create()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void BasicBlock::Destroy(BasicBlock* bb)
+{
+	helix_assert(bb->BranchTarget.GetCountUses() == 0);
+	helix_assert(bb->Instructions.empty());
+	
+	delete bb;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 BasicBlock::BasicBlock()
 	: BranchTarget(this), Value(kValue_BasicBlock, BuiltinTypes::GetLabelType())
 { }
@@ -38,6 +49,17 @@ BasicBlock::iterator BasicBlock::InsertBefore(iterator where, Instruction* insn)
 BasicBlock::iterator BasicBlock::InsertAfter(iterator where, Instruction* insn)
 {
 	return Instructions.insert_after(where, insn);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool BasicBlock::HasTerminator() const
+{
+	if (Instructions.empty())
+		return false;
+
+	const Instruction& insn = Instructions.back();
+	return Helix::IsTerminator(insn.GetOpcode());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

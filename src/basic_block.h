@@ -31,6 +31,8 @@ namespace Helix
 		static BasicBlock* Create(const char* name);
 		static BasicBlock* Create();
 
+		static void Destroy(BasicBlock* block);
+
 		const char* GetName() const { return Name; }
 
 		BlockBranchTarget* GetBranchTarget() { return &BranchTarget; }
@@ -40,6 +42,9 @@ namespace Helix
 		bool HasComment() const { return Comment.length() > 0; }
 		void SetComment(const std::string& comment) { Comment = comment; }
 		std::string GetComment() const { return Comment; }
+
+		size_t GetCountUses() const { return BranchTarget.GetCountUses(); }
+		bool   IsEmpty() const { return Instructions.empty(); }
 
 	private:
 		InstructionList Instructions;

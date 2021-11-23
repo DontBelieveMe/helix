@@ -88,13 +88,15 @@ namespace Helix
 		Instruction(Opcode opcode, size_t nOperands)
 			: m_Opcode(opcode)
 		{
-			m_Operands.resize(nOperands);
+			m_Operands.resize(nOperands, nullptr);
 		}
 
 		Instruction(Opcode opcode)
 			: m_Opcode(opcode) { }
 
 		Opcode GetOpcode() const { return m_Opcode; }
+
+		void SetOperand(size_t index, Value* value);
 
 		inline size_t GetCountOperands() const { return m_Operands.size(); }
 		inline Value* GetOperand(size_t index) const { return m_Operands[index]; }
@@ -178,7 +180,7 @@ namespace Helix
 	{
 	public:
 		RetInsn(Value* value): Instruction(kInsn_Ret, 1)
-			{ m_Operands[0] = value; }
+			{ this->SetOperand(0, value); }
 
 		RetInsn(): Instruction(kInsn_Ret, 0) { }
 	};
@@ -191,9 +193,9 @@ namespace Helix
 		CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
 			: Instruction(cmpOpcode, 3)
 		{
-			m_Operands[0] = lhs;
-			m_Operands[1] = rhs;
-			m_Operands[2] = result;
+			this->SetOperand(0, lhs);
+			this->SetOperand(1, rhs);
+			this->SetOperand(2, result);
 		}
 	};
 

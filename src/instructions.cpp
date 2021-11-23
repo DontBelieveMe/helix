@@ -68,12 +68,24 @@ RetInsn* Helix::CreateRet(Value* value)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Instruction::SetOperand(size_t index, Value* value)
+{
+	if (m_Operands[index] != nullptr) {
+		m_Operands[index]->RemoveUse(this, index);
+	}
+
+	m_Operands[index] = value;
+	value->AddUse(this, index);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ConditionalBranchInsn::ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* falseBB, Value* cond)
 	: Instruction(kInsn_Cbr, 3)
 {
-	m_Operands[0] = trueBB->GetBranchTarget();
-	m_Operands[1] = falseBB->GetBranchTarget();
-	m_Operands[2] = cond;
+	this->SetOperand(0, trueBB->GetBranchTarget());
+	this->SetOperand(1, falseBB->GetBranchTarget());
+	this->SetOperand(2, cond);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

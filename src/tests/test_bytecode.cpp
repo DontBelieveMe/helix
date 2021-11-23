@@ -8,10 +8,34 @@ using namespace Helix;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+TEST_CASE("Empty basic block", "[Bytecode]")
+{
+	BasicBlock* bb = BasicBlock::Create();
+	REQUIRE(bb->IsEmpty());
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("Non empty basic block", "[Bytecode]")
+{
+	BasicBlock* bb = BasicBlock::Create();
+
+	Value* lhs = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+	Value* rhs = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+
+	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
+	Instruction* fcmp = Helix::CreateCompare(kInsn_FCmp_Gt, lhs, rhs, result);
+	bb->InsertAfter(bb->begin(), fcmp);
+
+	REQUIRE(!bb->IsEmpty());
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TEST_CASE("Verify opcode categories", "[Bytecode]")
 {
-	REQUIRE(IsCompare(kInsn_FCmp));
-	REQUIRE(IsCompare(kInsn_ICmp));
+	REQUIRE(IsCompare(kInsn_FCmp_Eq));
+	REQUIRE(IsCompare(kInsn_ICmp_Lte));
 	REQUIRE(!IsCompare(kInsn_IAdd));
 	REQUIRE(IsBinaryOp(kInsn_IAdd));
 
@@ -36,11 +60,19 @@ TEST_CASE("Creating a floating point compare", "[Bytecode]")
 
 	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
 
-	Instruction* fcmp = Helix::CreateCompare(kInsn_FCmp, lhs, rhs, result);
+	Instruction* fcmp = Helix::CreateCompare(kInsn_FCmp_Gt, lhs, rhs, result);
 
 	REQUIRE(fcmp->GetOperand(0) == lhs);
 	REQUIRE(fcmp->GetOperand(1) == rhs);
 	REQUIRE(fcmp->GetOperand(2) == result);
+
+	REQUIRE(lhs->GetCountUses() == 1);
+	REQUIRE(rhs->GetCountUses() == 1);
+	REQUIRE(result->GetCountUses() == 1);
+
+	REQUIRE(lhs->GetUse(0) == Use(fcmp, 0));
+	REQUIRE(rhs->GetUse(0) == Use(fcmp, 1));
+	REQUIRE(result->GetUse(0) == Use(fcmp, 2));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +84,7 @@ TEST_CASE("Creating a integral compare", "[Bytecode]")
 	Value* v = ConstantInt::Create(BuiltinTypes::GetInt32(), 454);
 	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
 
-	Instruction* fcmp = Helix::CreateCompare(kInsn_ICmp, v, v, result);
+	Instruction* fcmp = Helix::CreateCompare(kInsn_ICmp_Eq, v, v, result);
 
 	REQUIRE(fcmp->GetOperand(0) == v);
 	REQUIRE(fcmp->GetOperand(1) == v);
