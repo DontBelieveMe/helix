@@ -137,7 +137,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instr
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void InternalPrint(SlotTracker slots, TextOutputStream& out, const BasicBlock& bb)
+static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const BasicBlock& bb)
 {
 	const char* name = bb.GetName();
 
