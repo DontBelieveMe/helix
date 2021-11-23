@@ -4,6 +4,7 @@
 int main(int argc, const char** argv)
 {
 	Helix::Initialise();
+	Helix::Options::Parse(argc, argv);
 
 	Helix::Frontend::Initialise();
 	Helix::Frontend::Run(argc, argv);

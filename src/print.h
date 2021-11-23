@@ -4,6 +4,7 @@
 #include "basic_block.h"
 #include "function.h"
 #include "core.h"
+#include "opt.h"
 
 #include <unordered_map>
 
@@ -55,16 +56,22 @@ namespace Helix
 		/// For any other files or outputting to string this does not do anything.
 		void SetColour(const char* code)
 		{
-			//if (m_File == stdout || m_File == stderr)
-		//		fprintf(m_File, "%s", code);
+			if (Options::GetDisableTerminalColouring())
+				return;
+
+			if (m_File == stdout || m_File == stderr)
+				fprintf(m_File, "%s", code);
 		}
 
 		/// Reset the output colour. This only applies when outputting to stdout or
 		/// stderr.
 		void ResetColour()
 		{
-		//	if (m_File == stdout || m_File == stderr)
-	//			fprintf(m_File, "\033[0m");
+			if (Options::GetDisableTerminalColouring())
+				return;
+
+			if (m_File == stdout || m_File == stderr)
+				fprintf(m_File, "\033[0m");
 		}
 
 	private:

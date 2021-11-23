@@ -6,6 +6,7 @@
 #include "types.h"
 #include "value.h"
 #include "print.h"
+#include "opt.h"
 
 namespace Helix
 {
