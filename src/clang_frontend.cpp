@@ -104,8 +104,12 @@ void CodeGenerator::DoIfStmt(clang::IfStmt* ifStmt)
 	Value* conditionResultRegister = this->DoExpr(ifStmt->getCond());
 
 	BasicBlock* thenBB = BasicBlock::Create();
-	BasicBlock* elseBB = BasicBlock::Create();
 	BasicBlock* tailBB = BasicBlock::Create();
+	BasicBlock* elseBB = tailBB;
+
+	if (ifStmt->getElse()) {
+		elseBB = BasicBlock::Create();
+	}
 
 	this->EmitInsn(Helix::CreateConditionalBranch(thenBB, elseBB, conditionResultRegister));
 
@@ -121,7 +125,7 @@ void CodeGenerator::DoIfStmt(clang::IfStmt* ifStmt)
 	}
 
 	// Handle 'else' part of the if (e.g. what's executed when the condition is false)
-	{
+	if (ifStmt->getElse()) {
 		this->EmitBasicBlock(elseBB);
 		m_InstructionIterator = elseBB->begin();
 		this->DoStmt(ifStmt->getElse());
