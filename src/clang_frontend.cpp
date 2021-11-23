@@ -259,13 +259,31 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 	case clang::BO_Sub: opc = Helix::kInsn_ISub; break;
 	case clang::BO_Div: opc = Helix::kInsn_IDiv; break;
 	case clang::BO_Mul: opc = Helix::kInsn_IMul; break;
+	case clang::BO_LT:  opc = Helix::kInsn_ICmp_Lt; break;
+	case clang::BO_GT:  opc = Helix::kInsn_ICmp_Gt; break;
+	case clang::BO_LE:  opc = Helix::kInsn_ICmp_Lte; break;
+	case clang::BO_GE:  opc = Helix::kInsn_ICmp_Gte; break;
+	case clang::BO_EQ:  opc = Helix::kInsn_ICmp_Eq; break;
+	case clang::BO_NE:  opc = Helix::kInsn_ICmp_Neq; break;
+
 	default:
 		helix_unreachable("Unsupported binary expression");
 		break;
 	}
 
 	Helix::VirtualRegisterName* result = Helix::VirtualRegisterName::Create(Helix::BuiltinTypes::GetInt32());
-	EmitInsn(Helix::CreateBinOp(opc, lhs, rhs, result));
+	Helix::Instruction* insn = nullptr;
+
+	if (Helix::IsCompare(opc)) {
+		insn = Helix::CreateCompare(opc, lhs, rhs, result);
+	} else {
+		insn = Helix::CreateBinOp(opc, lhs, rhs, result);
+	}
+
+	helix_assert(insn, "Null binary operator instruction");
+
+	EmitInsn(insn);
+
 	return result;
 }
 

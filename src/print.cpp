@@ -33,8 +33,18 @@ const char* Helix::GetOpcodeName(Opcode opcode)
 	case kInsn_Br:         return "br";
 	case kInsn_Cbr:        return "cbr";
 	case kInsn_Call:       return "call";
-	case kInsn_FCmp:       return "fcmp";
-	case kInsn_ICmp:       return "icmp";
+	case kInsn_FCmp_Eq:    return "fcmp_eq";
+	case kInsn_FCmp_Neq:   return "fcmp_neq";
+	case kInsn_FCmp_Lt:    return "fcmp_lt";
+	case kInsn_FCmp_Gt:    return "fcmp_gt";
+	case kInsn_FCmp_Lte:   return "fcmp_lte";
+	case kInsn_FCmp_Gte:   return "fcmp_gte";
+	case kInsn_ICmp_Eq:    return "icmp_eq";
+	case kInsn_ICmp_Neq:   return "icmp_neq";
+	case kInsn_ICmp_Lt:    return "icmp_lt";
+	case kInsn_ICmp_Gt:    return "icmp_gt";
+	case kInsn_ICmp_Lte:   return "icmp_lte";
+	case kInsn_ICmp_Gte:   return "icmp_gte";
 
 	case kInsn_Undefined:
 	default:

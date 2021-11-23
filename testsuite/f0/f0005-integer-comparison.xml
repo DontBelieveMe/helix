@@ -1,0 +1,40 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function f0() {
+.0:
+	icmp_eq 1:i32, 2:i32, %0:i32
+	ret %0:i32
+}
+function f1() {
+.0:
+	icmp_neq 1:i32, 2:i32, %0:i32
+	ret %0:i32
+}
+function f2() {
+.0:
+	icmp_lt 1:i32, 2:i32, %0:i32
+	ret %0:i32
+}
+function f3() {
+.0:
+	icmp_gt 5:i32, 2:i32, %0:i32
+	ret %0:i32
+}
+function f4() {
+.0:
+	icmp_gte 6:i32, 6:i32, %0:i32
+	ret %0:i32
+}
+function f5() {
+.0:
+	icmp_lte 3:i32, 3:i32, %0:i32
+	ret %0:i32
+}
+	</ExpectedOutput>
+</Test>

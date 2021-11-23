@@ -46,8 +46,20 @@ namespace Helix
 		kInsnEnd_Branch,
 
 		kInsnStart_Compare,
-			kInsn_FCmp,
-			kInsn_ICmp,
+			kInsn_FCmp_Neq,
+			kInsn_FCmp_Eq,
+			kInsn_FCmp_Gt,
+			kInsn_FCmp_Lt,
+			kInsn_FCmp_Gte,
+			kInsn_FCmp_Lte,
+
+			kInsn_ICmp_Neq,
+			kInsn_ICmp_Eq,
+			kInsn_ICmp_Gt,
+			kInsn_ICmp_Lt,
+			kInsn_ICmp_Gte,
+			kInsn_ICmp_Lte,
+
 		kInsnEnd_Compare,
 
 		kInsn_Undefined,
