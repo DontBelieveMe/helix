@@ -50,6 +50,27 @@ namespace Testify
         }
     }
 
+    class Options
+    {
+        public bool DumpDiffs = false;
+        public List<string> SpecificTests = new List<string>();
+
+        public static Options Parse(string[] args)
+        {
+            Options opts = new Options();
+            foreach (string arg in args)
+            {
+                if (arg == "-dump-diffs")
+                    opts.DumpDiffs = true;
+                else
+                {
+                    opts.SpecificTests.Add(arg.Replace(".c", ".xml"));
+                }
+            }
+            return opts;
+        }
+    }
+
     class Program
     {
         static ProgramOutput RunExternalProcess(string name, string args)
@@ -76,7 +97,7 @@ namespace Testify
             return new ProgramOutput { Stderr = stderr.ToString(), Stdout = stdout.ToString() };
         }
 
-        static void RunTestFromXmlDefinition(string testfile, TestsuiteStats stats)
+        static void RunTestFromXmlDefinition(string testfile, TestsuiteStats stats, Options opts)
         {
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load(testfile);
@@ -139,11 +160,15 @@ namespace Testify
                 Console.WriteLine("[fail]");
                 Console.ResetColor();
 
-                Console.WriteLine("------------------------- Expected --------------------------");
-                Console.WriteLine(expectedOutputString);
-                Console.WriteLine("------------------------- Actual ----------------------------");
-                Console.WriteLine(stdout);
-                Console.WriteLine("-------------------------------------------------------------");
+                if (opts.DumpDiffs)
+                {
+                    Console.WriteLine("------------------------- Expected --------------------------");
+                    Console.WriteLine(expectedOutputString);
+                    Console.WriteLine("------------------------- Actual ----------------------------");
+                    Console.WriteLine(stdout);
+                    Console.WriteLine("-------------------------------------------------------------");
+                }
+
                 stats.Fails++;
             }
 
@@ -151,13 +176,25 @@ namespace Testify
 
         static void Main(string[] args)
         {
+            Options opts = Options.Parse(args);
+
             TestsuiteStats stats = new TestsuiteStats();
 
             Stopwatch timer = Stopwatch.StartNew();
 
-            foreach (string file in Directory.GetFiles("testsuite\\f0", "*.xml", SearchOption.AllDirectories))
+            if (opts.SpecificTests.Count > 0)
             {
-                RunTestFromXmlDefinition(file, stats);
+                foreach (string file in opts.SpecificTests)
+                {
+                    RunTestFromXmlDefinition(file, stats, opts);
+                }
+            }
+            else
+            {
+                foreach (string file in Directory.GetFiles("testsuite", "*.xml", SearchOption.AllDirectories))
+                {
+                    RunTestFromXmlDefinition(file, stats, opts);
+                }
             }
 
             timer.Stop();
@@ -169,16 +206,16 @@ namespace Testify
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("PASSES");
             Console.ResetColor();
-            Console.WriteLine(": {0} ({1}%)", stats.Passes, stats.CalculatePassPercentage());
+            Console.WriteLine(": {0} ({1:0.00}%)", stats.Passes, stats.CalculatePassPercentage());
 
             Console.Write("\t");
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("FAILS");
             Console.ResetColor();
-            Console.WriteLine(":  {0} ({1}%)", stats.Fails, stats.CalculateFailPercentage());
+            Console.WriteLine(":  {0} ({1:0.00}%)", stats.Fails, stats.CalculateFailPercentage());
 
             Console.WriteLine();
-            Console.WriteLine("Executing {0} tests took {1}s (average of {4}ms each, range {2}ms -> {3}ms)",
+            Console.WriteLine("Executing {0} tests took {1:0.00}s (average of {4:0.00}ms each, range {2}ms -> {3}ms)",
                 stats.TotalRuns, timer.ElapsedMilliseconds / 1000.0, stats.GetSmallestExecutionTime(), stats.GetLargestExecutionTime(),stats.GetAverageExecutionTime());
             Console.WriteLine();
 
