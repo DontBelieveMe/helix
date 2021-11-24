@@ -82,6 +82,7 @@ private:
 	void DoWhileStmt(clang::WhileStmt* whileStmt);
 	void DoForStmt(clang::ForStmt* forStmt);
 	void DoBreakStmt(clang::BreakStmt* breakStmt);
+	void DoContinueStmt(clang::ContinueStmt* continueStmt);
 
 	Helix::Value* DoExpr(clang::Expr* expr);
 	Helix::Value* DoIntegerLiteral(clang::IntegerLiteral* integerLiteral);
@@ -103,6 +104,7 @@ private:
 	Helix::Function*                 m_CurrentFunction = nullptr;
 
 	std::stack<Helix::BasicBlock*>   m_LoopBreakStack;
+	std::stack<Helix::BasicBlock*>   m_LoopContinueStack;
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 };
 
@@ -160,8 +162,20 @@ const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CodeGenerator::DoContinueStmt(clang::ContinueStmt* continueStmt)
+{
+	(void) continueStmt;
+
+	Helix::BasicBlock* branchTarget = m_LoopContinueStack.top();
+	this->EmitInsn(Helix::CreateUnconditionalBranch(branchTarget));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CodeGenerator::DoBreakStmt(clang::BreakStmt* breakStmt)
 {
+	(void) breakStmt;
+
 	Helix::BasicBlock* breakTarget = m_LoopBreakStack.top();
 	this->EmitInsn(Helix::CreateUnconditionalBranch(breakTarget));
 }
@@ -187,6 +201,7 @@ void CodeGenerator::DoForStmt(clang::ForStmt* forStmt)
 	this->EmitInsn(Helix::CreateConditionalBranch(bodyBlock, tailBlock, conditionValue));
 
 	m_LoopBreakStack.push(tailBlock);
+	m_LoopContinueStack.push(conditionBlock);
 
 	this->EmitBasicBlock(bodyBlock);
 	m_InstructionIterator = bodyBlock->begin();
@@ -195,6 +210,7 @@ void CodeGenerator::DoForStmt(clang::ForStmt* forStmt)
 	this->DoExpr(forStmt->getInc());
 
 	m_LoopBreakStack.pop();
+	m_LoopContinueStack.pop();
 
 	this->EmitInsn(Helix::CreateUnconditionalBranch(conditionBlock));
 
@@ -222,12 +238,14 @@ void CodeGenerator::DoWhileStmt(clang::WhileStmt* whileStmt)
 	this->EmitBasicBlock(head);
 
 	m_LoopBreakStack.push(tail);
+	m_LoopContinueStack.push(head);
 
 	this->EmitBasicBlock(body);
 	m_InstructionIterator = body->begin();
 	this->DoStmt(whileStmt->getBody());
 
 	m_LoopBreakStack.pop();
+	m_LoopContinueStack.pop();
 
 	this->EmitInsn(Helix::CreateUnconditionalBranch(head));
 
@@ -333,6 +351,10 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 
 	case clang::Stmt::BreakStmtClass:
 		this->DoBreakStmt(clang::dyn_cast<clang::BreakStmt>(stmt));
+		break;
+
+	case clang::Stmt::ContinueStmtClass:
+		this->DoContinueStmt(clang::dyn_cast<clang::ContinueStmt>(stmt));
 		break;
 	
 	default:
