@@ -88,6 +88,11 @@ private:
 	Helix::Value* DoParenExpr(clang::ParenExpr* parenExpr);
 	Helix::Value* DoAssignment(clang::BinaryOperator* binOp);
 
+	const Helix::Type* LookupType(const clang::Type* type);
+	const Helix::Type* LookupType(clang::QualType type);
+
+	const Helix::Type* LookupBuiltinType(const clang::BuiltinType* builtinType);
+
 private:
 	std::vector<Helix::Function*>    m_Functions;
 	Helix::Function::block_iterator  m_BasicBlockIterator;
@@ -96,6 +101,58 @@ private:
 
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const Helix::Type* CodeGenerator::LookupBuiltinType(const clang::BuiltinType* builtinType)
+{
+	switch (builtinType->getKind()) {
+	case clang::BuiltinType::Char_S:
+	case clang::BuiltinType::Char_U:
+	case clang::BuiltinType::SChar:
+	case clang::BuiltinType::UChar:
+		return Helix::BuiltinTypes::GetInt8();
+
+	case clang::BuiltinType::Short:
+	case clang::BuiltinType::UShort:
+		return Helix::BuiltinTypes::GetInt16();
+
+	case clang::BuiltinType::Int:
+	case clang::BuiltinType::UInt:
+		return Helix::BuiltinTypes::GetInt32();
+
+	case clang::BuiltinType::Long:
+	case clang::BuiltinType::ULong:
+	case clang::BuiltinType::ULongLong:
+	case clang::BuiltinType::LongLong:
+		return Helix::BuiltinTypes::GetInt64();
+
+	default:
+		helix_unreachable("Unknown builtin type");
+	}
+
+	return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const Helix::Type* CodeGenerator::LookupType(clang::QualType type)
+{
+	return this->LookupType(type.getTypePtr());
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
+{
+	if (type->isBuiltinType()) {
+		return this->LookupBuiltinType(clang::dyn_cast<clang::BuiltinType>(type));
+	}
+
+	helix_unreachable("Unknown type");
+
+	return nullptr;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -282,7 +339,7 @@ void CodeGenerator::DoReturnStmt(clang::ReturnStmt* returnStmt)
 
 void CodeGenerator::DoDeclStmt(clang::DeclStmt* declStmt)
 {
-	helix_assert(declStmt->isSingleDecl());
+	helix_assert(declStmt->isSingleDecl(), "Only single declarations supported");
 	this->DoDecl(declStmt->getSingleDecl());
 }
 
@@ -295,11 +352,13 @@ void CodeGenerator::DoVarDecl(clang::VarDecl* varDecl)
 	// Create a register used to store the address of this variable on the stack...
 	VirtualRegisterName* variableAddressRegister = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
 
+	const Type* type = this->LookupType(varDecl->getType());
+
 	// ... and then actually create the instruction to allocate space for the variable.
 	//
 	//              #FIXME(bwilks): This needs to pass some type information so that
 	//                              it knows how much space to allocate :)
-	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister, BuiltinTypes::GetInt32(), 1));
+	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister, type, 1));
 
 	if (varDecl->hasInit()) {
 		// Evaluate the RHS assignment of this var decl and store it at the
@@ -338,11 +397,15 @@ Helix::Value* CodeGenerator::DoParenExpr(clang::ParenExpr* parenExpr)
 
 Helix::Value* CodeGenerator::DoDeclRefExpr(clang::DeclRefExpr* declRefExpr)
 {
+	clang::ValueDecl* varDecl = declRefExpr->getDecl();
+
 	// Contains the pointer to the value on the stack
-	Helix::VirtualRegisterName* stackAddressRegister = FindValueForDecl(declRefExpr->getDecl());
+	Helix::VirtualRegisterName* stackAddressRegister = FindValueForDecl(varDecl);
 	helix_assert(stackAddressRegister, "Value not generated for declaration");
 
-	Helix::VirtualRegisterName* value = Helix::VirtualRegisterName::Create(Helix::BuiltinTypes::GetInt32());
+	const Helix::Type* type = this->LookupType(varDecl->getType());
+
+	Helix::VirtualRegisterName* value = Helix::VirtualRegisterName::Create(type);
 	EmitInsn(Helix::CreateLoad(stackAddressRegister, value));
 	return value;
 }
@@ -356,7 +419,7 @@ Helix::Value* CodeGenerator::DoIntegerLiteral(clang::IntegerLiteral* integerLite
 	helix_assert(integerLiteralValue.getBitWidth() <= 64, "Cannot codegen for integers > 64 bits in width");
 
 	const Helix::Integer val = Helix::Integer(integerLiteralValue.getZExtValue());
-	const Helix::Type* ty = Helix::BuiltinTypes::GetInt32();
+	const Helix::Type* ty = this->LookupType(integerLiteral->getType());
 
 	return Helix::ConstantInt::Create(ty, val);
 }
@@ -391,7 +454,9 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 		break;
 	}
 
-	Helix::VirtualRegisterName* result = Helix::VirtualRegisterName::Create(Helix::BuiltinTypes::GetInt32());
+	const Helix::Type* resultType = this->LookupType(binOp->getType());
+
+	Helix::VirtualRegisterName* result = Helix::VirtualRegisterName::Create(resultType);
 	Helix::Instruction* insn = nullptr;
 
 	if (Helix::IsCompare(opc)) {

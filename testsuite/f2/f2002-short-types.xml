@@ -1,0 +1,20 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function main() {
+.0:
+	stack_alloc i16x1, %0:ptr
+	store 1055:i32, %0:ptr
+	stack_alloc i16x1, %1:ptr
+	store 270:i32, %1:ptr
+	stack_alloc i16x1, %2:ptr
+	store 5330:i32, %2:ptr
+	ret 0:i32
+}
+	</ExpectedOutput>
+</Test>
