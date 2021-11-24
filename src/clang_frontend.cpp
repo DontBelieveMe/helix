@@ -339,8 +339,8 @@ void CodeGenerator::DoReturnStmt(clang::ReturnStmt* returnStmt)
 
 void CodeGenerator::DoDeclStmt(clang::DeclStmt* declStmt)
 {
-	helix_assert(declStmt->isSingleDecl(), "Only single declarations supported");
-	this->DoDecl(declStmt->getSingleDecl());
+	for (clang::Decl* decl : declStmt->decls())
+		this->DoDecl(decl);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
