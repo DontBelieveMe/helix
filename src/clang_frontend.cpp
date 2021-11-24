@@ -78,6 +78,7 @@ private:
 	void DoCompoundStmt(clang::CompoundStmt* compoundStmt);
 	void DoIfStmt(clang::IfStmt* ifStmt);
 	void DoWhileStmt(clang::WhileStmt* whileStmt);
+	void DoForStmt(clang::ForStmt* forStmt);
 
 	Helix::Value* DoExpr(clang::Expr* expr);
 	Helix::Value* DoIntegerLiteral(clang::IntegerLiteral* integerLiteral);
@@ -95,6 +96,38 @@ private:
 
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CodeGenerator::DoForStmt(clang::ForStmt* forStmt)
+{
+	using namespace Helix;
+
+	this->DoStmt(forStmt->getInit());
+
+	BasicBlock* conditionBlock = BasicBlock::Create();
+	BasicBlock* bodyBlock = BasicBlock::Create();
+	BasicBlock* tailBlock = BasicBlock::Create();
+
+	this->EmitInsn(Helix::CreateUnconditionalBranch(conditionBlock));
+
+	this->EmitBasicBlock(conditionBlock);
+	m_InstructionIterator = conditionBlock->begin();
+
+	Value* conditionValue = this->DoExpr(forStmt->getCond());
+	this->EmitInsn(Helix::CreateConditionalBranch(bodyBlock, tailBlock, conditionValue));
+
+	this->EmitBasicBlock(bodyBlock);
+	m_InstructionIterator = bodyBlock->begin();
+
+	this->DoStmt(forStmt->getBody());
+	this->DoExpr(forStmt->getInc());
+
+	this->EmitInsn(Helix::CreateUnconditionalBranch(conditionBlock));
+
+	this->EmitBasicBlock(tailBlock);
+	m_InstructionIterator = tailBlock->begin();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -215,6 +248,10 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 
 	case clang::Stmt::WhileStmtClass:
 		this->DoWhileStmt(clang::dyn_cast<clang::WhileStmt>(stmt));
+		break;
+
+	case clang::Stmt::ForStmtClass:
+		this->DoForStmt(clang::dyn_cast<clang::ForStmt>(stmt));
 		break;
 	
 	default:
