@@ -143,8 +143,8 @@ namespace Helix
 	public:
 		StackAllocInsn(VirtualRegisterName* dst, const Type* type, size_t count);
 
-		const Type* GetType() const  { return m_Type; }
-		size_t      GetCount() const { return m_Count; }
+		inline const Type* GetType()  const { return m_Type;  }
+		inline size_t      GetCount() const { return m_Count; }
 
 	private:
 		const Type*  m_Type  = nullptr;
@@ -179,10 +179,8 @@ namespace Helix
 	class RetInsn : public Instruction
 	{
 	public:
-		RetInsn(Value* value): Instruction(kInsn_Ret, 1)
-			{ this->SetOperand(0, value); }
-
-		RetInsn(): Instruction(kInsn_Ret, 0) { }
+		RetInsn(Value* value);
+		RetInsn();
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,13 +188,7 @@ namespace Helix
 	class CompareInsn : public Instruction
 	{
 	public:
-		CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
-			: Instruction(cmpOpcode, 3)
-		{
-			this->SetOperand(0, lhs);
-			this->SetOperand(1, rhs);
-			this->SetOperand(2, result);
-		}
+		CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
