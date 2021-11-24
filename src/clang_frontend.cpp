@@ -2,6 +2,8 @@
 #include "helix.h"
 #include "core.h"
 
+#include <stack>
+
 #include <stdio.h>
 
 // Can't do anything about the compiler warnings in clangs/LLVMs
@@ -79,6 +81,7 @@ private:
 	void DoIfStmt(clang::IfStmt* ifStmt);
 	void DoWhileStmt(clang::WhileStmt* whileStmt);
 	void DoForStmt(clang::ForStmt* forStmt);
+	void DoBreakStmt(clang::BreakStmt* breakStmt);
 
 	Helix::Value* DoExpr(clang::Expr* expr);
 	Helix::Value* DoIntegerLiteral(clang::IntegerLiteral* integerLiteral);
@@ -99,6 +102,7 @@ private:
 	Helix::BasicBlock::insn_iterator m_InstructionIterator;
 	Helix::Function*                 m_CurrentFunction = nullptr;
 
+	std::stack<Helix::BasicBlock*>   m_LoopBreakStack;
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 };
 
@@ -156,6 +160,14 @@ const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CodeGenerator::DoBreakStmt(clang::BreakStmt* breakStmt)
+{
+	Helix::BasicBlock* breakTarget = m_LoopBreakStack.top();
+	this->EmitInsn(Helix::CreateUnconditionalBranch(breakTarget));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CodeGenerator::DoForStmt(clang::ForStmt* forStmt)
 {
 	using namespace Helix;
@@ -174,11 +186,15 @@ void CodeGenerator::DoForStmt(clang::ForStmt* forStmt)
 	Value* conditionValue = this->DoExpr(forStmt->getCond());
 	this->EmitInsn(Helix::CreateConditionalBranch(bodyBlock, tailBlock, conditionValue));
 
+	m_LoopBreakStack.push(tailBlock);
+
 	this->EmitBasicBlock(bodyBlock);
 	m_InstructionIterator = bodyBlock->begin();
 
 	this->DoStmt(forStmt->getBody());
 	this->DoExpr(forStmt->getInc());
+
+	m_LoopBreakStack.pop();
 
 	this->EmitInsn(Helix::CreateUnconditionalBranch(conditionBlock));
 
@@ -205,9 +221,13 @@ void CodeGenerator::DoWhileStmt(clang::WhileStmt* whileStmt)
 
 	this->EmitBasicBlock(head);
 
+	m_LoopBreakStack.push(tail);
+
 	this->EmitBasicBlock(body);
 	m_InstructionIterator = body->begin();
 	this->DoStmt(whileStmt->getBody());
+
+	m_LoopBreakStack.pop();
 
 	this->EmitInsn(Helix::CreateUnconditionalBranch(head));
 
@@ -309,6 +329,10 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 
 	case clang::Stmt::ForStmtClass:
 		this->DoForStmt(clang::dyn_cast<clang::ForStmt>(stmt));
+		break;
+
+	case clang::Stmt::BreakStmtClass:
+		this->DoBreakStmt(clang::dyn_cast<clang::BreakStmt>(stmt));
 		break;
 	
 	default:
