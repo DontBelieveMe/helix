@@ -1,0 +1,20 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+		<TestFlag name="xfail" value="true"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function do_something() {
+.0:
+	ret
+}
+function main() {
+.0:
+	call do_something()
+	ret 0:i32
+}
+	</ExpectedOutput>
+</Test>
