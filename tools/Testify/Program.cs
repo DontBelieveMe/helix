@@ -20,8 +20,9 @@ namespace Testify
     {
         public int Passes = 0;
         public int Fails = 0;
+        public int XFails = 0;
 
-        public int TotalRuns {  get { return Passes + Fails; } }
+        public int TotalRuns {  get { return Passes + Fails + XFails; } }
 
         public double CalculatePassPercentage()
         {
@@ -31,6 +32,11 @@ namespace Testify
         public double CalculateFailPercentage()
         {
             return (Fails / (double)TotalRuns) * 100;
+        }
+
+        public double CalculateXFailPercentage()
+        {
+            return (XFails / (double)TotalRuns) * 100;
         }
 
         public List<long> ExecutionTimes = new List<long>();
@@ -115,6 +121,7 @@ namespace Testify
             flagsString += " --";
 
             bool useRegex = false;
+            bool xfail = false;
 
             XmlNodeList testFlags = xmlDocument.GetElementsByTagName("TestFlag");
 
@@ -126,6 +133,10 @@ namespace Testify
                 if (name == "regex")
                 {
                     useRegex = Convert.ToBoolean(value);
+                }
+                else if (name == "xfail")
+                {
+                    xfail = Convert.ToBoolean(value);
                 }
             }
 
@@ -161,20 +172,31 @@ namespace Testify
             }
             else
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("[fail]");
-                Console.ResetColor();
-
-                if (!matchesExpectedOuptut && opts.DumpDiffs)
+                if (xfail)
                 {
-                    Console.WriteLine("------------------------- Expected --------------------------");
-                    Console.WriteLine(expectedOutputString);
-                    Console.WriteLine("------------------------- Actual ----------------------------");
-                    Console.WriteLine(stdout);
-                    Console.WriteLine("-------------------------------------------------------------");
-                }
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.WriteLine("[xfail]");
+                    Console.ResetColor();
 
-                stats.Fails++;
+                    stats.XFails++;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("[fail]");
+                    Console.ResetColor();
+
+                    if (!matchesExpectedOuptut && opts.DumpDiffs)
+                    {
+                        Console.WriteLine("------------------------- Expected --------------------------");
+                        Console.WriteLine(expectedOutputString);
+                        Console.WriteLine("------------------------- Actual ----------------------------");
+                        Console.WriteLine(stdout);
+                        Console.WriteLine("-------------------------------------------------------------");
+                    }
+
+                    stats.Fails++;
+                }
             }
 
         }
@@ -218,6 +240,12 @@ namespace Testify
             Console.Write("FAILS");
             Console.ResetColor();
             Console.WriteLine(":  {0} ({1:0.00}%)", stats.Fails, stats.CalculateFailPercentage());
+
+            Console.Write("\t");
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write("XFAILS");
+            Console.ResetColor();
+            Console.WriteLine(": {0} ({1:0.00}%)", stats.XFails, stats.CalculateXFailPercentage());
 
             Console.WriteLine();
             Console.WriteLine("Executing {0} tests took {1:0.00}s (average of {4:0.00}ms each, range {2}ms -> {3}ms)",
