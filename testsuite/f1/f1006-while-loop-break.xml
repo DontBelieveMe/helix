@@ -8,9 +8,9 @@
 	<ExpectedOutput>
 function main() {
 .0:
-	stack_alloc i32x1, %0:ptr
+	stack_alloc [i32 x 1], %0:ptr
 	store 10:i32, %0:ptr
-	stack_alloc i32x1, %1:ptr
+	stack_alloc [i32 x 1], %1:ptr
 	br .1
 .1:
 	load %0:ptr, %2:i32
