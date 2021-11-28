@@ -1,10 +1,16 @@
 #include "helix.h"
 #include "types.h"
+#include "opt.h"
+#include "system.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Helix::Initialise()
 {
+	if (Helix::Options::GetDisableLogging()) {
+		Helix::DisableDebugLogging();
+	}
+
 	BuiltinTypes::Init();
 }
 

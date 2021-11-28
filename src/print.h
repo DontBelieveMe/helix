@@ -3,7 +3,7 @@
 #include "instructions.h"
 #include "basic_block.h"
 #include "function.h"
-#include "core.h"
+#include "system.h"
 #include "opt.h"
 
 #include <unordered_map>

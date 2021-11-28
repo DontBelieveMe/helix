@@ -9,7 +9,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-add_library(helix-ir
+add_subdirectory(external/spdlog)
+
+add_library(libhelix
 	src/basic_block.h
 	src/basic_block.cpp
 	src/instructions.h
@@ -26,10 +28,13 @@ add_library(helix-ir
 	src/print.cpp
 	src/function.h
 	src/function.cpp
-	src/core.h
+	src/system.h
+	src/system.cpp
 	src/opt.h
 	src/opt.cpp
 )
+
+target_link_libraries(libhelix PUBLIC spdlog::spdlog)
 
 add_executable(helix
 	src/main.cpp
@@ -37,7 +42,7 @@ add_executable(helix
 	src/frontend.h
 )
 
-target_link_libraries(helix Clang::LibTooling helix-ir)
+target_link_libraries(helix Clang::LibTooling libhelix)
 target_link_options(helix PRIVATE /ignore:4099)
 target_compile_options(helix PRIVATE /wd26812 /W4)
 
@@ -51,4 +56,4 @@ add_executable(unit-tests
 	src/tests/catch.hpp
 )
 
-target_link_libraries(unit-tests helix-ir)
+target_link_libraries(unit-tests libhelix)

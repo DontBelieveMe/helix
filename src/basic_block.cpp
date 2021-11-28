@@ -8,7 +8,6 @@
 #include "basic_block.h"
 #include "instructions.h"
 #include "types.h"
-#include "core.h"
 
 using namespace Helix;
 

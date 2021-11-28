@@ -11,7 +11,7 @@
 
 #include "frontend.h"
 #include "helix.h"
-#include "core.h"
+#include "system.h"
 
 #include <stack>
 

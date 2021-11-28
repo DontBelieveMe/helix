@@ -6,6 +6,7 @@ namespace Helix
 	{
 		bool GetDisableTerminalColouring();
 		bool GetDebugAnnotateIR();
+		bool GetDisableLogging();
 
 		void Parse(int argc, const char** argv);
 	}

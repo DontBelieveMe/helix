@@ -3,7 +3,8 @@
 #include <string.h>
 
 static bool s_DisableTerminalColouring = true;
-static bool s_DebugAnnotateIR = false;
+static bool s_DebugAnnotateIR = true;
+static bool s_DisableDebugLogs = true;
 
 void Helix::Options::Parse(int argc, const char** argv)
 {
@@ -20,3 +21,4 @@ void Helix::Options::Parse(int argc, const char** argv)
 
 bool Helix::Options::GetDisableTerminalColouring() { return s_DisableTerminalColouring; }
 bool Helix::Options::GetDebugAnnotateIR() { return s_DebugAnnotateIR; }
+bool Helix::Options::GetDisableLogging() { return s_DisableDebugLogs; }
