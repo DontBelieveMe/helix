@@ -166,8 +166,18 @@ namespace Testify
             if (matchesExpectedOuptut && expectedExitCode)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("[pass]");
+                Console.Write("[pass]");
+
+                if (xfail)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.Write(" [marked as xfail??]");
+                }
+
+                Console.WriteLine();
+
                 Console.ResetColor();
+
                 stats.Passes++;
             }
             else
