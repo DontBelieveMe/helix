@@ -4,10 +4,10 @@
 #include <stdio.h>
 
 #define helix_assert(cond, reason) \
-	assert(cond)
+	assert(cond && reason)
 
 #define helix_unreachable(desc) \
-	assert(false)
+	assert(false && desc)
 
 /*
 #define helix_warn(message, ...) \
