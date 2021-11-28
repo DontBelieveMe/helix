@@ -91,6 +91,7 @@ private:
 	Helix::Value* DoDeclRefExpr(clang::DeclRefExpr* declRefExpr);
 	Helix::Value* DoParenExpr(clang::ParenExpr* parenExpr);
 	Helix::Value* DoAssignment(clang::BinaryOperator* binOp);
+	Helix::Value* DoUnaryOperator(clang::UnaryOperator* unaryOperator);
 
 	const Helix::Type* LookupType(const clang::Type* type);
 	const Helix::Type* LookupType(clang::QualType type);
@@ -155,11 +156,40 @@ const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
 		return this->LookupBuiltinType(clang::dyn_cast<clang::BuiltinType>(type));
 	}
 
+	if (type->isPointerType()) {
+		return Helix::BuiltinTypes::GetPointer();
+	}
+
 	helix_unreachable("Unknown type");
 
 	return nullptr;
 }
 
+Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator)
+{
+	using namespace Helix;
+
+	clang::Expr* subExpr = unaryOperator->getSubExpr();
+
+	switch (unaryOperator->getOpcode()) {
+	case clang::UO_Deref: {
+	}
+
+	case clang::UO_AddrOf: {
+		clang::DeclRefExpr* var = clang::dyn_cast<clang::DeclRefExpr>(subExpr);
+
+		helix_assert(var, "cannot take address of non variable");
+
+		return this->FindValueForDecl(var->getDecl());
+	}
+
+	default:
+		helix_unreachable("Unknown unary operator");
+		break;
+	}
+
+	return nullptr;
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeGenerator::DoContinueStmt(clang::ContinueStmt* continueStmt)
@@ -422,12 +452,33 @@ void CodeGenerator::DoVarDecl(clang::VarDecl* varDecl)
 
 Helix::Value* CodeGenerator::DoAssignment(clang::BinaryOperator* binOp)
 {
-	clang::DeclRefExpr* lhsExpression = clang::dyn_cast<clang::DeclRefExpr>(binOp->getLHS());
+	using namespace Helix;
 
-	Helix::VirtualRegisterName* variableAddress = this->FindValueForDecl(lhsExpression->getDecl());
+	clang::Expr* lhsExpr = binOp->getLHS();
+
+	VirtualRegisterName* dst = nullptr;
+
+	switch (lhsExpr->getStmtClass())
+	{
+	case clang::Stmt::UnaryOperatorClass: {
+		Value* v = this->DoUnaryOperator(clang::dyn_cast<clang::UnaryOperator>(lhsExpr));
+		dst = Helix::value_cast<VirtualRegisterName>(v);
+		break;
+	}
+	case clang::Stmt::DeclRefExprClass: {
+		clang::DeclRefExpr* declRefExpr = clang::dyn_cast<clang::DeclRefExpr>(binOp->getLHS());
+		dst = this->FindValueForDecl(declRefExpr->getDecl());
+		break;
+	}
+	default:
+		break;
+	}
+
+	helix_assert(dst, "null left hand side of assignment");
+	helix_assert(dst->GetType()->IsPointer(), "LHS of assignment is not a pointer");
+
 	Helix::Value* rhs = this->DoExpr(binOp->getRHS());
-
-	EmitInsn(Helix::CreateStore(rhs, variableAddress));
+	EmitInsn(Helix::CreateStore(rhs, dst));
 
 	return rhs;
 }
@@ -541,6 +592,8 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		return DoDeclRefExpr(clang::dyn_cast<clang::DeclRefExpr>(expr));
 	case clang::Stmt::ParenExprClass:
 		return DoParenExpr(clang::dyn_cast<clang::ParenExpr>(expr));
+	case clang::Stmt::UnaryOperatorClass:
+		return DoUnaryOperator(clang::dyn_cast<clang::UnaryOperator>(expr));
 
 	default:
 		helix_unreachable("Cannot codegen for unsupported expression type");
