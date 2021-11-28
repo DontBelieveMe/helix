@@ -16,3 +16,9 @@
 
 #define helix_warn(message, ...) (void)0
 
+
+#define HELIX_NO_STEAL(ClassName) \
+	ClassName(const ClassName&) = delete; \
+	ClassName(ClassName&&) = delete; \
+	ClassName& operator=(const ClassName&) = delete; \
+	ClassName& operator=(ClassName&&) = delete

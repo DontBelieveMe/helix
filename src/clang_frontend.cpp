@@ -1,3 +1,14 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// File: clang_frontend.cpp
+//
+// This file is the Clang frontend implementation. Using the Clang APIs, it traverses the parsed AST
+// and generates IR, which is used for optimisation and code generation.
+//
+// For cleanliness (and compile time reasons), no Clang/LLVM code should exist outside this file (this already takes
+// long enough to compile for crying out loud).
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #include "frontend.h"
 #include "helix.h"
 #include "core.h"
