@@ -173,6 +173,21 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 
 	switch (unaryOperator->getOpcode()) {
 	case clang::UO_Deref: {
+		Value* value = this->DoExpr(subExpr);
+
+		VirtualRegisterName* exprReg = value_cast<VirtualRegisterName>(value);
+
+		helix_assert(exprReg, "deref expression type is not vreg");
+		helix_assert(value->GetType()->IsPointer(), "cannot dereference non pointer type");
+		helix_assert(subExpr->getType()->isPointerType(), "clang: sub expr not pointer");
+
+		const Type* resultType = this->LookupType(clang::dyn_cast<clang::PointerType>(subExpr->getType())->getPointeeType());
+
+		VirtualRegisterName* result = VirtualRegisterName::Create(resultType);
+
+		this->EmitInsn(Helix::CreateLoad(exprReg, result));
+
+		return result;
 	}
 
 	case clang::UO_AddrOf: {
@@ -500,11 +515,15 @@ Helix::Value* CodeGenerator::DoDeclRefExpr(clang::DeclRefExpr* declRefExpr)
 	Helix::VirtualRegisterName* stackAddressRegister = FindValueForDecl(varDecl);
 	helix_assert(stackAddressRegister, "Value not generated for declaration");
 
-	const Helix::Type* type = this->LookupType(varDecl->getType());
+	if (varDecl->getType()->isScalarType()) {
+		const Helix::Type* type = this->LookupType(varDecl->getType());
 
-	Helix::VirtualRegisterName* value = Helix::VirtualRegisterName::Create(type);
-	EmitInsn(Helix::CreateLoad(stackAddressRegister, value));
-	return value;
+		Helix::VirtualRegisterName* value = Helix::VirtualRegisterName::Create(type);
+		EmitInsn(Helix::CreateLoad(stackAddressRegister, value));
+		return value;
+	}
+
+	return stackAddressRegister;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
