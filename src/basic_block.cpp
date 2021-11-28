@@ -25,8 +25,8 @@ BasicBlock* BasicBlock::Create()
 
 void BasicBlock::Destroy(BasicBlock* bb)
 {
-	helix_assert(bb->BranchTarget.GetCountUses() == 0);
-	helix_assert(bb->Instructions.empty());
+	helix_assert(bb->BranchTarget.GetCountUses() == 0, "Cannot delete BB, outstanding uses");
+	helix_assert(bb->Instructions.empty(), "Cannot delete BB, it's not empty");
 	
 	delete bb;
 }
