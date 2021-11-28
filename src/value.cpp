@@ -2,6 +2,7 @@
 #include "hash.h"
 
 #include <unordered_map>
+#include <algorithm>
 
 using namespace Helix;
 
@@ -37,7 +38,13 @@ namespace std
 using IntegerCacheMap = std::unordered_map<IntegerSignature, ConstantInt*>;
 
 static IntegerCacheMap s_IntegerCache;
-static size_t          s_VirtualRegisterSlot = 1;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Use::operator==(const Use& other) const
+{
+	return m_User == other.m_User && m_OperandIndex == other.m_OperandIndex;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -45,7 +52,6 @@ VirtualRegisterName* VirtualRegisterName::Create(const Type* type, const char* n
 {
 	VirtualRegisterName* vreg = new VirtualRegisterName(type);
 	vreg->m_DebugName = name;
-	vreg->m_Slot      = s_VirtualRegisterSlot++;
 	return vreg;
 }
 
@@ -62,8 +68,9 @@ ConstantInt* ConstantInt::Create(const Type* ty, Integer value)
 {
 	IntegerCacheMap::iterator it = s_IntegerCache.find({ty, value});
 
-	if (it != s_IntegerCache.end())
+	if (it != s_IntegerCache.end()) {
 		return it->second;
+	}
 
 	ConstantInt* ci = new ConstantInt(ty);
 	ci->m_Integer   = value;
@@ -72,6 +79,20 @@ ConstantInt* ConstantInt::Create(const Type* ty, Integer value)
 	s_IntegerCache[sig] = ci;
 
 	return ci;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Value::AddUse(Instruction* user, uint16_t operandIndex)
+{
+	m_Users.push_back({user, operandIndex});
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Value::RemoveUse(Instruction* user, uint16_t operandIndex)
+{
+	m_Users.erase(std::remove(m_Users.begin(), m_Users.end(), Use(user, operandIndex)), m_Users.end());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

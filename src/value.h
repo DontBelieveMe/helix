@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <vector>
-#include <algorithm>
 
 #include "types.h"
 
@@ -27,11 +26,10 @@ namespace Helix
 	{
 	public:
 		Use(Instruction* insn, uint16_t index)
-			: m_User(insn), m_OperandIndex(index)
+		    : m_User(insn), m_OperandIndex(index)
 		{ }
 
-		bool operator==(const Use& other) const
-			{ return m_User == other.m_User && m_OperandIndex == other.m_OperandIndex; }
+		bool operator==(const Use& other) const;
 
 	private:
 		Instruction* m_User;
@@ -46,6 +44,9 @@ namespace Helix
 
 	template <typename T>
 	struct ValueTraits;
+
+	class Function;
+	class BasicBlock;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,38 +68,36 @@ namespace Helix
 		using UseList = std::vector<Use>;
 
 	public:
-		using use_iterator = UseList::iterator;
+		using use_iterator       = UseList::iterator;
 		using const_use_iterator = UseList::const_iterator;
 
-		Value(ValueType type, const Type* ty): m_ValueID(type), m_Type(ty) { }
+		Value(ValueType type, const Type* ty)
+		    : m_ValueID(type), m_Type(ty)
+		{ }
 
 		template <typename T>
-		bool IsA() const
+		inline bool IsA() const
 		{
 			return m_ValueID == ValueTraits<T>::ID;
 		}
 
-		inline const Type* GetType() const { return m_Type; }
+		void AddUse(Instruction* user, uint16_t operandIndex);
+		void RemoveUse(Instruction* user, uint16_t operandIndex);
 
-		void AddUse(Instruction* user, uint16_t operandIndex)
-			{ m_Users.push_back({user, operandIndex}); }
-
-		void RemoveUse(Instruction* user, uint16_t operandIndex)
-		{
-			m_Users.erase(std::remove(m_Users.begin(), m_Users.end(), Use(user, operandIndex)), m_Users.end());
-		}
+		inline const Type* GetType()            const { return m_Type;         }
+		inline size_t      GetCountUses()       const { return m_Users.size(); }
+		inline const Use   GetUse(size_t index) const { return m_Users[index]; }
 
 		use_iterator uses_begin() { return m_Users.begin(); }
-		use_iterator uses_end() { return m_Users.end(); }
+		use_iterator uses_end()   { return m_Users.end();   }
 
-		size_t GetCountUses() const { return m_Users.size(); }
-
-		const Use GetUse(size_t index) const { return m_Users[index]; }
+		const_use_iterator uses_begin() const { return m_Users.begin(); }
+		const_use_iterator uses_end()   const { return m_Users.begin(); }
 
 	private:
-		ValueType m_ValueID = kValue_Undefined;
-		const Type*  m_Type = nullptr;
-		UseList m_Users;
+		ValueType   m_ValueID = kValue_Undefined;
+		const Type* m_Type    = nullptr;
+		UseList     m_Users;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,6 +111,8 @@ namespace Helix
 		return static_cast<T*>(v);
 	}
 
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	template <typename T>
 	inline const T* value_cast(const Value* v)
 	{
@@ -122,15 +123,12 @@ namespace Helix
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	class Function;
-	class BasicBlock;
 
 	class FunctionBranchTarget : public Value
 	{
 	public:
 		FunctionBranchTarget(Function* parent)
-			: Value(kValue_Function, BuiltinTypes::GetFunctionType()),
+		    : Value(kValue_Function, BuiltinTypes::GetFunctionType()),
 		      m_Parent(parent)
 		{ }
 
@@ -140,11 +138,13 @@ namespace Helix
 		Function* m_Parent;
 	};
 
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	class BlockBranchTarget : public Value
 	{
 	public:
 		BlockBranchTarget(BasicBlock* parent)
-			: Value(kValue_BasicBlock, BuiltinTypes::GetLabelType()),
+		    : Value(kValue_BasicBlock, BuiltinTypes::GetLabelType()),
 		      m_Parent(parent)
 		{ }
 
@@ -154,20 +154,22 @@ namespace Helix
 		BasicBlock* m_Parent;
 	};
 
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	class VirtualRegisterName : public Value
 	{
 	public:
-		VirtualRegisterName(const Type* ty): Value(kValue_VirtualRegisterName, ty) { }
+		VirtualRegisterName(const Type* ty)
+		    : Value(kValue_VirtualRegisterName, ty)
+		{ }
 
 		static VirtualRegisterName* Create(const Type* type, const char* name);
 		static VirtualRegisterName* Create(const Type* type);
 
-		const char* GetDebugName() const { return m_DebugName; }
-		size_t GetSlot() const { return m_Slot; }
+		inline const char* GetDebugName() const { return m_DebugName; }
 
 	private:
 		const char* m_DebugName = nullptr;
-		size_t      m_Slot      = 0;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,7 +177,9 @@ namespace Helix
 	class ConstantInt : public Value
 	{
 	public:
-		ConstantInt(const Type* ty): Value(kValue_ConstantInt, ty) { }
+		ConstantInt(const Type* ty)
+		    : Value(kValue_ConstantInt, ty)
+		{ }
 
 		static ConstantInt* Create(const Type* ty, Integer value);
 
@@ -190,17 +194,18 @@ namespace Helix
 	class ConstantFloat : public Value
 	{
 	public:
-		ConstantFloat(const Type* ty): Value(kValue_ConstantFloat, ty) { }
+		ConstantFloat(const Type* ty)
+		    : Value(kValue_ConstantFloat, ty)
+		{ }
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	IMPLEMENT_VALUE_TRAITS(VirtualRegisterName, kValue_VirtualRegisterName);
-	IMPLEMENT_VALUE_TRAITS(ConstantInt, kValue_ConstantInt);
-	IMPLEMENT_VALUE_TRAITS(ConstantFloat, kValue_ConstantFloat);
-
-	IMPLEMENT_VALUE_TRAITS(FunctionBranchTarget, kValue_Function);
-	IMPLEMENT_VALUE_TRAITS(BlockBranchTarget, kValue_BasicBlock);
+	IMPLEMENT_VALUE_TRAITS( VirtualRegisterName,  kValue_VirtualRegisterName );
+	IMPLEMENT_VALUE_TRAITS( ConstantInt,          kValue_ConstantInt         );
+	IMPLEMENT_VALUE_TRAITS( ConstantFloat,        kValue_ConstantFloat       );
+	IMPLEMENT_VALUE_TRAITS( FunctionBranchTarget, kValue_Function            );
+	IMPLEMENT_VALUE_TRAITS( BlockBranchTarget,    kValue_BasicBlock          );
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

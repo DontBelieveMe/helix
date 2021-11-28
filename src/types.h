@@ -6,18 +6,35 @@ namespace Helix
 
 	enum TypeID
 	{
+		/// 32 bit IEEE 754 floating point number (float in C terms)
 		kType_Float32,
+
+		/// 64 bit IEE 754 floating point number (double in C terms)
 		kType_Float64,
 
+		/// 8 bit twos complement integer 
 		kType_Int8,
+
+		/// 16 bit twos complement integer 
 		kType_Int16,
+
+		/// 32 bit twos complement integer 
 		kType_Int32,
+
+		/// 64 bit twos complement integer 
 		kType_Int64,
 
+		/// A basic block branch target, e.g the target of a branch within a
+		/// function
 		kType_LabelType,
+
+		/// A function branch target, e.g. a call
 		kType_FunctionType,
+
+		/// Opaque pointer type, represents a memory address.
 		kType_Pointer,
 
+		/// Unknown type, a "invalid" state for Type.
 		kType_Undefined
 	};
 

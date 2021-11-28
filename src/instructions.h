@@ -59,7 +59,6 @@ namespace Helix
 			kInsn_ICmp_Lt,
 			kInsn_ICmp_Gte,
 			kInsn_ICmp_Lte,
-
 		kInsnEnd_Compare,
 
 		kInsn_Undefined,
@@ -86,25 +85,24 @@ namespace Helix
 		virtual ~Instruction() { }
 
 		Instruction(Opcode opcode, size_t nOperands)
-			: m_Opcode(opcode)
+		    : m_Opcode(opcode)
 		{
 			m_Operands.resize(nOperands, nullptr);
 		}
 
 		Instruction(Opcode opcode)
-			: m_Opcode(opcode) { }
-
-		Opcode GetOpcode() const { return m_Opcode; }
+		    : m_Opcode(opcode)
+		{ }
 
 		void SetOperand(size_t index, Value* value);
-
-		inline size_t GetCountOperands() const { return m_Operands.size(); }
-		inline Value* GetOperand(size_t index) const { return m_Operands[index]; }
-
 		void SetComment(const std::string& comment) { m_DebugComment = comment; }
-		std::string GetComment() const { return m_DebugComment; }
 
-		bool HasComment() const { return m_DebugComment.length() > 0; }
+		inline Opcode      GetOpcode()              const { return m_Opcode;                    }
+		inline size_t      GetCountOperands()       const { return m_Operands.size();           }
+		inline Value*      GetOperand(size_t index) const { return m_Operands[index];           }
+		inline std::string GetComment()             const { return m_DebugComment;              }
+
+		inline bool        HasComment()             const { return m_DebugComment.length() > 0; }
 
 	protected:
 		Opcode      m_Opcode = kInsn_Undefined;
@@ -151,7 +149,6 @@ namespace Helix
 		size_t       m_Count = 0;
 	};
 
-
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	class ConditionalBranchInsn : public Instruction
@@ -171,8 +168,7 @@ namespace Helix
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	class CallInsn : public Instruction
-	{
-	};
+	{ };
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

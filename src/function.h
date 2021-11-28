@@ -12,10 +12,10 @@ namespace Helix
 		using BlockList = intrusive_list<BasicBlock>;
 
 	public:
-		using iterator       = BlockList::iterator;
-		using const_iterator = BlockList::const_iterator;
+		using iterator             = BlockList::iterator;
+		using const_iterator       = BlockList::const_iterator;
 
-		using block_iterator = iterator;
+		using block_iterator       = iterator;
 		using const_block_iterator = const_iterator;
 
 		iterator       begin()       { return m_Blocks.begin(); }

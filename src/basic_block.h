@@ -14,8 +14,8 @@ namespace Helix
 		BasicBlock();
 
 	public:
-		using iterator       = InstructionList::iterator;
-		using const_iterator = InstructionList::const_iterator;
+		using iterator            = InstructionList::iterator;
+		using const_iterator      = InstructionList::const_iterator;
 
 		using insn_iterator       = iterator;
 		using const_insn_iterator = const_iterator;
@@ -47,9 +47,9 @@ namespace Helix
 		bool   IsEmpty() const { return Instructions.empty(); }
 
 	private:
-		InstructionList Instructions;
-		const char*     Name;
+		InstructionList   Instructions;
+		const char*       Name;
 		BlockBranchTarget BranchTarget;
-		std::string Comment;
+		std::string       Comment;
 	};
 }
