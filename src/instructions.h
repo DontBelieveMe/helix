@@ -116,6 +116,10 @@ namespace Helix
 	{
 	public:
 		BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+
+		Value* GetLHS()                  const { return this->GetOperand(0);                                  }
+		Value* GetRHS()                  const { return this->GetOperand(1);                                  }
+		VirtualRegisterName* GetResult() const { return value_cast<VirtualRegisterName>(this->GetOperand(2)); }
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
