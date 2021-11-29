@@ -23,10 +23,11 @@ namespace Helix
 		const_iterator begin() const { return m_Blocks.begin(); }
 		const_iterator end()   const { return m_Blocks.end();   }
 
-		static Function* Create(const std::string& name)
+		static Function* Create(const std::string& name, const Type* returnType)
 		{
 			Function* fn = new Function();
 			fn->m_Name = name;
+			fn->m_ReturnType = returnType;
 			return fn;
 		}
 
@@ -35,12 +36,17 @@ namespace Helix
 
 		void Remove(iterator where);
 
+		const Type* GetReturnType() const { return m_ReturnType; }
+
+		bool IsVoidReturn() const { return m_ReturnType == BuiltinTypes::GetVoidType(); }
+
 		inline std::string GetName() const { return m_Name; }
 
 		size_t GetCountBlocks() const { return m_Blocks.size(); }
 
 	private:
 		BlockList   m_Blocks;
+		const Type* m_ReturnType;
 		std::string m_Name;
 	};
 }

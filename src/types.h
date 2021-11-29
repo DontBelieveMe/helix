@@ -32,6 +32,9 @@ namespace Helix
 		/// Opaque pointer type, represents a memory address.
 		kType_Pointer,
 
+		/// Void (aka no) return type
+		kType_Void,
+
 		/// Unknown type, a "invalid" state for Type.
 		kType_Undefined
 	};
@@ -119,6 +122,8 @@ namespace Helix
 		const Type* GetLabelType();
 		const Type* GetFunctionType();
 		const Type* GetPointer();
+
+		const Type* GetVoidType();
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

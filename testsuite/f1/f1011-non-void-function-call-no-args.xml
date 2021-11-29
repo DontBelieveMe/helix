@@ -6,11 +6,11 @@
 	</TestFlags>
 
 	<ExpectedOutput>
-function do_something() {
+function do_something(): i32 {
 .0:
 	ret 20:i32
 }
-function main() {
+function main(): i32 {
 .0:
 	call do_something(), %0:i32
 	ret %0:i32

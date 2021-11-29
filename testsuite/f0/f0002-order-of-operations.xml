@@ -6,7 +6,7 @@
 	</TestFlags>
 
 	<ExpectedOutput>
-function main() {
+function main(): i32 {
 .0:
 	stack_alloc [i32 x 1], %0:ptr
 	imul 2:i32, 6:i32, %1:i32

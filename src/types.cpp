@@ -21,7 +21,7 @@ BUILTIN_TYPE(Float64);
 BUILTIN_TYPE(LabelType);
 BUILTIN_TYPE(FunctionType);
 BUILTIN_TYPE(Pointer);
-
+BUILTIN_TYPE(VoidType);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -58,6 +58,7 @@ void BuiltinTypes::Init()
 	s_LabelType    = Type::Create(kType_LabelType);
 	s_FunctionType = Type::Create(kType_FunctionType);
 	s_Pointer      = Type::Create(kType_Pointer);
+	s_VoidType     = Type::Create(kType_Void);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,6 +74,7 @@ void BuiltinTypes::Destroy()
 	DestroyType(s_LabelType);
 	DestroyType(s_FunctionType);
 	DestroyType(s_Pointer);
+	DestroyType(s_VoidType);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

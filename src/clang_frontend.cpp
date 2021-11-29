@@ -160,6 +160,9 @@ const Helix::Type* CodeGenerator::LookupBuiltinType(const clang::BuiltinType* bu
 	case clang::BuiltinType::LongLong:
 		return Helix::BuiltinTypes::GetInt64();
 
+	case clang::BuiltinType::Void:
+		return Helix::BuiltinTypes::GetVoidType();
+
 	default:
 		helix_unreachable("Unknown builtin type");
 	}
@@ -746,7 +749,7 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 	m_FunctionDecls.insert({functionDecl, FunctionDef::Create(functionDecl->getNameAsString()) });
 
 	// Create the function
-	m_CurrentFunction = Function::Create(functionDecl->getNameAsString());
+	m_CurrentFunction = Function::Create(functionDecl->getNameAsString(), this->LookupType(functionDecl->getReturnType()));
 
 	// Reset the basic block insert point so that the next basic block will be created
 	// at the start of the new function.

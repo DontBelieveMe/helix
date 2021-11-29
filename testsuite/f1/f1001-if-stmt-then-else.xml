@@ -6,7 +6,7 @@
 	</TestFlags>
 
 	<ExpectedOutput>
-function main() {
+function main(): i32 {
 .0:
 	icmp_gt 4:i32, 2:i32, %0:i32
 	cbr .1, .2, %0:i32

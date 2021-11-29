@@ -63,6 +63,7 @@ const char* Helix::GetTypeName(const Helix::Type* type)
 	case Helix::kType_LabelType:    return "label";
 	case Helix::kType_FunctionType: return "function";
 	case Helix::kType_Pointer:      return "ptr";
+	case Helix::kType_Void:         return "void";
 	case Helix::kType_Undefined:
 	case Helix::kType_Integer: {
 		const Helix::IntegerType* ty = Helix::type_cast<IntegerType>(type);
@@ -211,8 +212,11 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Funct
 	out.SetColour(kColour_Keyword); out.Write("function "); out.ResetColour();
 
 	const std::string& name = fn.GetName();
+	const Type* returnType = fn.GetReturnType();
 
-	out.Write("%s() {\n", name.c_str());
+	helix_assert(returnType, "return type is null");
+
+	out.Write("%s(): %s {\n", name.c_str(), GetTypeName(returnType));
 
 	for (const BasicBlock& bb : fn) {
 		InternalPrint(slots, out, bb);
