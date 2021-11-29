@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "..\value.h"
 #include "..\instructions.h"
+#include "..\types.h"
 
 using namespace Helix;
 
@@ -58,6 +59,30 @@ TEST_CASE("Value all users removed", "[Value]")
 	ret->SetOperand(0, ci);
 
 	REQUIRE(vreg->GetCountUses() == 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("ConstantInt::CanFitInType where the value can always", "ConstantInt")
+{
+	ConstantInt* i32 = ConstantInt::Create(BuiltinTypes::GetInt32(), 10);
+
+	REQUIRE(i32->CanFitInType(type_cast<IntegerType>(BuiltinTypes::GetInt8())));
+	REQUIRE(i32->CanFitInType(type_cast<IntegerType>(BuiltinTypes::GetInt16())));
+	REQUIRE(i32->CanFitInType(type_cast<IntegerType>(BuiltinTypes::GetInt32())));
+	REQUIRE(i32->CanFitInType(type_cast<IntegerType>(BuiltinTypes::GetInt64())));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("ConstantInt::CanFitInType where the value can't always", "ConstantInt")
+{
+	ConstantInt* i32 = ConstantInt::Create(BuiltinTypes::GetInt32(), 65536);
+
+	REQUIRE(i32->CanFitInType(type_cast<IntegerType>(BuiltinTypes::GetInt8())) == false);
+	REQUIRE(i32->CanFitInType(type_cast<IntegerType>(BuiltinTypes::GetInt16())) == false);
+	REQUIRE(i32->CanFitInType(type_cast<IntegerType>(BuiltinTypes::GetInt32())) == true);
+	REQUIRE(i32->CanFitInType(type_cast<IntegerType>(BuiltinTypes::GetInt64())) == true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

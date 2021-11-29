@@ -210,7 +210,7 @@ Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType or
 
 		// #FIXME(bwilks): This doesn't handle any overflow/underflow cases, and it should
 
-		const IntegerType* srcIntegerType = type_cast<IntegerType>(srcType);
+		// const IntegerType* srcIntegerType = type_cast<IntegerType>(srcType);
 
 		if (dstType->IsIntegral()) {
 			const IntegerType* dstIntegerType = type_cast<IntegerType>(srcType);
@@ -798,7 +798,6 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 			if (functionDecl->getReturnType()->isVoidType()) {
 				this->EmitInsn(Helix::CreateRet());
 			} else {
-				const Helix::Type* returnType = this->LookupType(functionDecl->getReturnType());
 				// It's not really valid to return a void value here, but if you've
 				// not returned a value from a non void function then what are you doing
 				// anyway?!?!

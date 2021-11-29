@@ -84,12 +84,14 @@ RetInsn* Helix::CreateRet(Value* value)
 
 void Instruction::SetOperand(size_t index, Value* value)
 {
+	helix_assert(index < UINT16_MAX, "index too big");
+
 	if (m_Operands[index] != nullptr) {
-		m_Operands[index]->RemoveUse(this, index);
+		m_Operands[index]->RemoveUse(this, (uint16_t) index);
 	}
 
 	m_Operands[index] = value;
-	value->AddUse(this, index);
+	value->AddUse(this, (uint16_t) index);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

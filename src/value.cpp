@@ -120,7 +120,7 @@ bool ConstantInt::CanFitInType(const IntegerType* ty) const
 	// if it's smaller than the max that the desired type
 	// can support.
 
-	const size_t max = std::pow(ty->GetBitWidth(), 2);
+	const size_t max = (1 << ty->GetBitWidth()) - 1;
 
 	return m_Integer <= max;
 }
