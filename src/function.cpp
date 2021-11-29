@@ -11,3 +11,8 @@ Function::iterator Function::InsertAfter(iterator where, BasicBlock* what)
 {
 	return m_Blocks.insert_after(where, what);
 }
+
+void Function::Remove(iterator where)
+{
+	m_Blocks.remove(where);
+}

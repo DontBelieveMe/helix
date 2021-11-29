@@ -33,7 +33,11 @@ namespace Helix
 		iterator InsertBefore(iterator where, BasicBlock* bb);
 		iterator InsertAfter(iterator where, BasicBlock* bb);
 
+		void Remove(iterator where);
+
 		inline std::string GetName() const { return m_Name; }
+
+		size_t GetCountBlocks() const { return m_Blocks.size(); }
 
 	private:
 		BlockList   m_Blocks;
