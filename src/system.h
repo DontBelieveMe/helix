@@ -17,7 +17,7 @@
 
 #include <spdlog/spdlog.h>
 
-#define HELIX_DEBUG_BREAK __debugbreak()
+#define HELIX_DEBUG_BREAK (Helix::ShouldDebugBreak() ? __debugbreak() : exit(1))
 
 #define helix_assert(cond, reason) \
 	do { \
@@ -53,6 +53,8 @@
 
 namespace Helix
 {
+	bool ShouldDebugBreak();
+
 	/// Disable any debug logging from this point onwards (e.g. logs made with helix_[trace,info,warn] etc...)
 	void DisableDebugLogging();
 
