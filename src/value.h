@@ -58,8 +58,7 @@ namespace Helix
 		kValue_ConstantFloat,
 		kValue_BasicBlock,
 		kValue_Function,
-		kValue_Void,
-		kValue_Undefined
+		kValue_Undef
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,23 +98,19 @@ namespace Helix
 		void SetType(const Type* ty) { m_Type = ty; }
 
 	private:
-		ValueType   m_ValueID = kValue_Undefined;
+		ValueType   m_ValueID = kValue_Undef;
 		const Type* m_Type    = nullptr;
 		UseList     m_Users;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	class VoidValue : public Value
+	class UndefValue : public Value
 	{
 	public:
-		VoidValue(): Value(kValue_Void, nullptr) { }
+		UndefValue(const Type* ty): Value(kValue_Undef, ty) { }
 
-		static VoidValue* Get()
-		{
-			static VoidValue v;
-			return &v;
-		}
+		static UndefValue* Get(const Type* ty);
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,21 +153,23 @@ namespace Helix
 
 	class FunctionDef : public Value
 	{
-		FunctionDef(const std::string& name)
+		FunctionDef(const std::string& name, const Type* returnType)
 		    : Value(kValue_Function, BuiltinTypes::GetFunctionType()),
-		      m_Name(name)
+		      m_Name(name), m_ReturnType(returnType)
 		{ }
 
 	public:
-		static FunctionDef* Create(const std::string& name)
+		static FunctionDef* Create(const std::string& name, const Type* returnType)
 		{
-			return new FunctionDef(name);
+			return new FunctionDef(name, returnType);
 		}
 
 		const char* GetName() const { return m_Name.c_str(); }
+		const Type* GetReturnType() const { return m_ReturnType; }
 
 	private:
 		std::string m_Name;
+		const Type* m_ReturnType;
 	};
 
 	IMPLEMENT_VALUE_TRAITS( FunctionDef, kValue_Function );
@@ -230,7 +227,7 @@ namespace Helix
 	IMPLEMENT_VALUE_TRAITS( ConstantInt,          kValue_ConstantInt         );
 	IMPLEMENT_VALUE_TRAITS( ConstantFloat,        kValue_ConstantFloat       );
 	IMPLEMENT_VALUE_TRAITS( BlockBranchTarget,    kValue_BasicBlock          );
-	IMPLEMENT_VALUE_TRAITS( VoidValue,            kValue_Void                );
+	IMPLEMENT_VALUE_TRAITS( UndefValue,           kValue_Undef               );
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

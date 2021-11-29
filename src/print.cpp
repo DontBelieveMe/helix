@@ -110,9 +110,8 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 		const char* functionName = fd->GetName();
 		out.Write("%s()", functionName);
 		suppressTypeInfo = true;
-	} else if (const VoidValue* v = value_cast<VoidValue>(&value)) {
-		out.Write("!");
-		suppressTypeInfo = true;
+	} else if (const UndefValue* v = value_cast<UndefValue>(&value)) {
+		out.Write("undef");
 	}
 
 	if (!suppressTypeInfo) {

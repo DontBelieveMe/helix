@@ -7,7 +7,7 @@ using namespace Helix;
 
 CallInsn* Helix::CreateCall(FunctionDef* fn, const ParameterList& params)
 {
-	return new CallInsn(fn, VoidValue::Get(), params);
+	return new CallInsn(fn, UndefValue::Get(fn->GetReturnType()), params);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -186,8 +186,6 @@ namespace Helix
 			m_Operands[1] = ret;
 			std::copy(params.begin(), params.end(), m_Operands.begin() + 2);
 		}
-
-		bool IsVoidCall() const { return m_Operands[0] == VoidValue::Get(); }
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

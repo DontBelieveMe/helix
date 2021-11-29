@@ -306,12 +306,13 @@ Helix::Value* CodeGenerator::DoCallExpr(clang::CallExpr* callExpr)
 
 	helix_assert(functionDecl, "Only direct call functions supported");
 
-	Helix::Value* retValue = Helix::VoidValue::Get();
+	const Helix::Type* returnType = this->LookupType(functionDecl->getReturnType());
 
+	Helix::Value* retValue = Helix::UndefValue::Get(returnType);
 	Helix::FunctionDef* fn = this->LookupFunction(functionDecl);
 
 	if (!functionDecl->getReturnType()->isVoidType()) {
-		retValue = Helix::VirtualRegisterName::Create(this->LookupType(functionDecl->getReturnType()));
+		retValue = Helix::VirtualRegisterName::Create(returnType);
 	}
 
 	this->EmitInsn(Helix::CreateCall(fn, retValue, {}));
@@ -746,10 +747,12 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 {
 	using namespace Helix;
 
-	m_FunctionDecls.insert({functionDecl, FunctionDef::Create(functionDecl->getNameAsString()) });
+	const Type* returnType = this->LookupType(functionDecl->getReturnType());
+
+	m_FunctionDecls.insert({functionDecl, FunctionDef::Create(functionDecl->getNameAsString(), returnType) });
 
 	// Create the function
-	m_CurrentFunction = Function::Create(functionDecl->getNameAsString(), this->LookupType(functionDecl->getReturnType()));
+	m_CurrentFunction = Function::Create(functionDecl->getNameAsString(), returnType);
 
 	// Reset the basic block insert point so that the next basic block will be created
 	// at the start of the new function.
@@ -795,10 +798,11 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 			if (functionDecl->getReturnType()->isVoidType()) {
 				this->EmitInsn(Helix::CreateRet());
 			} else {
+				const Helix::Type* returnType = this->LookupType(functionDecl->getReturnType());
 				// It's not really valid to return a void value here, but if you've
 				// not returned a value from a non void function then what are you doing
 				// anyway?!?!
-				this->EmitInsn(Helix::CreateRet(Helix::VoidValue::Get()));
+				this->EmitInsn(Helix::CreateRet(Helix::UndefValue::Get(returnType)));
 			}
 		}
 	}
