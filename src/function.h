@@ -1,7 +1,7 @@
 #pragma once
 
-#include "intrusive_list.h"
-#include "basic_block.h"
+#include "intrusive-list.h"
+#include "basic-block.h"
 
 #include <string>
 

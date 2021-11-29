@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// File: clang_frontend.cpp
+// File: clang-frontend.cpp
 //
 // This file is the Clang frontend implementation. Using the Clang APIs, it traverses the parsed AST
 // and generates IR, which is used for optimisation and code generation.

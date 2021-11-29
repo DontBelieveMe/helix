@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
 #include "..\instructions.h"
-#include "..\basic_block.h"
+#include "..\basic-block.h"
 #include "..\print.h"
 
 using namespace Helix;

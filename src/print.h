@@ -1,7 +1,7 @@
 #pragma once
 
 #include "instructions.h"
-#include "basic_block.h"
+#include "basic-block.h"
 #include "function.h"
 #include "system.h"
 #include "opt.h"

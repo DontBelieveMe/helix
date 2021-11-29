@@ -3,7 +3,7 @@
 #include "system.h"
 #include "instructions.h"
 #include "function.h"
-#include "basic_block.h"
+#include "basic-block.h"
 #include "types.h"
 #include "value.h"
 #include "print.h"

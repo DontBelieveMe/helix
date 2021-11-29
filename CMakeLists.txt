@@ -12,11 +12,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_subdirectory(external/spdlog)
 
 add_library(libhelix
-	src/basic_block.h
-	src/basic_block.cpp
+	src/basic-block.h
+	src/basic-block.cpp
 	src/instructions.h
 	src/instructions.cpp
-	src/intrusive_list.h
+	src/intrusive-list.h
 	src/value.h
 	src/value.cpp
 	src/types.h
@@ -38,7 +38,7 @@ target_link_libraries(libhelix PUBLIC spdlog::spdlog)
 
 add_executable(helix
 	src/main.cpp
-	src/clang_frontend.cpp
+	src/clang-frontend.cpp
 	src/frontend.h
 )
 

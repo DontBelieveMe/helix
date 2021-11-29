@@ -1,5 +1,5 @@
 #include "instructions.h"
-#include "basic_block.h"
+#include "basic-block.h"
 
 using namespace Helix;
 

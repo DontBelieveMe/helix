@@ -1,4 +1,4 @@
-#include "../intrusive_list.h"
+#include "../intrusive-list.h"
 
 #include "catch.hpp"
 
