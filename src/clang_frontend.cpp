@@ -725,6 +725,40 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 	if (functionDecl->hasBody())
 		this->DoStmt(functionDecl->getBody());
 
+
+	if (m_CurrentFunction->GetCountBlocks() > 1) {
+		// If we have more than one basic block in a function
+		// and the last one is empty & not used we can delete it.
+		//
+		// This tends to come from the fact that conditional constructs
+		// always emit tail blocks, even if they don't end up getting used.
+
+		if (m_BasicBlockIterator->CanDelete()) {
+			m_CurrentFunction->Remove(m_BasicBlockIterator);
+
+			BasicBlock* bb = &*m_BasicBlockIterator;
+			BasicBlock::Destroy(bb);
+
+			m_BasicBlockIterator.invalidate();
+		}
+	} else {
+		helix_assert(m_CurrentFunction->GetCountBlocks() == 1, "Function does not contain any blocks");
+
+		// Otherwise (we have one block) so check if its empty, or doesn't
+		// contain a ret.
+		// This might come from empty functions.
+		if (m_BasicBlockIterator->IsEmpty() || !m_InstructionIterator->IsTerminator()) {
+			if (functionDecl->getReturnType()->isVoidType()) {
+				this->EmitInsn(Helix::CreateRet());
+			} else {
+				// It's not really valid to return a void value here, but if you've
+				// not returned a value from a non void function then what are you doing
+				// anyway?!?!
+				this->EmitInsn(Helix::CreateRet(Helix::VoidValue::Get()));
+			}
+		}
+	}
+
 	return true;
 }
 
