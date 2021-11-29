@@ -60,6 +60,7 @@ namespace Testify
     class Options
     {
         public bool DumpDiffs = false;
+        public bool FastFail = false;
         public List<string> SpecificTests = new List<string>();
 
         public static Options Parse(string[] args)
@@ -69,6 +70,8 @@ namespace Testify
             {
                 if (arg == "-dump-diffs")
                     opts.DumpDiffs = true;
+                else if (arg == "-fail-fast")
+                    opts.FastFail = true;
                 else
                 {
                     opts.SpecificTests.Add(arg.Replace(".c", ".xml"));
@@ -106,7 +109,7 @@ namespace Testify
             return new ProgramOutput { Stderr = stderr.ToString(), Stdout = stdout.ToString(),  ExitCode = exitCode };
         }
 
-        static void RunTestFromXmlDefinition(string testfile, TestsuiteStats stats, Options opts)
+        static bool RunTestFromXmlDefinition(string testfile, TestsuiteStats stats, Options opts)
         {
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load(testfile);
@@ -206,9 +209,11 @@ namespace Testify
                     }
 
                     stats.Fails++;
+                    return false;
                 }
             }
 
+            return true;
         }
 
         static void Main(string[] args)
@@ -223,14 +228,20 @@ namespace Testify
             {
                 foreach (string file in opts.SpecificTests)
                 {
-                    RunTestFromXmlDefinition(file, stats, opts);
+                    bool pass = RunTestFromXmlDefinition(file, stats, opts);
+
+                    if (!pass && opts.FastFail)
+                        break;
                 }
             }
             else
             {
                 foreach (string file in Directory.GetFiles("testsuite", "*.xml", SearchOption.AllDirectories))
                 {
-                    RunTestFromXmlDefinition(file, stats, opts);
+                    bool pass = RunTestFromXmlDefinition(file, stats, opts);
+
+                    if (!pass && opts.FastFail)
+                        break;
                 }
             }
 
