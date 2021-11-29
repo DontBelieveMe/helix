@@ -121,7 +121,7 @@ namespace Helix
 
 	/// For a given type ID return a statically allocated string representing that type
 	/// (e.g. the name of the type). If the type is unknown "?" is returned.
-	const char* GetTypeName(TypeID typeID);
+	const char* GetTypeName(const Helix::Type* type);
 
 	void Print(TextOutputStream& out, const Instruction& insn);
 	void Print(TextOutputStream& out, const Value& value);

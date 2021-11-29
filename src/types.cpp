@@ -33,6 +33,13 @@ const Type* Type::Create(TypeID base)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const IntegerType* IntegerType::Create(size_t width)
+{
+	return new IntegerType(width);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 static void DestroyType(const Type* type)
 {
 	delete type;
@@ -42,10 +49,10 @@ static void DestroyType(const Type* type)
 
 void BuiltinTypes::Init()
 {
-	s_Int8         = Type::Create(kType_Int8);
-	s_Int16        = Type::Create(kType_Int16);
-	s_Int32        = Type::Create(kType_Int32);
-	s_Int64        = Type::Create(kType_Int64);
+	s_Int8         = IntegerType::Create(8);
+	s_Int16        = IntegerType::Create(16);
+	s_Int32        = IntegerType::Create(32);
+	s_Int64        = IntegerType::Create(64);
 	s_Float32      = Type::Create(kType_Float32);
 	s_Float64      = Type::Create(kType_Float64);
 	s_LabelType    = Type::Create(kType_LabelType);

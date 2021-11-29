@@ -54,19 +54,28 @@ const char* Helix::GetOpcodeName(Opcode opcode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* Helix::GetTypeName(Helix::TypeID id)
+const char* Helix::GetTypeName(const Helix::Type* type)
 {
-	switch (id) {
+	switch (type->GetTypeID()) {
 	case Helix::kType_Float32:      return "f32";
 	case Helix::kType_Float64:      return "f64";
-	case Helix::kType_Int8:         return "i8";
-	case Helix::kType_Int16:        return "i16";
-	case Helix::kType_Int32:        return "i32";
-	case Helix::kType_Int64:        return "i64";
 	case Helix::kType_LabelType:    return "label";
 	case Helix::kType_FunctionType: return "function";
 	case Helix::kType_Pointer:      return "ptr";
 	case Helix::kType_Undefined:
+	case Helix::kType_Integer: {
+		const Helix::IntegerType* ty = Helix::type_cast<IntegerType>(type);
+
+		switch (ty->GetBitWidth()) {
+		case 8:  return "i8";
+		case 16: return "i16";
+		case 32: return "i32";
+		case 64: return "i64";
+		default:
+			helix_unreachable("Unknown bit width");
+			return "i?";
+		}
+	}
 	default:
 		return "?";
 	}
@@ -99,7 +108,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 
 	if (!isBranchTarget) {
 		const Type* typePtr  = value.GetType();
-		const char* typeName = GetTypeName(typePtr->GetTypeID());
+		const char* typeName = GetTypeName(typePtr);
 
 		out.Write(":");
 
@@ -126,7 +135,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instr
 
 	if (insn.GetOpcode() == kInsn_StackAlloc) {
 		const StackAllocInsn& stackAlloc = static_cast<const StackAllocInsn&>(insn);
-		const char* typeName = Helix::GetTypeName(stackAlloc.GetType()->GetTypeID());
+		const char* typeName = Helix::GetTypeName(stackAlloc.GetType());
 		const size_t count = stackAlloc.GetCount();
 
 		out.Write("[%s x %zu], ", typeName, count);

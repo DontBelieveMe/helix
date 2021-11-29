@@ -1,5 +1,12 @@
 #pragma once
 
+
+#define IMPLEMENT_TYPE_TRAITS(ClassName, BaseTypeID) \
+	template <> \
+	struct TypeTraits<ClassName> { \
+		static constexpr Helix::TypeID ID = BaseTypeID; \
+	};
+
 namespace Helix
 {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -12,17 +19,8 @@ namespace Helix
 		/// 64 bit IEE 754 floating point number (double in C terms)
 		kType_Float64,
 
-		/// 8 bit twos complement integer 
-		kType_Int8,
-
-		/// 16 bit twos complement integer 
-		kType_Int16,
-
-		/// 32 bit twos complement integer 
-		kType_Int32,
-
-		/// 64 bit twos complement integer 
-		kType_Int64,
+		// An arbitrary bit width twos complement integer
+		kType_Integer,
 
 		/// A basic block branch target, e.g the target of a branch within a
 		/// function
@@ -40,11 +38,24 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	template <typename T>
+	struct TypeTraits;
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	class Type
 	{
 	public:
+		virtual ~Type() = default;
+
 		Type(TypeID baseType)
 			: m_BaseID(baseType) { }
+
+		template <typename T>
+		bool IsA() const
+		{
+			return m_BaseID == TypeTraits<T>::ID;
+		}
 
 		static const Type* Create(TypeID base);
 
@@ -56,6 +67,38 @@ namespace Helix
 		TypeID m_BaseID = kType_Undefined;
 	};
 
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class IntegerType : public Type
+	{
+	public:
+		IntegerType(size_t width)
+			: Type(kType_Integer), m_BitWidth(width)
+		{ }
+
+		static const IntegerType* Create(size_t width);
+
+		size_t GetBitWidth() const { return m_BitWidth; }
+
+	private:
+		size_t m_BitWidth;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	IMPLEMENT_TYPE_TRAITS(IntegerType, kType_Integer);
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	template <typename T>
+	inline const T* type_cast(const Type* type)
+	{
+		if (type->IsA<T>()) {
+			return static_cast<const T*>(type);
+		}
+
+		return nullptr;
+	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
