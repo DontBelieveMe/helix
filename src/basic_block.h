@@ -85,6 +85,8 @@ namespace Helix
 		const char*        GetName()         const { return Name;                        }
 		BlockBranchTarget* GetBranchTarget()       { return &BranchTarget;               }
 
+		bool CanDelete() const;
+
 	private:
 		InstructionList   Instructions;
 		const char*       Name;
