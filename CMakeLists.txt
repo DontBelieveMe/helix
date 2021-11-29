@@ -30,8 +30,8 @@ add_library(libhelix
 	src/function.cpp
 	src/system.h
 	src/system.cpp
-	src/opt.h
-	src/opt.cpp
+	src/options.h
+	src/options.cpp
 )
 
 target_link_libraries(libhelix PUBLIC spdlog::spdlog)

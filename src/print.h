@@ -4,7 +4,7 @@
 #include "basic-block.h"
 #include "function.h"
 #include "system.h"
-#include "opt.h"
+#include "options.h"
 
 #include <unordered_map>
 
