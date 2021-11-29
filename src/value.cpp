@@ -1,5 +1,6 @@
 #include "value.h"
 #include "hash.h"
+#include "system.h"
 
 #include <unordered_map>
 #include <algorithm>
@@ -93,6 +94,33 @@ void Value::AddUse(Instruction* user, uint16_t operandIndex)
 void Value::RemoveUse(Instruction* user, uint16_t operandIndex)
 {
 	m_Users.erase(std::remove(m_Users.begin(), m_Users.end(), Use(user, operandIndex)), m_Users.end());
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool ConstantInt::CanFitInType(const IntegerType* ty) const
+{
+	// #FIXME(bwilks): This doesn't handle any overflow/underflow cases, and it should
+
+	const IntegerType* myType = type_cast<IntegerType>(this->GetType());
+
+	helix_assert(myType, "Wait, I _really_ should be an integer");
+
+	// If the bit width of the type we want to fit in is bigger,
+	// then there are no problems.
+	if (ty->GetBitWidth() >= myType->GetBitWidth()) {
+		return true;
+	}
+
+	// This means that the desired type (ty) is smaller than the
+	// type of this integer.
+	// We now need to check our actual integral value, to see
+	// if it's smaller than the max that the desired type
+	// can support.
+
+	const size_t max = std::pow(ty->GetBitWidth(), 2);
+
+	return m_Integer <= max;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

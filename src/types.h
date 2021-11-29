@@ -62,6 +62,7 @@ namespace Helix
 		TypeID GetTypeID() const { return m_BaseID; }
 
 		bool IsPointer() const { return m_BaseID == kType_Pointer; }
+		bool IsIntegral() const { return m_BaseID == kType_Integer; }
 
 	private:
 		TypeID m_BaseID = kType_Undefined;

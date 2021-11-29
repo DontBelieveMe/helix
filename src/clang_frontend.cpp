@@ -103,6 +103,9 @@ private:
 	Helix::Value* DoParenExpr(clang::ParenExpr* parenExpr);
 	Helix::Value* DoAssignment(clang::BinaryOperator* binOp);
 	Helix::Value* DoUnaryOperator(clang::UnaryOperator* unaryOperator);
+	Helix::Value* DoCastExpr(clang::CastExpr* castExpr);
+
+	Helix::Value* DoScalarCast(Helix::Value* expr, clang::QualType originalType, clang::QualType requiredType);
 
 	const Helix::Type* LookupType(const clang::Type* type);
 	const Helix::Type* LookupType(clang::QualType type);
@@ -175,6 +178,69 @@ const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
 
 	return nullptr;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType originalType, clang::QualType requiredType)
+{
+	using namespace Helix;
+
+	requiredType = requiredType.getCanonicalType();
+	originalType = originalType.getCanonicalType();
+
+	const Type* srcType = this->LookupType(originalType);
+	const Type* dstType = this->LookupType(requiredType);
+
+	if (srcType->IsIntegral()) {
+
+		// #FIXME(bwilks): This doesn't handle any overflow/underflow cases, and it should
+
+		const IntegerType* srcIntegerType = type_cast<IntegerType>(srcType);
+
+		if (dstType->IsIntegral()) {
+			const IntegerType* dstIntegerType = type_cast<IntegerType>(srcType);
+
+			if (ConstantInt* cint = value_cast<ConstantInt>(expr)) {
+				if (cint->CanFitInType(dstIntegerType)) {
+					expr->SetType(dstType);
+				} else {
+					helix_unreachable("Can't fit integer constant in required type");
+				}
+			} else {
+				helix_unreachable("Unsupported cast expression operand");
+			}
+
+			return expr;
+		}
+	}
+
+	helix_unreachable("Cannot cast between given types");
+
+	return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoCastExpr(clang::CastExpr* castExpr)
+{
+	clang::Expr* subExpr = castExpr->getSubExpr();
+
+	switch (castExpr->getCastKind()) {
+	case clang::CK_LValueToRValue:
+		return this->DoExpr(subExpr);
+
+	case clang::CK_IntegralCast:
+		return this->DoScalarCast(this->DoExpr(subExpr), subExpr->getType(), castExpr->getType());
+
+	default:
+		helix_unreachable("Unknown cast kind");
+		break;
+	}
+
+	return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator)
 {
@@ -603,8 +669,7 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 
 Helix::Value* CodeGenerator::DoImplicitCastExpr(clang::ImplicitCastExpr* implicitCastExpr)
 {
-	helix_warn("ImplicitCastExpr ignored");
-	return this->DoExpr(implicitCastExpr->getSubExpr());
+	return this->DoCastExpr(implicitCastExpr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

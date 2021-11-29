@@ -94,6 +94,8 @@ namespace Helix
 		const_use_iterator uses_begin() const { return m_Users.begin(); }
 		const_use_iterator uses_end()   const { return m_Users.begin(); }
 
+		void SetType(const Type* ty) { m_Type = ty; }
+
 	private:
 		ValueType   m_ValueID = kValue_Undefined;
 		const Type* m_Type    = nullptr;
@@ -184,6 +186,8 @@ namespace Helix
 		static ConstantInt* Create(const Type* ty, Integer value);
 
 		inline Integer GetIntegralValue() const { return m_Integer; }
+
+		bool CanFitInType(const IntegerType* ty) const;
 
 	private:
 		Integer     m_Integer = 0;

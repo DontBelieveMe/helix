@@ -9,11 +9,11 @@
 function main() {
 .0:
 	stack_alloc [i16 x 1], %0:ptr
-	store 1055:i32, %0:ptr
+	store 1055:i16, %0:ptr
 	stack_alloc [i16 x 1], %1:ptr
-	store 270:i32, %1:ptr
+	store 270:i16, %1:ptr
 	stack_alloc [i16 x 1], %2:ptr
-	store 5330:i32, %2:ptr
+	store 5330:i16, %2:ptr
 	ret 0:i32
 }
 	</ExpectedOutput>
