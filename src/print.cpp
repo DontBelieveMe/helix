@@ -1,4 +1,5 @@
 #include "print.h"
+#include "helix.h"
 
 using namespace Helix;
 
@@ -85,7 +86,7 @@ const char* Helix::GetTypeName(const Helix::Type* type)
 
 static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value& value)
 {
-	bool isBranchTarget = false;
+	bool suppressTypeInfo = false;
 
 	if (const ConstantInt* ci = value_cast<ConstantInt>(&value)) {
 		out.SetColour(kColour_Number); out.Write("%llu", ci->GetIntegralValue()); out.ResetColour();
@@ -103,10 +104,17 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 	else if(const BlockBranchTarget* bbt = value_cast<BlockBranchTarget>(&value)) {
 		BasicBlock* bb = bbt->GetParent();
 		out.Write(".%zu", slots.GetBasicBlockSlot(bb));
-		isBranchTarget = true;
+		suppressTypeInfo = true;
+	} else if (const FunctionDef* fd = value_cast<FunctionDef>(&value)) {
+		const char* functionName = fd->GetName();
+		out.Write("%s()", functionName);
+		suppressTypeInfo = true;
+	} else if (const VoidValue* v = value_cast<VoidValue>(&value)) {
+		out.Write("!");
+		suppressTypeInfo = true;
 	}
 
-	if (!isBranchTarget) {
+	if (!suppressTypeInfo) {
 		const Type* typePtr  = value.GetType();
 		const char* typeName = GetTypeName(typePtr);
 

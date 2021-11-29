@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <string>
 
 #include "types.h"
 
@@ -57,6 +58,7 @@ namespace Helix
 		kValue_ConstantFloat,
 		kValue_BasicBlock,
 		kValue_Function,
+		kValue_Void,
 		kValue_Undefined
 	};
 
@@ -104,6 +106,20 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	class VoidValue : public Value
+	{
+	public:
+		VoidValue(): Value(kValue_Void, nullptr) { }
+
+		static VoidValue* Get()
+		{
+			static VoidValue v;
+			return &v;
+		}
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	template <typename T>
 	inline T* value_cast(Value* v)
 	{
@@ -126,22 +142,6 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	class FunctionBranchTarget : public Value
-	{
-	public:
-		FunctionBranchTarget(Function* parent)
-		    : Value(kValue_Function, BuiltinTypes::GetFunctionType()),
-		      m_Parent(parent)
-		{ }
-
-		Function* GetParent() const { return m_Parent; }
-
-	private:
-		Function* m_Parent;
-	};
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	class BlockBranchTarget : public Value
 	{
 	public:
@@ -155,6 +155,27 @@ namespace Helix
 	private:
 		BasicBlock* m_Parent;
 	};
+
+	class FunctionDef : public Value
+	{
+		FunctionDef(const std::string& name)
+		    : Value(kValue_Function, BuiltinTypes::GetFunctionType()),
+		      m_Name(name)
+		{ }
+
+	public:
+		static FunctionDef* Create(const std::string& name)
+		{
+			return new FunctionDef(name);
+		}
+
+		const char* GetName() const { return m_Name.c_str(); }
+
+	private:
+		std::string m_Name;
+	};
+
+	IMPLEMENT_VALUE_TRAITS( FunctionDef, kValue_Function );
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -208,8 +229,8 @@ namespace Helix
 	IMPLEMENT_VALUE_TRAITS( VirtualRegisterName,  kValue_VirtualRegisterName );
 	IMPLEMENT_VALUE_TRAITS( ConstantInt,          kValue_ConstantInt         );
 	IMPLEMENT_VALUE_TRAITS( ConstantFloat,        kValue_ConstantFloat       );
-	IMPLEMENT_VALUE_TRAITS( FunctionBranchTarget, kValue_Function            );
 	IMPLEMENT_VALUE_TRAITS( BlockBranchTarget,    kValue_BasicBlock          );
+	IMPLEMENT_VALUE_TRAITS( VoidValue,            kValue_Void                );
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

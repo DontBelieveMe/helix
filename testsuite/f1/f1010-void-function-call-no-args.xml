@@ -3,7 +3,6 @@
 
 	<TestFlags>
 		<TestFlag name="regex" value="false"></TestFlag>
-		<TestFlag name="xfail" value="true"></TestFlag>
 	</TestFlags>
 
 	<ExpectedOutput>
@@ -13,7 +12,7 @@ function do_something() {
 }
 function main() {
 .0:
-	call do_something()
+	call do_something(), !
 	ret 0:i32
 }
 	</ExpectedOutput>

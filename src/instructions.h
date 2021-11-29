@@ -10,6 +10,8 @@ namespace Helix
 {
 	class BasicBlock;
 
+	using ParameterList = std::vector<Value*>;
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	enum Opcode
@@ -104,6 +106,8 @@ namespace Helix
 
 		inline bool        HasComment()             const { return m_DebugComment.length() > 0; }
 
+		bool IsTerminator() const { return Helix::IsTerminator(m_Opcode); }
+
 	protected:
 		Opcode      m_Opcode = kInsn_Undefined;
 		OperandList m_Operands;
@@ -172,7 +176,19 @@ namespace Helix
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	class CallInsn : public Instruction
-	{ };
+	{
+	public:
+		CallInsn(FunctionDef* functionDef, Value* ret, const ParameterList& params)
+			: Instruction(kInsn_Call)
+		{
+			m_Operands.resize(params.size() + 2);
+			m_Operands[0] = functionDef;
+			m_Operands[1] = ret;
+			std::copy(params.begin(), params.end(), m_Operands.begin() + 2);
+		}
+
+		bool IsVoidCall() const { return m_Operands[0] == VoidValue::Get(); }
+	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -229,4 +245,7 @@ namespace Helix
 	/// a pointer (memory address) to that space in register 'dst'.
 	/// The type of register 'dst' specifies the amount of memory that should be allocated.
 	StackAllocInsn* CreateStackAlloc(VirtualRegisterName* dst, const Type* type, size_t count);
+
+	CallInsn* CreateCall(FunctionDef* fn, const ParameterList& params);
+	CallInsn* CreateCall(FunctionDef* fn, Value* returnValue, const ParameterList& params);
 }

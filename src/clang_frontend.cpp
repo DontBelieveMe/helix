@@ -102,6 +102,7 @@ private:
 	Helix::Value* DoDeclRefExpr(clang::DeclRefExpr* declRefExpr);
 	Helix::Value* DoParenExpr(clang::ParenExpr* parenExpr);
 	Helix::Value* DoAssignment(clang::BinaryOperator* binOp);
+	Helix::Value* DoCallExpr(clang::CallExpr* callExpr);
 	Helix::Value* DoUnaryOperator(clang::UnaryOperator* unaryOperator);
 	Helix::Value* DoCastExpr(clang::CastExpr* castExpr);
 
@@ -112,6 +113,8 @@ private:
 
 	const Helix::Type* LookupBuiltinType(const clang::BuiltinType* builtinType);
 
+	Helix::FunctionDef* LookupFunction(clang::FunctionDecl* decl);
+
 private:
 	std::vector<Helix::Function*>    m_Functions;
 	Helix::Function::block_iterator  m_BasicBlockIterator;
@@ -121,7 +124,16 @@ private:
 	std::stack<Helix::BasicBlock*>   m_LoopBreakStack;
 	std::stack<Helix::BasicBlock*>   m_LoopContinueStack;
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
+	std::unordered_map<clang::FunctionDecl*, Helix::FunctionDef*> m_FunctionDecls;
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::FunctionDef* CodeGenerator::LookupFunction(clang::FunctionDecl* decl)
+{
+	auto it = m_FunctionDecls.find(decl);
+	return it != m_FunctionDecls.end() ? it->second : nullptr;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -282,6 +294,27 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 
 	return nullptr;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoCallExpr(clang::CallExpr* callExpr)
+{
+	clang::FunctionDecl* functionDecl = callExpr->getDirectCallee();
+
+	helix_assert(functionDecl, "Only direct call functions supported");
+
+	Helix::Value* retValue = Helix::VoidValue::Get();
+
+	Helix::FunctionDef* fn = this->LookupFunction(functionDecl);
+
+	if (!functionDecl->getReturnType()->isVoidType()) {
+		retValue = Helix::VirtualRegisterName::Create(this->LookupType(functionDecl->getReturnType()));
+	}
+
+	this->EmitInsn(Helix::CreateCall(fn, retValue, {}));
+	return retValue;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CodeGenerator::DoContinueStmt(clang::ContinueStmt* continueStmt)
@@ -479,6 +512,10 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 		this->DoContinueStmt(clang::dyn_cast<clang::ContinueStmt>(stmt));
 		break;
 	
+	case clang::Stmt::CallExprClass:
+		this->DoCallExpr(clang::dyn_cast<clang::CallExpr>(stmt));
+		break;
+
 	default:
 		helix_unreachable("Unknown statment type");
 		break;
@@ -689,6 +726,8 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		return DoParenExpr(clang::dyn_cast<clang::ParenExpr>(expr));
 	case clang::Stmt::UnaryOperatorClass:
 		return DoUnaryOperator(clang::dyn_cast<clang::UnaryOperator>(expr));
+	case clang::Stmt::CallExprClass:
+		return DoCallExpr(clang::dyn_cast<clang::CallExpr>(expr));
 
 	default:
 		helix_unreachable("Cannot codegen for unsupported expression type");
@@ -703,6 +742,8 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 {
 	using namespace Helix;
+
+	m_FunctionDecls.insert({functionDecl, FunctionDef::Create(functionDecl->getNameAsString()) });
 
 	// Create the function
 	m_CurrentFunction = Function::Create(functionDecl->getNameAsString());
