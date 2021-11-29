@@ -75,6 +75,8 @@ namespace Helix
 		intrusive_list_iterator<T> operator--(int)
 			{ return intrusive_list_iterator<T>(m_node->get_prev()); }
 
+		void invalidate() { m_node = nullptr; }
+
 	private:
 		T* m_node;
 	};
@@ -102,6 +104,8 @@ namespace Helix
 		const_iterator begin() const { return const_iterator(static_cast<const T*>(m_sentinel.get_next())); }
 		const_iterator end()   const { return const_iterator(static_cast<const T*>(&m_sentinel)); }
 
+		size_t size() const { return m_size; }
+
 		iterator insert_before(const iterator& where, T* value)
 		{
 			T* node = where.m_node;
@@ -112,6 +116,8 @@ namespace Helix
 
 			value->set_prev(prev);
 			value->set_next(node);
+
+			m_size++;
 
 			return iterator(value);
 		}
@@ -127,7 +133,24 @@ namespace Helix
 			value->set_prev(node);
 			value->set_next(next);
 
+			m_size++;
+
 			return iterator(value);
+		}
+
+		void remove(const iterator& where)
+		{
+			T* node = where.m_node;
+			T* next = static_cast<T*>(node->get_next());
+			T* prev = static_cast<T*>(node->get_prev());
+
+			prev->set_next(next);
+			next->set_prev(prev);
+
+			node->set_next(nullptr);
+			node->set_prev(nullptr);
+
+			m_size--;
 		}
 
 		void push_back(T* value) { this->insert_before(end(), value); }
@@ -137,6 +160,7 @@ namespace Helix
 
 	private:
 		intrusive_list_node m_sentinel;
+		size_t m_size = 0 ;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
