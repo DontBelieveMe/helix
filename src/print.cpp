@@ -108,7 +108,19 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 		suppressTypeInfo = true;
 	} else if (const FunctionDef* fd = value_cast<FunctionDef>(&value)) {
 		const char* functionName = fd->GetName();
-		out.Write("%s()", functionName);
+		out.Write("%s(", functionName);
+
+		const FunctionDef::ParamTypeList& params = fd->GetParamTypes();
+
+		for (auto it = params.begin(); it != params.end(); ++it) {
+			out.Write(GetTypeName(*it));
+
+			if (it < params.end() - 1) {
+				out.Write(", ");
+			}
+		}
+
+		out.Write(")");
 		suppressTypeInfo = true;
 	} else if (const UndefValue* v = value_cast<UndefValue>(&value)) {
 		out.Write("undef");
@@ -215,7 +227,17 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Funct
 
 	helix_assert(returnType, "return type is null");
 
-	out.Write("%s(): %s {\n", name.c_str(), GetTypeName(returnType));
+	out.Write("%s(", name.c_str());
+
+	for (auto it = fn.params_begin(); it != fn.params_end(); ++it) {
+		InternalPrint(slots, out, **it);
+
+		if (it < fn.params_end() - 1) {
+			out.Write(", ");
+		}
+	}
+
+	out.Write("): %s {\n", GetTypeName(returnType));
 
 	for (const BasicBlock& bb : fn) {
 		InternalPrint(slots, out, bb);

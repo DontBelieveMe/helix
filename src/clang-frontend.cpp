@@ -315,7 +315,13 @@ Helix::Value* CodeGenerator::DoCallExpr(clang::CallExpr* callExpr)
 		retValue = Helix::VirtualRegisterName::Create(returnType);
 	}
 
-	this->EmitInsn(Helix::CreateCall(fn, retValue, {}));
+	Helix::ParameterList params;
+
+	for (clang::Expr* argExpr : callExpr->arguments()) {
+		params.push_back(this->DoExpr(argExpr));
+	}
+
+	this->EmitInsn(Helix::CreateCall(fn, retValue, params));
 	return retValue;
 }
 
@@ -749,7 +755,6 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 
 	const Type* returnType = this->LookupType(functionDecl->getReturnType());
 
-	m_FunctionDecls.insert({functionDecl, FunctionDef::Create(functionDecl->getNameAsString(), returnType) });
 
 	// Create the function
 	m_CurrentFunction = Function::Create(functionDecl->getNameAsString(), returnType);
@@ -764,6 +769,32 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 
 	// And clear the value map, since variables don't persist accross functions.
 	m_ValueMap.clear();
+
+	FunctionDef::ParamTypeList paramTypes;
+
+	for (clang::ParmVarDecl* param : functionDecl->parameters()) {
+		const Type*          ty            = this->LookupType(param->getType());
+		VirtualRegisterName* paramRegister = VirtualRegisterName::Create(ty);
+
+		m_CurrentFunction->AddParameter(paramRegister);
+
+		VirtualRegisterName* addr = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+
+		this->EmitInsn(Helix::CreateStackAlloc(addr, ty, 1));
+		this->EmitInsn(Helix::CreateStore(paramRegister, addr));
+
+		m_ValueMap.insert({param, addr});
+		paramTypes.push_back(ty);
+	}
+
+	m_FunctionDecls.insert({
+		functionDecl,
+		FunctionDef::Create(
+			functionDecl->getNameAsString(),
+			returnType,
+			paramTypes
+		)
+	});
 
 	// Add the new function to the list of functions that we've generated code for in
 	// this translation unit.

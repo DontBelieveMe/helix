@@ -182,8 +182,8 @@ namespace Helix
 			: Instruction(kInsn_Call)
 		{
 			m_Operands.resize(params.size() + 2);
-			m_Operands[0] = functionDef;
-			m_Operands[1] = ret;
+			m_Operands[0] = ret;
+			m_Operands[1] = functionDef;
 			std::copy(params.begin(), params.end(), m_Operands.begin() + 2);
 		}
 	};

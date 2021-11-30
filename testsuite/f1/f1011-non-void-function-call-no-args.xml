@@ -12,7 +12,7 @@ function do_something(): i32 {
 }
 function main(): i32 {
 .0:
-	call do_something(), %0:i32
+	call %0:i32, do_something()
 	ret %0:i32
 }
 	</ExpectedOutput>
