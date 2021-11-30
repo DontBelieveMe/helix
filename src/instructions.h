@@ -36,6 +36,7 @@ namespace Helix
 		kInsn_Load,
 		kInsn_Store,
 		kInsn_StackAlloc,
+		kInsn_Lea,
 
 		kInsnStart_Branch,
 			kInsnStart_Terminator,
@@ -207,6 +208,25 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	class LoadEffectiveAddressInsn : public Instruction
+	{
+	public:
+		LoadEffectiveAddressInsn(const Type* baseType, Value* inputPtr, Value* index, VirtualRegisterName* outputPtr)
+			: Instruction(kInsn_Lea, 3), m_Type(baseType)
+		{
+			m_Operands[0] = inputPtr;
+			m_Operands[1] = index;
+			m_Operands[2] = outputPtr;
+		}
+
+		const Type* GetBaseType() const { return m_Type; }
+
+	private:
+		const Type* m_Type;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/// Create a comparison instruction that compares 'lhs' and 'rhs' and stores the result to the given
 	/// 'result' register.
 	CompareInsn* CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
@@ -246,4 +266,6 @@ namespace Helix
 
 	CallInsn* CreateCall(FunctionDef* fn, const ParameterList& params);
 	CallInsn* CreateCall(FunctionDef* fn, Value* returnValue, const ParameterList& params);
+
+	LoadEffectiveAddressInsn* CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, VirtualRegisterName* outputPtr);
 }

@@ -3,6 +3,11 @@
 
 using namespace Helix;
 
+LoadEffectiveAddressInsn* Helix::CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, VirtualRegisterName* outputPtr)
+{
+	return new LoadEffectiveAddressInsn(baseType, input, index, outputPtr);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CallInsn* Helix::CreateCall(FunctionDef* fn, const ParameterList& params)

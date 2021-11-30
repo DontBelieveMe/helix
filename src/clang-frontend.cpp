@@ -105,6 +105,7 @@ private:
 	Helix::Value* DoCallExpr(clang::CallExpr* callExpr);
 	Helix::Value* DoUnaryOperator(clang::UnaryOperator* unaryOperator);
 	Helix::Value* DoCastExpr(clang::CastExpr* castExpr);
+	Helix::Value* DoArraySubscriptExpr(clang::ArraySubscriptExpr* subscriptExpr);
 
 	Helix::Value* DoScalarCast(Helix::Value* expr, clang::QualType originalType, clang::QualType requiredType);
 
@@ -221,6 +222,38 @@ size_t CodeGenerator::GetAllocaElementCount(clang::QualType type)
 	helix_unreachable("Unknown array type");
 	return 1;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoArraySubscriptExpr(clang::ArraySubscriptExpr* subscriptExpr)
+{
+	using namespace Helix;
+
+	clang::Expr* baseExpr = subscriptExpr->getBase();
+	clang::Expr* indexExpr = subscriptExpr->getIdx();
+
+	Value* base = this->DoExpr(baseExpr);
+	Value* index = this->DoExpr(indexExpr);
+
+	helix_assert(base->IsA<VirtualRegisterName>(), "base is not a virtual register name");
+	helix_assert(base->GetType()->IsPointer(), "base is not of pointer type");
+
+	const clang::QualType pointerType = baseExpr->getType();
+	helix_assert(pointerType->isPointerType(), "array subscript, base is not a pointer");
+
+	const clang::QualType pointeeType = pointerType->getPointeeType();
+
+	const Type* baseType = this->LookupType(pointeeType);
+
+	VirtualRegisterName* output = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+
+	this->EmitInsn(Helix::CreateLoadEffectiveAddress(baseType, base, index, output));
+
+	return output;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType originalType, clang::QualType requiredType)
 {
 	using namespace Helix;
@@ -267,6 +300,7 @@ Helix::Value* CodeGenerator::DoCastExpr(clang::CastExpr* castExpr)
 
 	switch (castExpr->getCastKind()) {
 	case clang::CK_LValueToRValue:
+	case clang::CK_ArrayToPointerDecay: // Arrays are just pointers in the IR anyway
 		return this->DoExpr(subExpr);
 
 	case clang::CK_IntegralCast:
@@ -308,11 +342,18 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 	}
 
 	case clang::UO_AddrOf: {
-		clang::DeclRefExpr* var = clang::dyn_cast<clang::DeclRefExpr>(subExpr);
+		
+		if (clang::DeclRefExpr* var = clang::dyn_cast<clang::DeclRefExpr>(subExpr)) {
+			return this->FindValueForDecl(var->getDecl());
+		}
+		else if (clang::ArraySubscriptExpr* expr = clang::dyn_cast<clang::ArraySubscriptExpr>(subExpr)) {
+			Value* v = this->DoArraySubscriptExpr(expr);
+			helix_assert(v->IsA<VirtualRegisterName>() && v->GetType()->IsPointer(), "array subscript did not evaluate to valid vreg pointer");
+			return v;
+		}
 
-		helix_assert(var, "cannot take address of non variable");
-
-		return this->FindValueForDecl(var->getDecl());
+		helix_unreachable("can't take address of unknown lvalue type");
+		break;
 	}
 
 	default:
@@ -636,12 +677,18 @@ Helix::Value* CodeGenerator::DoAssignment(clang::BinaryOperator* binOp)
 		dst = this->FindValueForDecl(declRefExpr->getDecl());
 		break;
 	}
+	case clang::Stmt::ArraySubscriptExprClass: {
+		Value* v = this->DoArraySubscriptExpr(clang::dyn_cast<clang::ArraySubscriptExpr>(lhsExpr));
+		dst = value_cast<VirtualRegisterName>(v);
+		break;
+	}
 	default:
+		helix_unreachable("unknown lvalue in assignment");
 		break;
 	}
 
-	helix_assert(dst, "null left hand side of assignment");
-	helix_assert(dst->GetType()->IsPointer(), "LHS of assignment is not a pointer");
+	helix_assert(dst, "lhs destination is null in assignment");
+	helix_assert(dst->GetType()->IsPointer(), "lhs of assignment is not a pointer");
 
 	Helix::Value* rhs = this->DoExpr(binOp->getRHS());
 	EmitInsn(Helix::CreateStore(rhs, dst));
@@ -765,6 +812,14 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		return DoUnaryOperator(clang::dyn_cast<clang::UnaryOperator>(expr));
 	case clang::Stmt::CallExprClass:
 		return DoCallExpr(clang::dyn_cast<clang::CallExpr>(expr));
+	case clang::Stmt::ArraySubscriptExprClass: {
+		clang::ArraySubscriptExpr* arraySubscript = clang::dyn_cast<clang::ArraySubscriptExpr>(expr);
+		Helix::Value* v = this->DoArraySubscriptExpr(arraySubscript);
+		helix_assert(v->IsA<Helix::VirtualRegisterName>(), "subscript should evaluate to vreg");
+		Helix::VirtualRegisterName* vreg = Helix::VirtualRegisterName::Create(this->LookupType(arraySubscript->getType()));
+		this->EmitInsn(Helix::CreateLoad(Helix::value_cast<Helix::VirtualRegisterName>(v), vreg));
+		return vreg;
+	}
 
 	default:
 		helix_unreachable("Cannot codegen for unsupported expression type");
