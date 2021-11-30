@@ -1,0 +1,17 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+		<TestFlag name="xfail" value="true"></TestFlag>
+	</TestFlags>
+
+	<!-- Example Clang Output: https://godbolt.org/z/GvEz986oM -->
+
+	<ExpectedOutput>
+function f(): void {
+.0:
+	stack_alloc [i32 x 100], %0:ptr
+}
+	</ExpectedOutput>
+</Test>
