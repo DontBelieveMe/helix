@@ -21,14 +21,14 @@
 
 #define helix_assert(cond, reason) \
 	do { \
-		if (Helix::Assert(cond, __LINE__, __FILE__, #cond, reason)) { \
+		if (Helix::Assert(cond, __LINE__, __FILE__, __FUNCTION__, #cond, reason)) { \
 			HELIX_DEBUG_BREAK; \
 		} \
 	} while(0)
 
 #define helix_unreachable(desc) \
 	do { \
-		Helix::Unreachable(__LINE__, __FILE__, desc); \
+		Helix::Unreachable(__LINE__, __FILE__, __FUNCTION__, desc); \
 		HELIX_DEBUG_BREAK; \
 	} while(0)
 
@@ -59,8 +59,8 @@ namespace Helix
 	void DisableDebugLogging();
 
 	/// Internal function, used by helix_unreachable - Don't use this function directly!
-	void Unreachable(int line, const char* file, const char* reason);
+	void Unreachable(int line, const char* file, const char* fn, const char* reason);
 
 	/// Internal function, used by helix_assert - Don't use this function directly!
-	bool Assert(bool cond, int line, const char* file, const char* condString, const char* reason);
+	bool Assert(bool cond, int line, const char* file, const char* fn, const char* condString, const char* reason);
 }
