@@ -4,3 +4,6 @@
 [submodule ".\\external\\spdlog"]
 	path = .\\external\\spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule ".\\extras\\doomgeneric"]
+	path = .\\extras\\doomgeneric
+	url = https://github.com/ozkl/doomgeneric.git
