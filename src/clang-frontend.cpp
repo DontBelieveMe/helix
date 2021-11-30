@@ -115,6 +115,8 @@ private:
 
 	Helix::FunctionDef* LookupFunction(clang::FunctionDecl* decl);
 
+	size_t GetAllocaElementCount(clang::QualType type);
+
 private:
 	std::vector<Helix::Function*>    m_Functions;
 	Helix::Function::block_iterator  m_BasicBlockIterator;
@@ -174,6 +176,8 @@ const Helix::Type* CodeGenerator::LookupBuiltinType(const clang::BuiltinType* bu
 
 const Helix::Type* CodeGenerator::LookupType(clang::QualType type)
 {
+	type = type.getCanonicalType();
+
 	return this->LookupType(type.getTypePtr());
 }
 
@@ -189,6 +193,11 @@ const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
 		return Helix::BuiltinTypes::GetPointer();
 	}
 
+	if (type->isArrayType()) {
+		const clang::ArrayType* arrayType = clang::dyn_cast<clang::ArrayType>(type);
+		return this->LookupType(arrayType->getElementType());
+	}
+
 	helix_unreachable("Unknown type");
 
 	return nullptr;
@@ -196,6 +205,22 @@ const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+size_t CodeGenerator::GetAllocaElementCount(clang::QualType type)
+{
+	type = type.getCanonicalType();
+
+	if (!type->isArrayType()) {
+		return 1;
+	}
+
+	if (const clang::ConstantArrayType* constantArray = clang::dyn_cast<clang::ConstantArrayType>(type)) {
+		const llvm::APInt& apSize = constantArray->getSize();
+		return (size_t) apSize.getZExtValue();
+	}
+
+	helix_unreachable("Unknown array type");
+	return 1;
+}
 Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType originalType, clang::QualType requiredType)
 {
 	using namespace Helix;
@@ -569,11 +594,13 @@ void CodeGenerator::DoVarDecl(clang::VarDecl* varDecl)
 
 	const Type* type = this->LookupType(varDecl->getType());
 
+	const size_t elementCount = this->GetAllocaElementCount(varDecl->getType());
+
 	// ... and then actually create the instruction to allocate space for the variable.
 	//
 	//              #FIXME(bwilks): This needs to pass some type information so that
 	//                              it knows how much space to allocate :)
-	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister, type, 1));
+	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister, type, elementCount));
 
 	if (varDecl->hasInit()) {
 		// Evaluate the RHS assignment of this var decl and store it at the
