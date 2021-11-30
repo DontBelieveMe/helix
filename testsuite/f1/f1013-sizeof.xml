@@ -1,0 +1,41 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+		<TestFlag name="xfail" value="true"></TestFlag>
+	</TestFlags>
+
+	<!-- Failing because sizeof isn't working corectly for array types -->
+
+	<ExpectedOutput>
+function size_int(): i64 {
+.0:
+	ret 4:i64
+}
+function size_uchar(): i64 {
+.0:
+	ret 1:i64
+}
+function size_schar(): i64 {
+.0:
+	ret 1:i64
+}
+function size_short(): i64 {
+.0:
+	ret 2:i64
+}
+function size_long_long(): i64 {
+.0:
+	ret 8:i64
+}
+function size_char_ptr(): i64 {
+.0:
+	ret 8:i64
+}
+function array_type(): i64 {
+.0:
+	ret 40:i64
+}
+	</ExpectedOutput>
+</Test>

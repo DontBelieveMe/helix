@@ -51,8 +51,8 @@ namespace Helix
 	public:
 		virtual ~Type() = default;
 
-		Type(TypeID baseType)
-			: m_BaseID(baseType) { }
+		Type(TypeID baseType, size_t byteWidth)
+			: m_BaseID(baseType), m_ByteWidth(byteWidth) { }
 
 		template <typename T>
 		bool IsA() const
@@ -60,15 +60,18 @@ namespace Helix
 			return m_BaseID == TypeTraits<T>::ID;
 		}
 
-		static const Type* Create(TypeID base);
+		static const Type* Create(TypeID base, size_t byteWidth);
 
 		TypeID GetTypeID() const { return m_BaseID; }
 
 		bool IsPointer() const { return m_BaseID == kType_Pointer; }
 		bool IsIntegral() const { return m_BaseID == kType_Integer; }
 
+		size_t GetSizeBytes() const { return m_ByteWidth; }
+
 	private:
 		TypeID m_BaseID = kType_Undefined;
+		size_t m_ByteWidth = 0;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,7 +80,7 @@ namespace Helix
 	{
 	public:
 		IntegerType(size_t width)
-			: Type(kType_Integer), m_BitWidth(width)
+			: Type(kType_Integer, width / 8), m_BitWidth(width)
 		{ }
 
 		static const IntegerType* Create(size_t width);

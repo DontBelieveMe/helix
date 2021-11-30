@@ -107,6 +107,8 @@ private:
 	Helix::Value* DoCastExpr(clang::CastExpr* castExpr);
 	Helix::Value* DoArraySubscriptExpr(clang::ArraySubscriptExpr* subscriptExpr);
 
+	Helix::Value* DoSizeof(clang::QualType type);
+
 	Helix::Value* DoScalarCast(Helix::Value* expr, clang::QualType originalType, clang::QualType requiredType);
 
 	const Helix::Type* LookupType(const clang::Type* type);
@@ -202,6 +204,18 @@ const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
 	helix_unreachable("Unknown type");
 
 	return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Helix::Value* CodeGenerator::DoSizeof(clang::QualType type)
+{
+	// #FIXME(bwilks): This should be configurable
+	const Helix::Type* sizeType = Helix::BuiltinTypes::GetInt64();
+
+	const Helix::Type* ty = this->LookupType(type);
+
+	return Helix::ConstantInt::Create(sizeType, ty->GetSizeBytes());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -819,6 +833,19 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		Helix::VirtualRegisterName* vreg = Helix::VirtualRegisterName::Create(this->LookupType(arraySubscript->getType()));
 		this->EmitInsn(Helix::CreateLoad(Helix::value_cast<Helix::VirtualRegisterName>(v), vreg));
 		return vreg;
+	}
+	case clang::Stmt::UnaryExprOrTypeTraitExprClass: {
+		clang::UnaryExprOrTypeTraitExpr* uett = clang::dyn_cast<clang::UnaryExprOrTypeTraitExpr>(expr);
+		
+		switch (uett->getKind()) {
+		case clang::UETT_SizeOf:
+			return DoSizeof(uett->getArgumentType());
+		default:
+			helix_unreachable("unknown unary operator or type trait");
+			break;
+		}
+
+		break;
 	}
 
 	default:
