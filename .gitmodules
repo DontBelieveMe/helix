@@ -1,9 +1,9 @@
 [submodule "external/llvm-project"]
 	path = external/llvm-project
 	url = https://github.com/llvm/llvm-project.git
-[submodule ".\\external\\spdlog"]
-	path = .\\external\\spdlog
+[submodule ".external/spdlog"]
+	path = external/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule ".\\extras\\doomgeneric"]
-	path = .\\extras\\doomgeneric
+[submodule "extras/doomgeneric"]
+	path = extras/doomgeneric
 	url = https://github.com/ozkl/doomgeneric.git
