@@ -118,6 +118,9 @@ namespace Helix
 	template <typename T>
 	inline T* value_cast(Value* v)
 	{
+		if (!v)
+			return nullptr;
+
 		if (!v->IsA<T>())
 			return nullptr;
 
@@ -129,6 +132,9 @@ namespace Helix
 	template <typename T>
 	inline const T* value_cast(const Value* v)
 	{
+		if (!v)
+			return nullptr;
+
 		if (!v->IsA<T>())
 			return nullptr;
 

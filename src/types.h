@@ -97,6 +97,9 @@ namespace Helix
 	template <typename T>
 	inline const T* type_cast(const Type* type)
 	{
+		if (!type)
+			return nullptr;
+
 		if (type->IsA<T>()) {
 			return static_cast<const T*>(type);
 		}
