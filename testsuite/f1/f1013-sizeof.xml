@@ -3,7 +3,6 @@
 
 	<TestFlags>
 		<TestFlag name="regex" value="false"></TestFlag>
-		<TestFlag name="xfail" value="true"></TestFlag>
 	</TestFlags>
 
 	<!-- Failing because sizeof isn't working corectly for array types -->
@@ -31,7 +30,7 @@ function size_long_long(): i64 {
 }
 function size_char_ptr(): i64 {
 .0:
-	ret 8:i64
+	ret 4:i64
 }
 function array_type(): i64 {
 .0:

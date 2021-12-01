@@ -2,8 +2,6 @@
 
 using namespace Helix;
 
-static constexpr size_t kMachine_PointerSize = 8;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define BUILTIN_TYPE(name) \
@@ -27,9 +25,9 @@ BUILTIN_TYPE(VoidType);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Type* Type::Create(TypeID base, size_t byteWidth)
+const Type* Type::Create(TypeID base)
 {
-	const Type* type = new Type(base, byteWidth);
+	const Type* type = new Type(base);
 	return type;
 }
 
@@ -55,12 +53,12 @@ void BuiltinTypes::Init()
 	s_Int16        = IntegerType::Create(16);
 	s_Int32        = IntegerType::Create(32);
 	s_Int64        = IntegerType::Create(64);
-	s_Float32      = Type::Create(kType_Float32, 4);
-	s_Float64      = Type::Create(kType_Float64, 8);
-	s_LabelType    = Type::Create(kType_LabelType, kMachine_PointerSize);
-	s_FunctionType = Type::Create(kType_FunctionType, kMachine_PointerSize);
-	s_Pointer      = Type::Create(kType_Pointer, kMachine_PointerSize);
-	s_VoidType     = Type::Create(kType_Void, 0);
+	s_Float32      = Type::Create(kType_Float32);
+	s_Float64      = Type::Create(kType_Float64);
+	s_LabelType    = Type::Create(kType_LabelType);
+	s_FunctionType = Type::Create(kType_FunctionType);
+	s_Pointer      = Type::Create(kType_Pointer);
+	s_VoidType     = Type::Create(kType_Void);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

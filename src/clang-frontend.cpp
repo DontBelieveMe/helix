@@ -49,6 +49,13 @@ static llvm::cl::extrahelp      MoreHelp("\nHelix C/C++ Compiler...\n");
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct TypeInfo
+{
+	size_t Width; // Bytes
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 class CodeGenerator : public clang::RecursiveASTVisitor<CodeGenerator>
 {
 public:
@@ -118,7 +125,7 @@ private:
 	Helix::Value* DoCastExpr(clang::CastExpr* castExpr);
 	Helix::Value* DoArraySubscriptExpr(clang::ArraySubscriptExpr* subscriptExpr);
 
-	Helix::Value* DoSizeof(clang::QualType type);
+	Helix::Value* DoSizeOf(clang::QualType type);
 
 	Helix::Value* DoScalarCast(Helix::Value* expr, clang::QualType originalType, clang::QualType requiredType);
 
@@ -132,6 +139,9 @@ private:
 	size_t GetAllocaElementCount(clang::QualType type);
 
 	const Helix::Type* GetSizeType() const { return m_SizeType; }
+	TypeInfo           GetTypeInfo(clang::QualType type);
+	TypeInfo           GetTypeInfo(const clang::Type* typePtr);
+
 private:
 	std::vector<Helix::Function*>    m_Functions;
 	Helix::Function::block_iterator  m_BasicBlockIterator;
@@ -147,6 +157,56 @@ private:
 
 	const Helix::Type* m_SizeType;
 };
+
+TypeInfo CodeGenerator::GetTypeInfo(const clang::Type* typePtr)
+{
+	if (const clang::BuiltinType* builtinType = clang::dyn_cast<clang::BuiltinType>(typePtr)) {
+		switch (builtinType->getKind()) {
+		case clang::BuiltinType::Char_S:
+		case clang::BuiltinType::Char_U:
+		case clang::BuiltinType::SChar:
+		case clang::BuiltinType::UChar:
+			return { m_TargetInfo->GetCharByteWidth() };
+
+		case clang::BuiltinType::Short:
+		case clang::BuiltinType::UShort:
+			return { m_TargetInfo->GetShortByteWidth() };
+
+		case clang::BuiltinType::Int:
+		case clang::BuiltinType::UInt:
+			return { m_TargetInfo->GetIntByteWidth() };
+
+		case clang::BuiltinType::Long:
+		case clang::BuiltinType::ULong:
+			return { m_TargetInfo->GetLongByteWidth() };
+
+		case clang::BuiltinType::ULongLong:
+		case clang::BuiltinType::LongLong:
+			return { m_TargetInfo->GetLongLongByteWidth() };
+		}
+	}
+
+	if (clang::isa<clang::PointerType>(typePtr)) {
+		return { m_TargetInfo->GetPointerByteWidth() };
+	}
+
+	if (const clang::ConstantArrayType* constantArrayType = clang::dyn_cast<clang::ConstantArrayType>(typePtr)) {
+		const llvm::APInt& ApArraySize  = constantArrayType->getSize();
+		const size_t       ArraySize    = (size_t) ApArraySize.getZExtValue();
+		const size_t       ElementWidth = this->GetTypeInfo(constantArrayType->getArrayElementTypeNoTypeQual()).Width;
+
+		return { ArraySize * ElementWidth };
+	}
+
+	helix_unreachable("GetTypeInfo(): unknown type");
+	return { 0 };
+}
+
+TypeInfo CodeGenerator::GetTypeInfo(clang::QualType type)
+{
+	type = type.getCanonicalType();
+	return this->GetTypeInfo(type.getTypePtr());
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -224,14 +284,12 @@ const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Helix::Value* CodeGenerator::DoSizeof(clang::QualType type)
+Helix::Value* CodeGenerator::DoSizeOf(clang::QualType type)
 {
-	// #FIXME(bwilks): This should be configurable
-	const Helix::Type* sizeType = Helix::BuiltinTypes::GetInt64();
+	const Helix::Type* SizeType = Helix::BuiltinTypes::GetInt64();
 
-	const Helix::Type* ty = this->ConvertType(type);
-
-	return Helix::ConstantInt::Create(sizeType, 0);
+	const size_t TypeWidth = this->GetTypeInfo(type).Width;
+	return Helix::ConstantInt::Create(SizeType, TypeWidth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -855,7 +913,7 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		
 		switch (uett->getKind()) {
 		case clang::UETT_SizeOf:
-			return DoSizeof(uett->getArgumentType());
+			return DoSizeOf(uett->getArgumentType());
 		default:
 			helix_unreachable("unknown unary operator or type trait");
 			break;
