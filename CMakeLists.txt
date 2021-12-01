@@ -32,6 +32,8 @@ add_library(libhelix
 	src/system.cpp
 	src/options.h
 	src/options.cpp
+	src/target-info.h
+	src/target-info-armv7.h
 )
 
 target_link_libraries(libhelix PUBLIC spdlog::spdlog)

@@ -12,6 +12,7 @@
 #include "frontend.h"
 #include "helix.h"
 #include "system.h"
+#include "target-info.h"
 
 #include <stack>
 
@@ -130,6 +131,8 @@ private:
 	std::stack<Helix::BasicBlock*>   m_LoopContinueStack;
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 	std::unordered_map<clang::FunctionDecl*, Helix::FunctionDef*> m_FunctionDecls;
+
+	Helix::TargetInfo_ArmV7 m_TargetInfo;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
