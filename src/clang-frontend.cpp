@@ -12,7 +12,8 @@
 #include "frontend.h"
 #include "helix.h"
 #include "system.h"
-#include "target-info.h"
+
+#include "target-info-armv7.h"
 
 #include <stack>
 
@@ -51,6 +52,15 @@ static llvm::cl::extrahelp      MoreHelp("\nHelix C/C++ Compiler...\n");
 class CodeGenerator : public clang::RecursiveASTVisitor<CodeGenerator>
 {
 public:
+	CodeGenerator()
+		: m_TargetInfo(std::make_unique<Helix::TargetInfo_ArmV7>())
+	{
+		using namespace Helix;
+
+		const TargetInfo::IntType ty = m_TargetInfo->GetSizeType();
+		m_SizeType = IntegerType::Create(m_TargetInfo->GetIntBitWidth(ty));
+	}
+
 	bool VisitFunctionDecl(clang::FunctionDecl* decl);
 
 	std::vector<Helix::Function*> GetFunctions() { return m_Functions; }
@@ -121,6 +131,7 @@ private:
 
 	size_t GetAllocaElementCount(clang::QualType type);
 
+	const Helix::Type* GetSizeType() const { return m_SizeType; }
 private:
 	std::vector<Helix::Function*>    m_Functions;
 	Helix::Function::block_iterator  m_BasicBlockIterator;
@@ -132,7 +143,9 @@ private:
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 	std::unordered_map<clang::FunctionDecl*, Helix::FunctionDef*> m_FunctionDecls;
 
-	Helix::TargetInfo_ArmV7 m_TargetInfo;
+	std::unique_ptr<Helix::TargetInfo> m_TargetInfo;
+
+	const Helix::Type* m_SizeType;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
