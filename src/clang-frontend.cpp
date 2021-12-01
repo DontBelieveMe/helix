@@ -122,8 +122,8 @@ private:
 
 	Helix::Value* DoScalarCast(Helix::Value* expr, clang::QualType originalType, clang::QualType requiredType);
 
-	const Helix::Type* LookupType(const clang::Type* type);
-	const Helix::Type* LookupType(clang::QualType type);
+	const Helix::Type* ConvertType(const clang::Type* type);
+	const Helix::Type* ConvertType(clang::QualType type);
 
 	const Helix::Type* LookupBuiltinType(const clang::BuiltinType* builtinType);
 
@@ -193,16 +193,16 @@ const Helix::Type* CodeGenerator::LookupBuiltinType(const clang::BuiltinType* bu
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Helix::Type* CodeGenerator::LookupType(clang::QualType type)
+const Helix::Type* CodeGenerator::ConvertType(clang::QualType type)
 {
 	type = type.getCanonicalType();
 
-	return this->LookupType(type.getTypePtr());
+	return this->ConvertType(type.getTypePtr());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
+const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 {
 	if (type->isBuiltinType()) {
 		return this->LookupBuiltinType(clang::dyn_cast<clang::BuiltinType>(type));
@@ -214,7 +214,7 @@ const Helix::Type* CodeGenerator::LookupType(const clang::Type* type)
 
 	if (type->isArrayType()) {
 		const clang::ArrayType* arrayType = clang::dyn_cast<clang::ArrayType>(type);
-		return this->LookupType(arrayType->getElementType());
+		return this->ConvertType(arrayType->getElementType());
 	}
 
 	helix_unreachable("Unknown type");
@@ -229,9 +229,9 @@ Helix::Value* CodeGenerator::DoSizeof(clang::QualType type)
 	// #FIXME(bwilks): This should be configurable
 	const Helix::Type* sizeType = Helix::BuiltinTypes::GetInt64();
 
-	const Helix::Type* ty = this->LookupType(type);
+	const Helix::Type* ty = this->ConvertType(type);
 
-	return Helix::ConstantInt::Create(sizeType, ty->GetSizeBytes());
+	return Helix::ConstantInt::Create(sizeType, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -273,7 +273,7 @@ Helix::Value* CodeGenerator::DoArraySubscriptExpr(clang::ArraySubscriptExpr* sub
 
 	const clang::QualType pointeeType = pointerType->getPointeeType();
 
-	const Type* baseType = this->LookupType(pointeeType);
+	const Type* baseType = this->ConvertType(pointeeType);
 
 	VirtualRegisterName* output = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
 
@@ -291,8 +291,8 @@ Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType or
 	requiredType = requiredType.getCanonicalType();
 	originalType = originalType.getCanonicalType();
 
-	const Type* srcType = this->LookupType(originalType);
-	const Type* dstType = this->LookupType(requiredType);
+	const Type* srcType = this->ConvertType(originalType);
+	const Type* dstType = this->ConvertType(requiredType);
 
 	if (srcType->IsIntegral()) {
 
@@ -362,7 +362,7 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 		helix_assert(value->GetType()->IsPointer(), "cannot dereference non pointer type");
 		helix_assert(subExpr->getType()->isPointerType(), "clang: sub expr not pointer");
 
-		const Type* resultType = this->LookupType(clang::dyn_cast<clang::PointerType>(subExpr->getType())->getPointeeType());
+		const Type* resultType = this->ConvertType(clang::dyn_cast<clang::PointerType>(subExpr->getType())->getPointeeType());
 
 		VirtualRegisterName* result = VirtualRegisterName::Create(resultType);
 
@@ -402,7 +402,7 @@ Helix::Value* CodeGenerator::DoCallExpr(clang::CallExpr* callExpr)
 
 	helix_assert(functionDecl, "Only direct call functions supported");
 
-	const Helix::Type* returnType = this->LookupType(functionDecl->getReturnType());
+	const Helix::Type* returnType = this->ConvertType(functionDecl->getReturnType());
 
 	Helix::Value* retValue = Helix::UndefValue::Get(returnType);
 	Helix::FunctionDef* fn = this->LookupFunction(functionDecl);
@@ -663,7 +663,7 @@ void CodeGenerator::DoVarDecl(clang::VarDecl* varDecl)
 	// Create a register used to store the address of this variable on the stack...
 	VirtualRegisterName* variableAddressRegister = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
 
-	const Type* type = this->LookupType(varDecl->getType());
+	const Type* type = this->ConvertType(varDecl->getType());
 
 	const size_t elementCount = this->GetAllocaElementCount(varDecl->getType());
 
@@ -744,7 +744,7 @@ Helix::Value* CodeGenerator::DoDeclRefExpr(clang::DeclRefExpr* declRefExpr)
 	helix_assert(stackAddressRegister, "Value not generated for declaration");
 
 	if (varDecl->getType()->isScalarType()) {
-		const Helix::Type* type = this->LookupType(varDecl->getType());
+		const Helix::Type* type = this->ConvertType(varDecl->getType());
 
 		Helix::VirtualRegisterName* value = Helix::VirtualRegisterName::Create(type);
 		EmitInsn(Helix::CreateLoad(stackAddressRegister, value));
@@ -763,7 +763,7 @@ Helix::Value* CodeGenerator::DoIntegerLiteral(clang::IntegerLiteral* integerLite
 	helix_assert(integerLiteralValue.getBitWidth() <= 64, "Cannot codegen for integers > 64 bits in width");
 
 	const Helix::Integer val = Helix::Integer(integerLiteralValue.getZExtValue());
-	const Helix::Type* ty = this->LookupType(integerLiteral->getType());
+	const Helix::Type* ty = this->ConvertType(integerLiteral->getType());
 
 	return Helix::ConstantInt::Create(ty, val);
 }
@@ -798,7 +798,7 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 		break;
 	}
 
-	const Helix::Type* resultType = this->LookupType(binOp->getType());
+	const Helix::Type* resultType = this->ConvertType(binOp->getType());
 
 	Helix::VirtualRegisterName* result = Helix::VirtualRegisterName::Create(resultType);
 	Helix::Instruction* insn = nullptr;
@@ -846,7 +846,7 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		clang::ArraySubscriptExpr* arraySubscript = clang::dyn_cast<clang::ArraySubscriptExpr>(expr);
 		Helix::Value* v = this->DoArraySubscriptExpr(arraySubscript);
 		helix_assert(v->IsA<Helix::VirtualRegisterName>(), "subscript should evaluate to vreg");
-		Helix::VirtualRegisterName* vreg = Helix::VirtualRegisterName::Create(this->LookupType(arraySubscript->getType()));
+		Helix::VirtualRegisterName* vreg = Helix::VirtualRegisterName::Create(this->ConvertType(arraySubscript->getType()));
 		this->EmitInsn(Helix::CreateLoad(Helix::value_cast<Helix::VirtualRegisterName>(v), vreg));
 		return vreg;
 	}
@@ -878,7 +878,7 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 {
 	using namespace Helix;
 
-	const Type* returnType = this->LookupType(functionDecl->getReturnType());
+	const Type* returnType = this->ConvertType(functionDecl->getReturnType());
 
 
 	// Create the function
@@ -898,7 +898,7 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 	FunctionDef::ParamTypeList paramTypes;
 
 	for (clang::ParmVarDecl* param : functionDecl->parameters()) {
-		const Type*          ty            = this->LookupType(param->getType());
+		const Type*          ty            = this->ConvertType(param->getType());
 		VirtualRegisterName* paramRegister = VirtualRegisterName::Create(ty);
 
 		m_CurrentFunction->AddParameter(paramRegister);
