@@ -125,7 +125,7 @@ private:
 	const Helix::Type* ConvertType(const clang::Type* type);
 	const Helix::Type* ConvertType(clang::QualType type);
 
-	const Helix::Type* LookupBuiltinType(const clang::BuiltinType* builtinType);
+	const Helix::Type* ConvertBuiltinType(const clang::BuiltinType* builtinType);
 
 	Helix::FunctionDef* LookupFunction(clang::FunctionDecl* decl);
 
@@ -158,7 +158,7 @@ Helix::FunctionDef* CodeGenerator::LookupFunction(clang::FunctionDecl* decl)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Helix::Type* CodeGenerator::LookupBuiltinType(const clang::BuiltinType* builtinType)
+const Helix::Type* CodeGenerator::ConvertBuiltinType(const clang::BuiltinType* builtinType)
 {
 	switch (builtinType->getKind()) {
 	case clang::BuiltinType::Char_S:
@@ -205,7 +205,7 @@ const Helix::Type* CodeGenerator::ConvertType(clang::QualType type)
 const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 {
 	if (type->isBuiltinType()) {
-		return this->LookupBuiltinType(clang::dyn_cast<clang::BuiltinType>(type));
+		return this->ConvertBuiltinType(clang::dyn_cast<clang::BuiltinType>(type));
 	}
 
 	if (type->isPointerType()) {
