@@ -1,0 +1,55 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function f0(): i32 {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	store 1:i32, %0:ptr
+	load %0:ptr, %1:i32
+	iadd %1:i32, 1:i32, %2:i32
+	store %2:i32, %0:ptr
+	ret %1:i32
+}
+function f1(): i32 {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	store 1:i32, %0:ptr
+	load %0:ptr, %1:i32
+	iadd %1:i32, 1:i32, %2:i32
+	store %2:i32, %0:ptr
+	ret %2:i32
+}
+function f2(): i32 {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	store 1:i32, %0:ptr
+	load %0:ptr, %1:i32
+	iadd %1:i32, 1:i32, %2:i32
+	store %2:i32, %0:ptr
+	ret %1:i32
+}
+function f3(): i32 {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	store 1:i32, %0:ptr
+	load %0:ptr, %1:i32
+	isub %1:i32, 1:i32, %2:i32
+	store %2:i32, %0:ptr
+	ret %2:i32
+}
+function f4(): i32 {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	store 1:i32, %0:ptr
+	load %0:ptr, %1:i32
+	isub %1:i32, 1:i32, %2:i32
+	store %2:i32, %0:ptr
+	ret %1:i32
+}
+	</ExpectedOutput>
+</Test>

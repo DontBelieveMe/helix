@@ -113,6 +113,8 @@ private:
 	void DoBreakStmt(clang::BreakStmt* breakStmt);
 	void DoContinueStmt(clang::ContinueStmt* continueStmt);
 
+	Helix::Value* DoLValue(clang::Expr* expr);
+
 	Helix::Value* DoExpr(clang::Expr* expr);
 	Helix::Value* DoIntegerLiteral(clang::IntegerLiteral* integerLiteral);
 	Helix::Value* DoBinOp(clang::BinaryOperator* binOp);
@@ -157,6 +159,23 @@ private:
 
 	const Helix::Type* m_SizeType;
 };
+
+Helix::Value* CodeGenerator::DoLValue(clang::Expr* expr)
+{
+	switch (expr->getStmtClass()) {
+	case clang::Stmt::DeclRefExprClass: {
+		clang::DeclRefExpr* declRefExpr = clang::dyn_cast<clang::DeclRefExpr>(expr);
+		clang::ValueDecl*   varDecl     = declRefExpr->getDecl();
+
+		return this->FindValueForDecl(varDecl);
+	}
+	default:
+		helix_unreachable("lvalue of unknown type");
+		break;
+	}
+
+	return nullptr;
+}
 
 TypeInfo CodeGenerator::GetTypeInfo(const clang::Type* typePtr)
 {
@@ -411,6 +430,41 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 	clang::Expr* subExpr = unaryOperator->getSubExpr();
 
 	switch (unaryOperator->getOpcode()) {
+	case clang::UO_PreInc:
+	case clang::UO_PostInc:
+	case clang::UO_PreDec:
+	case clang::UO_PostDec: {
+		VirtualRegisterName* ptr = value_cast<VirtualRegisterName>(this->DoLValue(subExpr));
+
+		helix_assert(
+			ptr && ptr->GetType()->IsPointer(),
+			"lvalue should evaluate to ptr vreg"
+		);
+
+		const Type* subExprType = this->ConvertType(subExpr->getType());
+		
+		VirtualRegisterName* v      = VirtualRegisterName::Create(subExprType);
+		VirtualRegisterName* result = VirtualRegisterName::Create(subExprType);
+
+		this->EmitInsn(Helix::CreateLoad(ptr, v));
+
+		ConstantInt* one = ConstantInt::Create(subExprType, 1);
+
+		if (unaryOperator->isIncrementOp()) {
+			this->EmitInsn(Helix::CreateBinOp(kInsn_IAdd, v, one, result));
+		} else if (unaryOperator->isDecrementOp()) {
+			this->EmitInsn(Helix::CreateBinOp(kInsn_ISub, v, one, result));
+		}
+
+		this->EmitInsn(Helix::CreateStore(result, ptr));
+
+		if (unaryOperator->isPrefix()) {
+			return result;
+		} else if (unaryOperator->isPostfix()) {
+			return v;
+		}	
+	}
+	
 	case clang::UO_Deref: {
 		Value* value = this->DoExpr(subExpr);
 
