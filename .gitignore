@@ -9,3 +9,5 @@ tools/Testify/bin
 tools/Testify/obj
 tools/Testify/.vs
 tools/Testify/Properties/launchSettings.json
+
+.vscode/
