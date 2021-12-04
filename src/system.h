@@ -23,7 +23,7 @@
 
 #define helix_assert(cond, reason) \
 	do { \
-		if (Helix::Assert(cond, __LINE__, __FILE__, __FUNCTION__, #cond, reason)) { \
+		if (cond && Helix::Assert(cond, __LINE__, __FILE__, __FUNCTION__, #cond, reason)) { \
 			HELIX_DEBUG_BREAK; \
 		} \
 	} while(0)
