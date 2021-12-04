@@ -10,3 +10,6 @@
 [submodule "external/tracy"]
 	path = external/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "extras/c-testsuite"]
+	path = extras/c-testsuite
+	url = https://github.com/DontBelieveMe/c-testsuite
