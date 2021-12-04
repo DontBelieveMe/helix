@@ -149,6 +149,7 @@ private:
 	void DoForStmt(clang::ForStmt* forStmt);
 	void DoBreakStmt(clang::BreakStmt* breakStmt);
 	void DoContinueStmt(clang::ContinueStmt* continueStmt);
+	void DoDoLoop(clang::DoStmt* doStmt);
 
 	Helix::Value* DoLValue(clang::Expr* expr);
 
@@ -196,6 +197,35 @@ private:
 
 	const Helix::Type* m_SizeType;
 };
+
+void CodeGenerator::DoDoLoop(clang::DoStmt* doStmt)
+{
+	using namespace Helix;
+
+	BasicBlock* body = BasicBlock::Create();
+	BasicBlock* tail = BasicBlock::Create();
+
+	this->EmitInsn(Helix::CreateUnconditionalBranch(body));
+	m_InstructionIterator = body->begin();
+
+	{
+		m_LoopBreakStack.push(tail);
+		m_LoopContinueStack.push(body);
+
+		this->EmitBasicBlock(body);
+		m_InstructionIterator = body->begin();
+		this->DoStmt(doStmt->getBody());
+
+		m_LoopBreakStack.pop();
+		m_LoopContinueStack.pop();
+	}
+
+	Value* cond = this->DoExpr(doStmt->getCond());
+	this->EmitInsn(Helix::CreateConditionalBranch(body, tail, cond));
+
+	this->EmitBasicBlock(tail);
+	m_InstructionIterator = tail->begin();
+}
 
 Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* assignmentOp)
 {
@@ -818,6 +848,10 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 
 	case clang::Stmt::WhileStmtClass:
 		this->DoWhileStmt(clang::dyn_cast<clang::WhileStmt>(stmt));
+		break;
+
+	case clang::Stmt::DoStmtClass:
+		this->DoDoLoop(clang::dyn_cast<clang::DoStmt>(stmt));
 		break;
 
 	case clang::Stmt::ForStmtClass:
