@@ -80,6 +80,7 @@ static std::string FormatAssertAt(const char* reason, const clang::SourceLocatio
 
 #define frontend_assert helix_assert
 #define frontend_unreachable helix_unreachable
+#define frontend_unimplemented helix_unimplemented
 #define frontend_assert_at(cond, reason, where) helix_assert(cond, FormatAssertAt(reason, where))
 #define frontend_unimplemented_at(reason, where) helix_unimplemented(FormatAssertAt(reason, where))
 
@@ -213,7 +214,7 @@ Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* a
 	case clang::BO_DivAssign: opc = kInsn_IDiv; break;
 	case clang::BO_MulAssign: opc = kInsn_IMul; break;
 	default:
-		frontend_unreachable("unknown compound assignment op");
+		frontend_unimplemented_at("unknown compound assignment op", assignmentOp->getOperatorLoc());
 	}
 
 	const Type* resultType = this->ConvertType(assignmentOp->getComputationResultType());
@@ -274,7 +275,7 @@ Helix::Value* CodeGenerator::DoLValue(clang::Expr* expr)
 	//////////////////////////////////////////////////////////////////////////
 
 	default:
-		frontend_unreachable("lvalue of unknown type");
+		frontend_unimplemented_at("lvalue of unknown type", expr->getExprLoc());
 		break;
 	}
 
@@ -321,7 +322,9 @@ TypeInfo CodeGenerator::GetTypeInfo(const clang::Type* typePtr)
 		return { ArraySize * ElementWidth };
 	}
 
-	frontend_unreachable("GetTypeInfo(): unknown type");
+	frontend_unimplemented(fmt::format("GetTypeInfo(): unknown type '{}'",
+		clang::QualType(typePtr,0).getAsString(clang::PrintingPolicy { {} })));
+
 	return { 0 };
 }
 
@@ -368,7 +371,7 @@ const Helix::Type* CodeGenerator::ConvertBuiltinType(const clang::BuiltinType* b
 		return Helix::BuiltinTypes::GetVoidType();
 
 	default:
-		frontend_unreachable("Unknown builtin type");
+		frontend_unimplemented(fmt::format("Unknown builtin type '{0}'", builtinType->getNameAsCString(clang::PrintingPolicy { {} })));
 	}
 
 	return nullptr;
@@ -402,7 +405,7 @@ const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 		return this->ConvertType(arrayType->getElementType());
 	}
 
-	frontend_unreachable("Unknown type");
+	frontend_unimplemented(fmt::format("Unknown type '{}'", clang::QualType(type,0).getAsString(clang::PrintingPolicy { {} })));
 
 	return nullptr;
 }
@@ -432,7 +435,7 @@ size_t CodeGenerator::GetAllocaElementCount(clang::QualType type)
 		return (size_t) apSize.getZExtValue();
 	}
 
-	frontend_unreachable("Unknown array type");
+	frontend_unimplemented(fmt::format("Unknown array type '{}'", type.getAsString(clang::PrintingPolicy { {} })));
 	return 1;
 }
 
@@ -528,7 +531,7 @@ Helix::Value* CodeGenerator::DoCastExpr(clang::CastExpr* castExpr)
 		return this->DoScalarCast(this->DoExpr(subExpr), subExpr->getType(), castExpr->getType());
 
 	default:
-		frontend_unreachable("Unknown cast kind");
+		frontend_unimplemented_at("Unknown cast kind", castExpr->getExprLoc());
 		break;
 	}
 
@@ -598,7 +601,7 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 	}
 
 	default:
-		frontend_unreachable("Unknown unary operator");
+		frontend_unimplemented_at("Unknown unary operator", unaryOperator->getExprLoc());
 		break;
 	}
 
@@ -845,7 +848,7 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 	}
 
 	default:
-		frontend_unreachable("Unknown statment type");
+		frontend_unimplemented_at("Unknown statment type", stmt->getBeginLoc());
 		break;
 	}
 }
@@ -1031,7 +1034,7 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		case clang::UETT_SizeOf:
 			return DoSizeOf(uett->getArgumentType());
 		default:
-			frontend_unreachable("unknown unary operator or type trait");
+			frontend_unimplemented_at("unknown unary operator or type trait", uett->getExprLoc());
 			break;
 		}
 
@@ -1039,7 +1042,7 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 	}
 
 	default:
-		frontend_unreachable("Cannot codegen for unsupported expression type");
+		frontend_unimplemented_at("Cannot codegen for unsupported expression type", expr->getExprLoc());
 		break;
 	}
 	}
