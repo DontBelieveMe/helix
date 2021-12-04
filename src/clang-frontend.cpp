@@ -283,6 +283,8 @@ const Helix::Type* CodeGenerator::ConvertType(clang::QualType type)
 
 const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 {
+	HELIX_PROFILE_ZONE;
+
 	if (type->isBuiltinType()) {
 		return this->ConvertBuiltinType(clang::dyn_cast<clang::BuiltinType>(type));
 	}
@@ -988,6 +990,8 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 
 bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 {
+	HELIX_PROFILE_ZONE;
+
 	using namespace Helix;
 
 	const Type* returnType = this->ConvertType(functionDecl->getReturnType());
@@ -1092,6 +1096,8 @@ private:
 
 void CodeGenerator_ASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
 {
+	HELIX_PROFILE_ZONE;
+
 	m_CodeGen.TraverseDecl(ctx.getTranslationUnitDecl());
 
 	const std::vector<Helix::Function*> functions = m_CodeGen.GetFunctions();
@@ -1114,6 +1120,8 @@ public:
 
 std::unique_ptr<clang::ASTConsumer> ParserAction::CreateASTConsumer(clang::CompilerInstance& ci, clang::StringRef inFile)
 {
+	HELIX_PROFILE_ZONE;
+
 	(void) ci; (void) inFile;
 
 	return std::make_unique<CodeGenerator_ASTConsumer>();
@@ -1123,12 +1131,15 @@ std::unique_ptr<clang::ASTConsumer> ParserAction::CreateASTConsumer(clang::Compi
 
 void Helix::Frontend::Initialise()
 {
+	HELIX_PROFILE_ZONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Helix::Frontend::Run(int argc, const char** argv)
 {
+	HELIX_PROFILE_ZONE;
+
 	auto expectedOptionsParser = clang::tooling::CommonOptionsParser::create(
 		argc, argv, Category
 	);
@@ -1138,20 +1149,25 @@ void Helix::Frontend::Run(int argc, const char** argv)
 		return;
 	}
 
-	clang::tooling::CommonOptionsParser& optionsParser = expectedOptionsParser.get();
+	{
+		HELIX_PROFILE_ZONE;
+		
+		clang::tooling::CommonOptionsParser& optionsParser = expectedOptionsParser.get();
 
-	clang::tooling::ClangTool tool(
-		optionsParser.getCompilations(),
-		optionsParser.getSourcePathList()
-	);
+		clang::tooling::ClangTool tool(
+			optionsParser.getCompilations(),
+			optionsParser.getSourcePathList()
+		);
 
-	tool.run(clang::tooling::newFrontendActionFactory<ParserAction>().get());
+		tool.run(clang::tooling::newFrontendActionFactory<ParserAction>().get());
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Helix::Frontend::Shutdown()
 {
+	HELIX_PROFILE_ZONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -17,6 +17,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include "profile.h"
+
 #define HELIX_DEBUG_BREAK (Helix::ShouldDebugBreak() ? __debugbreak() : exit(1))
 
 #define helix_assert(cond, reason) \

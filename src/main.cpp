@@ -12,5 +12,6 @@ int main(int argc, const char** argv)
 
 	Helix::Shutdown();
 
+	HELIX_PROFILE_END
 	return 0;
 }

@@ -7,3 +7,6 @@
 [submodule "extras/doomgeneric"]
 	path = extras/doomgeneric
 	url = https://github.com/ozkl/doomgeneric.git
+[submodule "external/tracy"]
+	path = external/tracy
+	url = https://github.com/wolfpld/tracy.git
