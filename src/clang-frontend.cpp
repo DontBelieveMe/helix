@@ -661,7 +661,8 @@ void CodeGenerator::DoForStmt(clang::ForStmt* forStmt)
 {
 	using namespace Helix;
 
-	this->DoStmt(forStmt->getInit());
+	if (forStmt->getInit())
+		this->DoStmt(forStmt->getInit());
 
 	BasicBlock* conditionBlock = BasicBlock::Create();
 	BasicBlock* bodyBlock = BasicBlock::Create();
@@ -681,8 +682,11 @@ void CodeGenerator::DoForStmt(clang::ForStmt* forStmt)
 	this->EmitBasicBlock(bodyBlock);
 	m_InstructionIterator = bodyBlock->begin();
 
-	this->DoStmt(forStmt->getBody());
-	this->DoExpr(forStmt->getInc());
+	if (forStmt->getBody())
+		this->DoStmt(forStmt->getBody());
+	
+	if (forStmt->getInc())
+		this->DoExpr(forStmt->getInc());
 
 	m_LoopBreakStack.pop();
 	m_LoopContinueStack.pop();
@@ -846,6 +850,9 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 		this->DoLValue(clang::cast<clang::Expr>(stmt));
 		break;
 	}
+
+	case clang::Stmt::NullStmtClass:
+		break;
 
 	default:
 		frontend_unimplemented_at("Unknown statment type", stmt->getBeginLoc());
