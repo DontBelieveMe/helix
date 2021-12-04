@@ -9,12 +9,6 @@ using System.Xml;
 
 namespace Testify
 {
-    class ProgramOutput
-    {
-        public string Stdout;
-        public string Stderr;
-        public int ExitCode;
-    }
 
     class TestsuiteStats
     {
@@ -63,12 +57,16 @@ namespace Testify
         public bool FastFail = false;
         public List<string> SpecificTests = new List<string>();
 
+        public bool RunCTestsuite = false;
+
         public static Options Parse(string[] args)
         {
             Options opts = new Options();
             foreach (string arg in args)
             {
-                if (arg == "-dump-diffs")
+                if (arg == "-ctestsuite")
+                    opts.RunCTestsuite = true;
+                else if (arg == "-dump-diffs")
                     opts.DumpDiffs = true;
                 else if (arg == "-fail-fast")
                     opts.FastFail = true;
@@ -83,32 +81,6 @@ namespace Testify
 
     class Program
     {
-        static ProgramOutput RunExternalProcess(string name, string args)
-        {
-            StringBuilder stdout = new StringBuilder();
-            StringBuilder stderr = new StringBuilder();
-            int exitCode;
-
-            using (Process process = new Process())
-            {
-                process.StartInfo.FileName = name;
-                process.StartInfo.Arguments = args;
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                process.OutputDataReceived += (sender, args) => stdout.AppendLine(args.Data);
-                process.ErrorDataReceived += (sender, args) => stderr.AppendLine(args.Data);
-
-                process.Start();
-                process.BeginOutputReadLine();
-                process.WaitForExit();
-                exitCode = process.ExitCode;
-            }
-
-            return new ProgramOutput { Stderr = stderr.ToString(), Stdout = stdout.ToString(),  ExitCode = exitCode };
-        }
-
         static bool RunTestFromXmlDefinition(string testfile, TestsuiteStats stats, Options opts)
         {
             XmlDocument xmlDocument = new XmlDocument();
@@ -146,7 +118,7 @@ namespace Testify
             Console.Write("{0}... ", sourceFile);
 
             Stopwatch timer = Stopwatch.StartNew();
-            ProgramOutput output = RunExternalProcess("vs2019/Debug/helix.exe", flagsString);
+            ProgramOutput output = ProcessHelpers.RunExternalProcess("vs2019/Debug/helix.exe", flagsString);
             timer.Stop();
 
             stats.ExecutionTimes.Add(timer.ElapsedMilliseconds);
@@ -219,6 +191,11 @@ namespace Testify
         static void Main(string[] args)
         {
             Options opts = Options.Parse(args);
+            if (opts.RunCTestsuite)
+            {
+                new CTestsuite().Run();
+                return;
+            }
 
             TestsuiteStats stats = new TestsuiteStats();
 

@@ -3,13 +3,19 @@
 #include "options.h"
 #include "system.h"
 
+#include <Windows.h>
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int YourReportHook( int reportType, char *message, int *returnValue ) { return 1; }
 
 void Helix::Initialise()
 {
 	if (Helix::Options::GetDisableLogging()) {
 		Helix::DisableDebugLogging();
 	}
+
+	_CrtSetReportHook (YourReportHook);
 
 	BuiltinTypes::Init();
 }
