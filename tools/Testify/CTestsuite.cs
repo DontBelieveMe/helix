@@ -4,10 +4,27 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
+using Newtonsoft.Json;
+
 namespace Testify
 {
     class CTestsuite
     {
+        class Summary
+        {
+            public int Passes;
+            public int Fails;
+            public int Total;
+            public DateTime When;
+        }
+
+        class TestRun
+        {
+            public string Status;
+            public int ExecutionTime;
+            public string TestFile;
+        }
+
         public void Run()
         {
             Console.WriteLine("Running c-testsuite tests (https://github.com/c-testsuite/c-testsuite)...");
@@ -22,11 +39,13 @@ namespace Testify
                 return;
             } else
             {
-                Console.Write("Found extras/c-testsuite directory...");
+                Console.WriteLine("Found extras/c-testsuite directory...");
             }
 
             TestsuiteStats stats = new TestsuiteStats();
             Stopwatch timer = Stopwatch.StartNew();
+
+            List<TestRun> runs = new List<TestRun>();
 
             foreach (string file in Directory.GetFiles("extras/c-testsuite/tests/single-exec/", "*.c", SearchOption.AllDirectories))
             {
@@ -39,6 +58,10 @@ namespace Testify
 
                 Console.Write(file + ".. .");
 
+                TestRun run = new TestRun();
+                run.ExecutionTime = (int) stopwatch.ElapsedMilliseconds;
+                run.TestFile = file;
+
                 if (output.ExitCode == 0)
                 {
                     Console.Write("[");
@@ -47,6 +70,7 @@ namespace Testify
                     Console.ResetColor();
                     Console.WriteLine("]");
                     stats.Passes += 1;
+                    run.Status = "pass";
                 }
                 else
                 {
@@ -56,7 +80,10 @@ namespace Testify
                     Console.ResetColor();
                     Console.WriteLine("]");
                     stats.Fails += 1;
+                    run.Status = "fail";
                 }
+
+                runs.Add(run);
             }
 
             Console.WriteLine();
@@ -85,6 +112,35 @@ namespace Testify
                 stats.TotalRuns, timer.ElapsedMilliseconds / 1000.0, stats.GetSmallestExecutionTime(), stats.GetLargestExecutionTime(), stats.GetAverageExecutionTime());
             Console.WriteLine();
 
+            string json = JsonConvert.SerializeObject(runs);
+            json = "let results=" + json;
+
+            DateTime creationTime = File.GetLastWriteTime("tools/testify-web/data/c-testsuite.json");
+
+            File.Copy("tools/testify-web/data/c-testsuite.json", "tools/testify-web/data/c-testsuite-" + creationTime.ToString("yyyy-MM-dd_HH_mm_ss") + ".json");
+
+            File.WriteAllText("tools/testify-web/data/c-testsuite.json", json);
+
+            List<Summary> summaries;
+
+            if (File.Exists("tools/testify-web/data/c-testsuite-summary.json"))
+            {
+
+                string summaryText = File.ReadAllText("tools/testify-web/data/c-testsuite-summary.json");
+                summaryText = summaryText.Replace("let testsummaries =", "");
+                summaries = JsonConvert.DeserializeObject<List<Summary>>(summaryText);
+            }
+            else
+            {
+                summaries = new List<Summary>();
+            }
+
+            summaries.Add(new Summary { Passes = stats.Passes, Fails = stats.Fails, Total = stats.TotalRuns, When = DateTime.Now });
+
+            string summaryJsonText = JsonConvert.SerializeObject(summaries);
+            summaryJsonText = "let testsummaries =" + summaryJsonText;
+
+            File.WriteAllText("tools/testify-web/data/c-testsuite-summary.json", summaryJsonText);
         }
     }
 }
