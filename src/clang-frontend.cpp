@@ -125,6 +125,7 @@ private:
 	Helix::Value* DoUnaryOperator(clang::UnaryOperator* unaryOperator);
 	Helix::Value* DoCastExpr(clang::CastExpr* castExpr);
 	Helix::Value* DoArraySubscriptExpr(clang::ArraySubscriptExpr* subscriptExpr);
+	Helix::Value* DoCompoundAssignOp(clang::CompoundAssignOperator* assignmentOp);
 
 	Helix::Value* DoSizeOf(clang::QualType type);
 
@@ -159,6 +160,39 @@ private:
 	const Helix::Type* m_SizeType;
 };
 
+Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* assignmentOp)
+{
+	using namespace Helix;
+
+	VirtualRegisterName* lhs = value_cast<VirtualRegisterName>(this->DoLValue(assignmentOp->getLHS()));
+	helix_assert(lhs && lhs->GetType()->IsPointer(), "lhs of compound assignment is not valid lvalue");
+
+	Value* rhs = this->DoExpr(assignmentOp->getRHS());
+
+	Opcode opc = kInsn_Undefined;
+
+	switch (assignmentOp->getOpcode()) {
+	case clang::BO_AddAssign: opc = kInsn_IAdd; break;
+	case clang::BO_SubAssign: opc = kInsn_ISub; break;
+	case clang::BO_DivAssign: opc = kInsn_IDiv; break;
+	case clang::BO_MulAssign: opc = kInsn_IMul; break;
+	default:
+		helix_unreachable("unknown compound assignment op");
+	}
+
+	const Type* resultType = this->ConvertType(assignmentOp->getComputationResultType());
+	const Type* lhsType = this->ConvertType(assignmentOp->getComputationLHSType());
+
+	VirtualRegisterName* lhsValue = VirtualRegisterName::Create(lhsType);
+	VirtualRegisterName* resultValue = VirtualRegisterName::Create(resultType);
+
+	this->EmitInsn(Helix::CreateLoad(lhs, lhsValue));
+	this->EmitInsn(Helix::CreateBinOp(opc, lhsValue, rhs, resultValue));
+	this->EmitInsn(Helix::CreateStore(resultValue, lhs));
+
+	return lhs;
+}
+
 Helix::Value* CodeGenerator::DoLValue(clang::Expr* expr)
 {
 	switch (expr->getStmtClass()) {
@@ -177,6 +211,32 @@ Helix::Value* CodeGenerator::DoLValue(clang::Expr* expr)
 	case clang::Stmt::ArraySubscriptExprClass: {
 		return this->DoArraySubscriptExpr(clang::dyn_cast<clang::ArraySubscriptExpr>(expr));
 	}
+
+	case clang::Stmt::CompoundAssignOperatorClass: {
+		return this->DoCompoundAssignOp(clang::cast<clang::CompoundAssignOperator>(expr));
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// HACK Alert!
+	//
+	// So the "contract" of DoLValue is that it will return a value with pointer
+	// type in a virtual register (that referes to the given value expr).
+	// This breaks that contract and returns nullptr, luckily however the only
+	// case where we should need the expressions below as lvalues is when
+	// they are treated as stmts and this return value is ignored anyway. Hopefully
+	// at least...
+
+	case clang::Stmt::BinaryOperatorClass:
+		this->DoBinOp(clang::dyn_cast<clang::BinaryOperator>(expr));
+		return nullptr;
+
+	case clang::Stmt::CallExprClass:
+		this->DoCallExpr(clang::dyn_cast<clang::CallExpr>(expr));
+		return nullptr;
+
+	// ... HACK End!
+	//////////////////////////////////////////////////////////////////////////
+
 	default:
 		helix_unreachable("lvalue of unknown type");
 		break;
@@ -709,10 +769,6 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 		this->DoDeclStmt(clang::dyn_cast<clang::DeclStmt>(stmt));
 		break;
 
-	case clang::Stmt::BinaryOperatorClass:
-		this->DoBinOp(clang::dyn_cast<clang::BinaryOperator>(stmt));
-		break;
-
 	case clang::Stmt::IfStmtClass:
 		this->DoIfStmt(clang::dyn_cast<clang::IfStmt>(stmt));
 		break;
@@ -733,9 +789,24 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 		this->DoContinueStmt(clang::dyn_cast<clang::ContinueStmt>(stmt));
 		break;
 	
-	case clang::Stmt::CallExprClass:
-		this->DoCallExpr(clang::dyn_cast<clang::CallExpr>(stmt));
+	//////////////////////////////////////////////////////////////////////////
+	// Little trick taken from clang to cover all expressions that may be
+	// used in the content of a statment. We don't really care about the
+	// result of these expressions, so just emit them as lvalues and ignore
+	// the result
+	//
+	// Because of this, a little hack is needed, see CodeGenerator::DoLValue
+	// for more details
+
+#define STMT(Type, Base)
+#define ABSTRACT_STMT(Op)
+#define EXPR(Type, Base) \
+	case clang::Stmt::Type##Class:
+		#include <clang/AST/StmtNodes.inc>
+	{
+		this->DoLValue(clang::cast<clang::Expr>(stmt));
 		break;
+	}
 
 	default:
 		helix_unreachable("Unknown statment type");

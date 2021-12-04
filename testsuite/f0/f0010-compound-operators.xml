@@ -1,0 +1,46 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function add(): void {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	store 10:i32, %0:ptr
+	load %0:ptr, %1:i32
+	iadd %1:i32, 2:i32, %2:i32
+	store %2:i32, %0:ptr
+	ret
+}
+function mul(): void {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	store 10:i32, %0:ptr
+	load %0:ptr, %1:i32
+	imul %1:i32, 2:i32, %2:i32
+	store %2:i32, %0:ptr
+	ret
+}
+function div(): void {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	store 10:i32, %0:ptr
+	load %0:ptr, %1:i32
+	idiv %1:i32, 2:i32, %2:i32
+	store %2:i32, %0:ptr
+	ret
+}
+function sub(): void {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	store 10:i32, %0:ptr
+	load %0:ptr, %1:i32
+	isub %1:i32, 2:i32, %2:i32
+	store %2:i32, %0:ptr
+	ret
+}
+	</ExpectedOutput>
+</Test>
