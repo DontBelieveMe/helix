@@ -427,7 +427,6 @@ Helix::Value* CodeGenerator::DoCastExpr(clang::CastExpr* castExpr)
 
 	case clang::CK_ArrayToPointerDecay: // Arrays are just pointers in the IR anyway
 		return this->DoLValue(subExpr);
-		//return this->DoExpr(subExpr);
 
 	case clang::CK_IntegralCast:
 		return this->DoScalarCast(this->DoExpr(subExpr), subExpr->getType(), castExpr->getType());
