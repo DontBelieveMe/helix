@@ -20,10 +20,10 @@ void Helix::DisableDebugLogging()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Helix::Unreachable(int line, const char* file, const char* fn, const char* reason)
+void Helix::Unreachable(const char* header, int line, const char* file, const char* fn, const std::string& reason)
 {
 		spdlog::critical("******************** Internal Compiler Error ********************");
-		spdlog::critical("    Unreachable code reached (paradoxical, i know)");
+		spdlog::critical("    {}", header);
 		spdlog::critical("");
 		spdlog::critical("    File:        {}", file);
 		spdlog::critical("    Line:        {}", line);
@@ -34,7 +34,7 @@ void Helix::Unreachable(int line, const char* file, const char* fn, const char* 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Helix::Assert(bool cond, int line, const char* file, const char* fn, const char* condString, const char* reason)
+bool Helix::Assert(bool cond, int line, const char* file, const char* fn, const char* condString, const std::string& reason)
 {
 	const bool bAssertionFailed = !cond; 
 

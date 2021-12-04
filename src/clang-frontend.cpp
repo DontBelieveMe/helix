@@ -47,6 +47,42 @@ static llvm::cl::OptionCategory Category("helx options");
 static llvm::cl::extrahelp      CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage);
 static llvm::cl::extrahelp      MoreHelp("\nHelix C/C++ Compiler...\n");
 
+static clang::ASTContext* g_GlobalASTContext;
+
+static const char* GetFileNameFromPath(const char* path)
+{
+	int lastSeperatorPos = -1;
+
+	const char* head = path;
+
+	for (char p = *head; p != '\0'; p = *(++head)) {
+		if (p == '\\' || p == '/')
+			lastSeperatorPos = (int) (head - path);
+	}
+
+	return path + lastSeperatorPos + 1;
+}
+
+static std::string FormatAssertAt(const char* reason, const clang::SourceLocation& loc)
+{
+	clang::SourceManager& sm = g_GlobalASTContext->getSourceManager();
+	clang::PresumedLoc ploc = sm.getPresumedLoc(loc);
+
+	if (ploc.isInvalid())
+		return std::string(reason);
+
+	const char* fileName = GetFileNameFromPath(ploc.getFilename());
+	int line = ploc.getLine();
+	int col = ploc.getColumn();
+
+	return fmt::format("{} ({}:{}:{})", reason, fileName, line, col);
+}
+
+#define frontend_assert helix_assert
+#define frontend_unreachable helix_unreachable
+#define frontend_assert_at(cond, reason, where) helix_assert(cond, FormatAssertAt(reason, where))
+#define frontend_unimplemented_at(reason, where) helix_unimplemented(FormatAssertAt(reason, where))
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct TypeInfo
@@ -82,13 +118,13 @@ private:
 
 	void EmitBasicBlock(Helix::BasicBlock* bb)
 	{
-		helix_assert(m_BasicBlockIterator.is_valid(), "Cannot emit basic block - invalid iterator");
+		frontend_assert(m_BasicBlockIterator.is_valid(), "Cannot emit basic block - invalid iterator");
 		m_BasicBlockIterator = m_CurrentFunction->InsertAfter(m_BasicBlockIterator, bb);
 	}
 
 	void EmitInsn(Helix::Instruction* insn)
 	{
-		helix_assert(m_InstructionIterator.is_valid(), "Cannot emit instruction - invalid iterator");
+		frontend_assert(m_InstructionIterator.is_valid(), "Cannot emit instruction - invalid iterator");
 		m_InstructionIterator = m_BasicBlockIterator->InsertAfter(m_InstructionIterator, insn);
 	}
 
@@ -165,7 +201,7 @@ Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* a
 	using namespace Helix;
 
 	VirtualRegisterName* lhs = value_cast<VirtualRegisterName>(this->DoLValue(assignmentOp->getLHS()));
-	helix_assert(lhs && lhs->GetType()->IsPointer(), "lhs of compound assignment is not valid lvalue");
+	frontend_assert(lhs && lhs->GetType()->IsPointer(), "lhs of compound assignment is not valid lvalue");
 
 	Value* rhs = this->DoExpr(assignmentOp->getRHS());
 
@@ -177,7 +213,7 @@ Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* a
 	case clang::BO_DivAssign: opc = kInsn_IDiv; break;
 	case clang::BO_MulAssign: opc = kInsn_IMul; break;
 	default:
-		helix_unreachable("unknown compound assignment op");
+		frontend_unreachable("unknown compound assignment op");
 	}
 
 	const Type* resultType = this->ConvertType(assignmentOp->getComputationResultType());
@@ -238,7 +274,7 @@ Helix::Value* CodeGenerator::DoLValue(clang::Expr* expr)
 	//////////////////////////////////////////////////////////////////////////
 
 	default:
-		helix_unreachable("lvalue of unknown type");
+		frontend_unreachable("lvalue of unknown type");
 		break;
 	}
 
@@ -285,7 +321,7 @@ TypeInfo CodeGenerator::GetTypeInfo(const clang::Type* typePtr)
 		return { ArraySize * ElementWidth };
 	}
 
-	helix_unreachable("GetTypeInfo(): unknown type");
+	frontend_unreachable("GetTypeInfo(): unknown type");
 	return { 0 };
 }
 
@@ -332,7 +368,7 @@ const Helix::Type* CodeGenerator::ConvertBuiltinType(const clang::BuiltinType* b
 		return Helix::BuiltinTypes::GetVoidType();
 
 	default:
-		helix_unreachable("Unknown builtin type");
+		frontend_unreachable("Unknown builtin type");
 	}
 
 	return nullptr;
@@ -366,7 +402,7 @@ const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 		return this->ConvertType(arrayType->getElementType());
 	}
 
-	helix_unreachable("Unknown type");
+	frontend_unreachable("Unknown type");
 
 	return nullptr;
 }
@@ -396,7 +432,7 @@ size_t CodeGenerator::GetAllocaElementCount(clang::QualType type)
 		return (size_t) apSize.getZExtValue();
 	}
 
-	helix_unreachable("Unknown array type");
+	frontend_unreachable("Unknown array type");
 	return 1;
 }
 
@@ -412,11 +448,11 @@ Helix::Value* CodeGenerator::DoArraySubscriptExpr(clang::ArraySubscriptExpr* sub
 	Value* base = this->DoLValue(baseExpr);
 	Value* index = this->DoExpr(indexExpr);
 
-	helix_assert(base->IsA<VirtualRegisterName>(), "base is not a virtual register name");
-	helix_assert(base->GetType()->IsPointer(), "base is not of pointer type");
+	frontend_assert(base->IsA<VirtualRegisterName>(), "base is not a virtual register name");
+	frontend_assert(base->GetType()->IsPointer(), "base is not of pointer type");
 
 	const clang::QualType pointerType = baseExpr->getType();
-	helix_assert(pointerType->isPointerType(), "array subscript, base is not a pointer");
+	frontend_assert(pointerType->isPointerType(), "array subscript, base is not a pointer");
 
 	const clang::QualType pointeeType = pointerType->getPointeeType();
 
@@ -454,17 +490,17 @@ Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType or
 				if (cint->CanFitInType(dstIntegerType)) {
 					expr->SetType(dstType);
 				} else {
-					helix_unreachable("Can't fit integer constant in required type");
+					frontend_unreachable("Can't fit integer constant in required type");
 				}
 			} else {
-				helix_unreachable("Unsupported cast expression operand");
+				frontend_unreachable("Unsupported cast expression operand");
 			}
 
 			return expr;
 		}
 	}
 
-	helix_unreachable("Cannot cast between given types");
+	frontend_unreachable("Cannot cast between given types");
 
 	return nullptr;
 }
@@ -478,7 +514,7 @@ Helix::Value* CodeGenerator::DoCastExpr(clang::CastExpr* castExpr)
 	switch (castExpr->getCastKind()) {
 	case clang::CK_LValueToRValue: {
 		Helix::Value* lvalue = this->DoLValue(subExpr);
-		helix_assert(lvalue->IsA<Helix::VirtualRegisterName>() && lvalue->GetType()->IsPointer(), "bad lvalue");
+		frontend_assert(lvalue->IsA<Helix::VirtualRegisterName>() && lvalue->GetType()->IsPointer(), "bad lvalue");
 		const Helix::Type* ty = this->ConvertType(subExpr->getType());
 		Helix::VirtualRegisterName* vreg = Helix::VirtualRegisterName::Create(ty);
 		this->EmitInsn(Helix::CreateLoad(Helix::value_cast<Helix::VirtualRegisterName>(lvalue), vreg));
@@ -492,7 +528,7 @@ Helix::Value* CodeGenerator::DoCastExpr(clang::CastExpr* castExpr)
 		return this->DoScalarCast(this->DoExpr(subExpr), subExpr->getType(), castExpr->getType());
 
 	default:
-		helix_unreachable("Unknown cast kind");
+		frontend_unreachable("Unknown cast kind");
 		break;
 	}
 
@@ -514,7 +550,7 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 	case clang::UO_PostDec: {
 		VirtualRegisterName* ptr = value_cast<VirtualRegisterName>(this->DoLValue(subExpr));
 
-		helix_assert(
+		frontend_assert(
 			ptr && ptr->GetType()->IsPointer(),
 			"lvalue should evaluate to ptr vreg"
 		);
@@ -550,9 +586,9 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 
 		VirtualRegisterName* exprReg = value_cast<VirtualRegisterName>(value);
 
-		helix_assert(exprReg, "deref expression type is not vreg");
-		helix_assert(value->GetType()->IsPointer(), "cannot dereference non pointer type");
-		helix_assert(subExpr->getType()->isPointerType(), "clang: sub expr not pointer");
+		frontend_assert(exprReg, "deref expression type is not vreg");
+		frontend_assert(value->GetType()->IsPointer(), "cannot dereference non pointer type");
+		frontend_assert(subExpr->getType()->isPointerType(), "clang: sub expr not pointer");
 
 		return exprReg;
 	}
@@ -562,7 +598,7 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 	}
 
 	default:
-		helix_unreachable("Unknown unary operator");
+		frontend_unreachable("Unknown unary operator");
 		break;
 	}
 
@@ -575,7 +611,7 @@ Helix::Value* CodeGenerator::DoCallExpr(clang::CallExpr* callExpr)
 {
 	clang::FunctionDecl* functionDecl = callExpr->getDirectCallee();
 
-	helix_assert(functionDecl, "Only direct call functions supported");
+	frontend_assert(functionDecl, "Only direct call functions supported");
 
 	const Helix::Type* returnType = this->ConvertType(functionDecl->getReturnType());
 
@@ -809,7 +845,7 @@ void CodeGenerator::DoStmt(clang::Stmt* stmt)
 	}
 
 	default:
-		helix_unreachable("Unknown statment type");
+		frontend_unreachable("Unknown statment type");
 		break;
 	}
 }
@@ -880,8 +916,8 @@ Helix::Value* CodeGenerator::DoAssignment(clang::BinaryOperator* binOp)
 	clang::Expr* lhsExpr = binOp->getLHS();
 	VirtualRegisterName* dst = Helix::value_cast<VirtualRegisterName>(this->DoLValue(lhsExpr));
 
-	helix_assert(dst, "lvalue in assignment is not of vreg type");
-	helix_assert(dst->GetType()->IsPointer(), "lhs of assignment is not a pointer");
+	frontend_assert(dst, "lvalue in assignment is not of vreg type");
+	frontend_assert(dst->GetType()->IsPointer(), "lhs of assignment is not a pointer");
 
 	Helix::Value* rhs = this->DoExpr(binOp->getRHS());
 	EmitInsn(Helix::CreateStore(rhs, dst));
@@ -902,7 +938,7 @@ Helix::Value* CodeGenerator::DoIntegerLiteral(clang::IntegerLiteral* integerLite
 {
 	const llvm::APInt integerLiteralValue = integerLiteral->getValue();
 
-	helix_assert(integerLiteralValue.getBitWidth() <= 64, "Cannot codegen for integers > 64 bits in width");
+	frontend_assert(integerLiteralValue.getBitWidth() <= 64, "Cannot codegen for integers > 64 bits in width");
 
 	const Helix::Integer val = Helix::Integer(integerLiteralValue.getZExtValue());
 	const Helix::Type* ty = this->ConvertType(integerLiteral->getType());
@@ -936,7 +972,7 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 	case clang::BO_NE:  opc = Helix::kInsn_ICmp_Neq; break;
 
 	default:
-		helix_unreachable("Unsupported binary expression");
+		frontend_unimplemented_at("Unsupported binary expression", binOp->getOperatorLoc());
 		break;
 	}
 
@@ -951,7 +987,7 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 		insn = Helix::CreateBinOp(opc, lhs, rhs, result);
 	}
 
-	helix_assert(insn, "Null binary operator instruction");
+	frontend_assert(insn, "Null binary operator instruction");
 
 	EmitInsn(insn);
 
@@ -995,7 +1031,7 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		case clang::UETT_SizeOf:
 			return DoSizeOf(uett->getArgumentType());
 		default:
-			helix_unreachable("unknown unary operator or type trait");
+			frontend_unreachable("unknown unary operator or type trait");
 			break;
 		}
 
@@ -1003,7 +1039,7 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 	}
 
 	default:
-		helix_unreachable("Cannot codegen for unsupported expression type");
+		frontend_unreachable("Cannot codegen for unsupported expression type");
 		break;
 	}
 	}
@@ -1085,7 +1121,7 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 			m_BasicBlockIterator.invalidate();
 		}
 	} else {
-		helix_assert(m_CurrentFunction->GetCountBlocks() == 1, "Function does not contain any blocks");
+		frontend_assert(m_CurrentFunction->GetCountBlocks() == 1, "Function does not contain any blocks");
 
 		// Otherwise (we have one block) so check if its empty, or doesn't
 		// contain a ret.
@@ -1122,7 +1158,9 @@ void CodeGenerator_ASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
 {
 	HELIX_PROFILE_ZONE;
 
+	g_GlobalASTContext = &ctx;
 	m_CodeGen.TraverseDecl(ctx.getTranslationUnitDecl());
+	g_GlobalASTContext = nullptr;
 
 	const std::vector<Helix::Function*> functions = m_CodeGen.GetFunctions();
 
