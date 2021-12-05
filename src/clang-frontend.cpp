@@ -567,11 +567,11 @@ Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType or
 		// const IntegerType* srcIntegerType = type_cast<IntegerType>(srcType);
 
 		if (dstType->IsIntegral()) {
-			const IntegerType* dstIntegerType = type_cast<IntegerType>(srcType);
+			const IntegerType* dstIntegerType = type_cast<IntegerType>(dstType);
 
 			if (ConstantInt* cint = value_cast<ConstantInt>(expr)) {
 				if (cint->CanFitInType(dstIntegerType)) {
-					expr->SetType(dstType);
+					return ConstantInt::Create(dstIntegerType, cint->GetIntegralValue());
 				} else {
 					frontend_unreachable("Can't fit integer constant in required type");
 				}
@@ -1132,7 +1132,7 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		
 		switch (uett->getKind()) {
 		case clang::UETT_SizeOf:
-			return DoSizeOf(uett->getArgumentType());
+			return DoSizeOf(uett->getTypeOfArgument());
 		default:
 			frontend_unimplemented_at("unknown unary operator or type trait", uett->getExprLoc());
 			break;
