@@ -15,8 +15,9 @@ namespace Testify
         public int Passes = 0;
         public int Fails = 0;
         public int XFails = 0;
+        public int Skipped = 0;
 
-        public int TotalRuns {  get { return Passes + Fails + XFails; } }
+        public int TotalRuns {  get { return Passes + Fails + XFails + Skipped; } }
 
         public double CalculatePassPercentage()
         {
@@ -31,6 +32,11 @@ namespace Testify
         public double CalculateXFailPercentage()
         {
             return (XFails / (double)TotalRuns) * 100;
+        }
+
+        public double CalculateSkippedPercentage()
+        {
+            return (Skipped / (double)TotalRuns) * 100;
         }
 
         public List<long> ExecutionTimes = new List<long>();

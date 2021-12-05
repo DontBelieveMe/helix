@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 using Newtonsoft.Json;
@@ -15,6 +16,7 @@ namespace Testify
             public int Passes;
             public int Fails;
             public int Total;
+            public int Skipped;
             public DateTime When;
         }
 
@@ -23,6 +25,7 @@ namespace Testify
             public string Status;
             public int ExecutionTime;
             public string TestFile;
+            public string Tags = "";
         }
 
         public void Run()
@@ -49,7 +52,32 @@ namespace Testify
 
             foreach (string file in Directory.GetFiles("extras/c-testsuite/tests/single-exec/", "*.c", SearchOption.AllDirectories))
             {
+                string tagsFilepath = file + ".tags";
+
+                string[] tags = File.ReadAllLines(tagsFilepath);
+
+                bool skip = false;
+
+                if (tags.Contains("needs-libc"))
+                    skip = true;
+
                 string[] args = { file, "--" };
+
+                if (skip)
+                {
+                    TestRun skippedRun = new TestRun();
+                    skippedRun.ExecutionTime = 0;
+                    skippedRun.TestFile = file;
+                    skippedRun.Tags = string.Join("; ", tags);
+                    skippedRun.Status = "skipped";
+
+                    stats.ExecutionTimes.Add(0);
+                    stats.Skipped += 1;
+
+                    runs.Add(skippedRun);
+
+                    continue;
+                }
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
                 ProgramOutput output = ProcessHelpers.RunExternalProcess("vs2019/Debug/helix.exe", string.Join(" ", args));
@@ -61,6 +89,7 @@ namespace Testify
                 TestRun run = new TestRun();
                 run.ExecutionTime = (int) stopwatch.ElapsedMilliseconds;
                 run.TestFile = file;
+                run.Tags = string.Join("; ", tags);
 
                 if (output.ExitCode == 0)
                 {
@@ -102,6 +131,12 @@ namespace Testify
             Console.WriteLine(":  {0} ({1:0.00}%)", stats.Fails, stats.CalculateFailPercentage());
 
             Console.Write("\t");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("SKIPPED");
+            Console.ResetColor();
+            Console.WriteLine(":  {0} ({1:0.00}%)", stats.Skipped, stats.CalculateSkippedPercentage());
+
+            Console.Write("\t");
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.Write("XFAILS");
             Console.ResetColor();
@@ -135,7 +170,7 @@ namespace Testify
                 summaries = new List<Summary>();
             }
 
-            summaries.Add(new Summary { Passes = stats.Passes, Fails = stats.Fails, Total = stats.TotalRuns, When = DateTime.Now });
+            summaries.Add(new Summary { Passes = stats.Passes, Fails = stats.Fails, Total = stats.TotalRuns, When = DateTime.Now, Skipped = stats.Skipped });
 
             string summaryJsonText = JsonConvert.SerializeObject(summaries);
             summaryJsonText = "let testsummaries =" + summaryJsonText;

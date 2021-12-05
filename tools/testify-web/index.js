@@ -55,6 +55,7 @@
 
   let npasses=0;
   let nfails=0;
+  let nskipped=0;
 
   for (let result of results) {
     var myTbody = document.querySelector(".results-table>tbody");
@@ -67,15 +68,20 @@
 
     let statusCell = newRow.insertCell();
     statusCell.append(result.Status);
-    if (result.Status == "pass") {
+    if (result.Status === "pass") {
       statusCell.style.color = "green";
       npasses+=1;
     }
-    else {
+    else if (result.Status === "fail") {
       statusCell.style.color = "red";
       nfails+=1;
+    } else if (result.Status === "skipped") {
+      statusCell.style.color = "purple";
+      nskipped+=1;
     }
+
     newRow.insertCell().append(result.ExecutionTime);
+    newRow.insertCell().append(result.Tags);
     labels.push(result.TestFile);
     times.push(result.ExecutionTime);
     stati.push(result.Status);
@@ -97,9 +103,9 @@
           pointBackgroundColor: function(context) {
             var index = context.dataIndex;
             var value = stati[index];
-            return value === "pass" ? "green" : "red";
+            return value === "pass" ? "green" : value === "fail" ? "red" : "purple";
           },
-          label: "Status/Time"
+          label: "Status over Execution Time"
         }]
       },
       options: {
@@ -124,16 +130,19 @@
     labels = [];
     let passes = [];
     let fails = [];
+    let skipped = [];
   
     for (let result of testsummaries) {
       labels.push(result.When);
       passes.push(result.Passes);
-      fails.push(result.Fails);      
+      fails.push(result.Fails);
+      skipped.push(result.Skipped ? result.Skipped : 0);   
     }
 
-    gtotal.innerText = npasses+nfails;
+    gtotal.innerText = npasses+nfails+nskipped;
     gpasses.innerText = npasses;
     gfails.innerText = nfails;
+    gskipped.innerText = nskipped;
 
     ctx = document.getElementById('regressionChart')
     myChart = new Chart(ctx, {
@@ -141,40 +150,49 @@
       data: {
         labels: labels,
         datasets: [
-          {
-            data: passes,
-            lineTension: 0,
-            backgroundColor: 'green',
-            borderColor: '#007bff',
-            borderWidth: 1,
-            label: "Passes"
-          },
+
           {
             data: fails,
             lineTension: 0,
             backgroundColor: 'red',
             borderColor: '#007bff',
             borderWidth: 1,
-            label: "Fails"
-          }
+            label: "Fails",
+            fill: true
+          },
+          {
+            data: skipped,
+            lineTension: 0,
+            backgroundColor: 'purple',
+            borderColor: '#007bff',
+            borderWidth: 1,
+            label: "Skipped",
+            fill: true,
+          },
+          {
+            data: passes,
+            lineTension: 0,
+            backgroundColor: 'green',
+            borderColor: '#007bff',
+            borderWidth: 1,
+            label: "Passes",
+            fill: true
+          },
         ]
       },
       options: {
-        scales: {
-          yAxes: [{
-            ticks: {
-              beginAtZero: true
-            }
-          }]
-        },
+        responsive: true,
         legend: {
           display: true
         },
-        horizontalLine: [{
-          y: 2000,
-          style: "rgba(175, 0, 0, .4)",
-          text: "Timeout"
-        }]
+        scales: {
+          xAxes: [{
+            stacked: true
+          }],
+          yAxes: [{
+            stacked: true
+          }]
+        }
       }
     })
   
