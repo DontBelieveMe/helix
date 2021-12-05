@@ -8,7 +8,7 @@
 	path = extras/doomgeneric
 	url = https://github.com/ozkl/doomgeneric.git
 [submodule "external/tracy"]
-	path = external/tracy
+	path = extras/tracy
 	url = https://github.com/wolfpld/tracy.git
 [submodule "extras/c-testsuite"]
 	path = extras/c-testsuite

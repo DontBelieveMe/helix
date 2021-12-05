@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(Helix)
 
 include(cmake/clang.cmake)
+include(cmake/tracy.cmake)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,42 +11,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(external/spdlog)
-
-find_package(Threads REQUIRED)
-
-add_library(TracyClient external/tracy/TracyClient.cpp)
-
-target_compile_features(TracyClient PUBLIC cxx_std_11)
-target_include_directories(TracyClient PUBLIC external/tracy)
-
-target_link_libraries(
-    TracyClient
-    PUBLIC
-        Threads::Threads
-        ${CMAKE_DL_LIBS}
-)
-
-macro(set_option option help value)
-    if(${option})
-        message(STATUS "${option}: ON")
-        target_compile_definitions(TracyClient PUBLIC ${option})
-    else()
-        message(STATUS "${option}: OFF")
-    endif()
-endmacro()
-
-set_option(TRACY_ENABLE "Enable profiling" OFF)
-set_option(TRACY_ON_DEMAND "On-demand profiling" OFF)
-set_option(TRACY_CALLSTACK "Collect call stacks" OFF)
-set_option(TRACY_ONLY_LOCALHOST "Only listen on the localhost interface" OFF)
-set_option(TRACY_NO_BROADCAST "Disable client discovery by broadcast to local network" OFF)
-set_option(TRACY_NO_CODE_TRANSFER "Disable collection of source code" OFF)
-set_option(TRACY_NO_CONTEXT_SWITCH "Disable capture of context switches" OFF)
-set_option(TRACY_NO_EXIT "Client executable does not exit until all profile data is sent to server" OFF)
-set_option(TRACY_NO_FRAME_IMAGE "Disable capture of frame images" OFF)
-set_option(TRACE_NO_SAMPLING "Disable call stack sampling" OFF)
-set_option(TRACY_NO_VERIFY "Disable zone validation for C API" OFF)
-set_option(TRACY_NO_VSYNC_CAPTURE "Disable capture of hardware Vsync events" OFF)
 
 add_library(libhelix
 	src/basic-block.h
@@ -73,7 +38,7 @@ add_library(libhelix
 	src/target-info-armv7.cpp
 )
 
-target_link_libraries(libhelix PUBLIC spdlog::spdlog TracyClient)
+target_link_libraries(libhelix PUBLIC spdlog::spdlog Tracy::TracyClient)
 
 add_executable(helix
 	src/main.cpp
