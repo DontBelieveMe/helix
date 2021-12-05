@@ -1,0 +1,24 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function main(): i32 {
+.0:
+	br .1
+.1:
+	br .2
+	ret 1:i32
+.3:
+	ret 0:i32
+.2:
+	br .4
+.4:
+	br .3
+	ret 1:i32
+}
+	</ExpectedOutput>
+</Test>

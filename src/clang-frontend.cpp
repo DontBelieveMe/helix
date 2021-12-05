@@ -150,6 +150,8 @@ private:
 	void DoBreakStmt(clang::BreakStmt* breakStmt);
 	void DoContinueStmt(clang::ContinueStmt* continueStmt);
 	void DoDoLoop(clang::DoStmt* doStmt);
+	void DoGoto(clang::GotoStmt* gotoStmt);
+	void DoLabel(clang::LabelStmt* labelStmt);
 
 	Helix::Value* DoLValue(clang::Expr* expr);
 
@@ -195,8 +197,55 @@ private:
 
 	std::unique_ptr<Helix::TargetInfo> m_TargetInfo;
 
+	std::unordered_map<clang::LabelDecl*, Helix::BasicBlock*> m_Labels;
+
 	const Helix::Type* m_SizeType;
 };
+
+void CodeGenerator::DoGoto(clang::GotoStmt* gotoStmt)
+{
+	clang::LabelDecl* labelDecl = gotoStmt->getLabel();
+
+	auto it = m_Labels.find(labelDecl);
+
+	Helix::BasicBlock* bb = nullptr;
+
+	if (it == m_Labels.end()) {
+		bb = Helix::BasicBlock::Create();
+		m_Labels.insert({labelDecl, bb});
+	} else {
+		bb = it->second;
+	}
+
+	if (!m_InstructionIterator->IsTerminator()) {
+		this->EmitInsn(Helix::CreateUnconditionalBranch(bb));
+	}
+}
+
+void CodeGenerator::DoLabel(clang::LabelStmt* labelStmt)
+{
+	clang::LabelDecl* labelDecl = labelStmt->getDecl();
+
+	auto it = m_Labels.find(labelDecl);
+
+	Helix::BasicBlock* bb = nullptr;
+
+	if (it == m_Labels.end()) {
+		bb = Helix::BasicBlock::Create();
+		m_Labels.insert({labelDecl, bb});
+	} else {
+		bb = it->second;
+	}
+
+	if (!m_InstructionIterator->IsTerminator()) {
+		this->EmitInsn(Helix::CreateUnconditionalBranch(bb));
+	}
+
+	this->EmitBasicBlock(bb);
+	m_InstructionIterator = bb->begin();
+
+	this->DoStmt(labelStmt->getSubStmt());
+}
 
 void CodeGenerator::DoDoLoop(clang::DoStmt* doStmt)
 {
@@ -831,6 +880,14 @@ void CodeGenerator::DoCompoundStmt(clang::CompoundStmt* compoundStmt)
 void CodeGenerator::DoStmt(clang::Stmt* stmt)
 {
 	switch (stmt->getStmtClass()) {
+	case clang::Stmt::GotoStmtClass:
+		this->DoGoto(clang::cast<clang::GotoStmt>(stmt));
+		break;
+
+	case clang::Stmt::LabelStmtClass:
+		this->DoLabel(clang::cast<clang::LabelStmt>(stmt));
+		break;
+
 	case clang::Stmt::CompoundStmtClass:
 		this->DoCompoundStmt(clang::dyn_cast<clang::CompoundStmt>(stmt));
 		break;
