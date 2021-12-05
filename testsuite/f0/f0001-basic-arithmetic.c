@@ -22,3 +22,18 @@ int rem()
 {
 	return 6 % 4;
 }
+
+int and()
+{
+	return 4 & 6;
+}
+
+int or()
+{
+	return 12 | 3;
+}
+
+int xor()
+{
+	return 4 ^ 3;
+}

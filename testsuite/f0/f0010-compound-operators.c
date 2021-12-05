@@ -27,3 +27,21 @@ void rem()
 	int c = 6;
 	c %= 4;
 }
+
+void and()
+{
+	int c = 4;
+	c &= 6;
+}
+
+void or()
+{
+	int c = 12;
+	c |= 3;
+}
+
+void xor()
+{
+	int c = 4;
+	c ^= 3;
+}
