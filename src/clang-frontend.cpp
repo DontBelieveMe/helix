@@ -630,6 +630,14 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 	clang::Expr* subExpr = unaryOperator->getSubExpr();
 
 	switch (unaryOperator->getOpcode()) {
+	case clang::UO_Not: {
+		Value* v = this->DoExpr(subExpr);
+		VirtualRegisterName* result = VirtualRegisterName::Create(v->GetType());
+		Value* max = ConstantInt::GetMax(v->GetType());
+		this->EmitInsn(Helix::CreateBinOp(kInsn_Xor, v, max, result));
+		return result;
+	}
+
 	case clang::UO_PreInc:
 	case clang::UO_PostInc:
 	case clang::UO_PreDec:

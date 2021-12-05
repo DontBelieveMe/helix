@@ -218,6 +218,7 @@ namespace Helix
 		{ }
 
 		static ConstantInt* Create(const Type* ty, Integer value);
+		static ConstantInt* GetMax(const Type* ty);
 
 		inline Integer GetIntegralValue() const { return m_Integer; }
 

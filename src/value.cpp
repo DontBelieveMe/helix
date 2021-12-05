@@ -67,6 +67,17 @@ VirtualRegisterName* VirtualRegisterName::Create(const Type* type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+ConstantInt* ConstantInt::GetMax(const Type* ty)
+{
+	const IntegerType* intType = type_cast<IntegerType>(ty);
+	helix_assert(intType, "ConstantInt::GetMax(): type is not an integer");
+
+	const uint64_t max = ((uint64_t) 1 << intType->GetBitWidth())  - 1;
+	return ConstantInt::Create(ty, max);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ConstantInt* ConstantInt::Create(const Type* ty, Integer value)
 {
 	IntegerCacheMap::iterator it = s_IntegerCache.find({ty, value});
