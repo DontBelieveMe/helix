@@ -18,6 +18,7 @@ const char* Helix::GetOpcodeName(Opcode opcode)
 	case kInsn_ISub:       return "isub";
 	case kInsn_IMul:       return "imul";
 	case kInsn_IDiv:       return "idiv";
+	case kInsn_IRem:       return "irem";
 	case kInsn_FAdd:       return "fadd";
 	case kInsn_FSub:       return "fsub";
 	case kInsn_FMul:       return "fmul";

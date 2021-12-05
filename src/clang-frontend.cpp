@@ -243,6 +243,7 @@ Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* a
 	case clang::BO_SubAssign: opc = kInsn_ISub; break;
 	case clang::BO_DivAssign: opc = kInsn_IDiv; break;
 	case clang::BO_MulAssign: opc = kInsn_IMul; break;
+	case clang::BO_RemAssign: opc = kInsn_IRem; break;
 	default:
 		frontend_unimplemented_at("unknown compound assignment op", assignmentOp->getOperatorLoc());
 	}
@@ -1014,6 +1015,7 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 	case clang::BO_GE:  opc = Helix::kInsn_ICmp_Gte; break;
 	case clang::BO_EQ:  opc = Helix::kInsn_ICmp_Eq; break;
 	case clang::BO_NE:  opc = Helix::kInsn_ICmp_Neq; break;
+	case clang::BO_Rem: opc = Helix::kInsn_IRem; break;
 
 	default:
 		frontend_unimplemented_at("Unsupported binary expression", binOp->getOperatorLoc());

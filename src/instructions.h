@@ -21,6 +21,7 @@ namespace Helix
 			kInsn_ISub,
 			kInsn_IMul,
 			kInsn_IDiv,
+			kInsn_IRem,
 			kInsn_FAdd,
 			kInsn_FSub,
 			kInsn_FMul,

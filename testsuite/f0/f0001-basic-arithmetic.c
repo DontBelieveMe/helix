@@ -17,3 +17,8 @@ int sub()
 {
 	return 1 - 1;
 }
+
+int rem()
+{
+	return 6 % 4;
+}

@@ -21,3 +21,9 @@ void sub()
 	int a = 10;
 	a -= 2;
 }
+
+void rem()
+{
+	int c = 6;
+	c %= 4;
+}
