@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+#include <string>
 
 #define IMPLEMENT_TYPE_TRAITS(ClassName, BaseTypeID) \
 	template <> \
@@ -36,7 +38,10 @@ namespace Helix
 		kType_Void,
 
 		/// Unknown type, a "invalid" state for Type.
-		kType_Undefined
+		kType_Undefined,
+
+		/// User defined structure
+		kType_Struct
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +95,43 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+	class StructType : public Type
+	{
+	public:
+		using FieldList = std::vector<const Type*>;
+
+	public:
+		StructType(const std::string& name, const FieldList& fields)
+			: Type(kType_Struct), m_Name(name), m_Members(fields)
+		{ }
+
+		static const StructType* CreateNamedStruct(const std::string& name, const FieldList& fields)
+		{
+			return new StructType(name, fields);
+		}
+
+		static const StructType* CreateUnnamedStruct(const FieldList& fields)
+		{
+			static size_t anonStructCounter = 0;
+
+			const std::string name = "anon." + std::to_string(anonStructCounter);
+			anonStructCounter += 1;
+
+			return CreateNamedStruct(name, fields);
+		}
+
+		const char* GetName() const { return m_Name.c_str(); }
+
+	private:
+		std::vector<const Type*> m_Members;
+		std::string m_Name;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	IMPLEMENT_TYPE_TRAITS(IntegerType, kType_Integer);
+	IMPLEMENT_TYPE_TRAITS(StructType,  kType_Struct);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -1,0 +1,15 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function main(): i32 {
+.0:
+	stack_alloc [MyStruct x 1], %0:ptr
+	ret 0:i32
+}
+	</ExpectedOutput>
+</Test>

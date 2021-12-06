@@ -80,6 +80,10 @@ const char* Helix::GetTypeName(const Helix::Type* type)
 			return "i?";
 		}
 	}
+	case Helix::kType_Struct: {
+		const Helix::StructType* ty = Helix::type_cast<StructType>(type);
+		return ty->GetName();
+	}
 	default:
 		return "?";
 	}

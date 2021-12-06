@@ -105,7 +105,14 @@ public:
 		m_SizeType = IntegerType::Create(m_TargetInfo->GetIntBitWidth(ty));
 	}
 
-	bool VisitFunctionDecl(clang::FunctionDecl* decl);
+	bool VisitTranslationUnitDecl(clang::TranslationUnitDecl* tuDecl)
+	{
+		for (clang::Decl* decl : tuDecl->decls()) {
+			this->DoDecl(decl);
+		}
+
+		return true;
+	}
 
 	std::vector<Helix::Function*> GetFunctions() { return m_Functions; }
 
@@ -152,6 +159,8 @@ private:
 	void DoDoLoop(clang::DoStmt* doStmt);
 	void DoGoto(clang::GotoStmt* gotoStmt);
 	void DoLabel(clang::LabelStmt* labelStmt);
+	void DoRecordDecl(clang::RecordDecl* recordDecl);
+	void DoFunctionDecl(clang::FunctionDecl* functionDecl);
 
 	Helix::Value* DoLValue(clang::Expr* expr);
 
@@ -166,6 +175,7 @@ private:
 	Helix::Value* DoCastExpr(clang::CastExpr* castExpr);
 	Helix::Value* DoArraySubscriptExpr(clang::ArraySubscriptExpr* subscriptExpr);
 	Helix::Value* DoCompoundAssignOp(clang::CompoundAssignOperator* assignmentOp);
+	Helix::Value* DoMemberExpr(clang::MemberExpr* memberExpr);
 
 	Helix::Value* DoSizeOf(clang::QualType type);
 
@@ -199,8 +209,59 @@ private:
 
 	std::unordered_map<clang::LabelDecl*, Helix::BasicBlock*> m_Labels;
 
+	std::unordered_map<const clang::Type*, const Helix::StructType*> m_Records;
+
 	const Helix::Type* m_SizeType;
 };
+
+Helix::Value* CodeGenerator::DoMemberExpr(clang::MemberExpr* memberExpr)
+{
+	using namespace Helix;
+
+	clang::Expr* base = memberExpr->getBase();
+
+	Helix::VirtualRegisterName* base_lvalue = value_cast<VirtualRegisterName>(this->DoLValue(base));
+	helix_assert(base_lvalue && base_lvalue->GetType()->IsPointer(), "base lvalue not vreg ptr");
+
+	clang::NamedDecl* memberDecl = memberExpr->getMemberDecl();
+	clang::FieldDecl* fieldDecl = clang::dyn_cast<clang::FieldDecl>(memberDecl);
+
+	helix_assert(fieldDecl, "member decl not a FieldDecl");
+
+	const Helix::Type* baseType = this->ConvertType(fieldDecl->getParent()->getTypeForDecl());
+
+	VirtualRegisterName* result = VirtualRegisterName::Create(Helix::BuiltinTypes::GetPointer());
+	ConstantInt* index = ConstantInt::Create(BuiltinTypes::GetInt64(), fieldDecl->getFieldIndex());
+	this->EmitInsn(Helix::CreateLoadEffectiveAddress(baseType, base_lvalue, index, result));
+	return result;
+}
+
+void CodeGenerator::DoRecordDecl(clang::RecordDecl* decl)
+{
+	frontend_assert_at(decl->isStruct(), "Only struct records are supported", decl->getBeginLoc());
+
+	const clang::Type* ty = decl->getTypeForDecl();
+
+	helix_assert(m_Records.find(ty) == m_Records.end(), "Duplicate records");
+
+	Helix::StructType::FieldList fields;
+
+	for (clang::FieldDecl* fieldDecl : decl->fields()) {
+		const Helix::Type* fieldType = this->ConvertType(fieldDecl->getType());
+		fields.push_back(fieldType);
+	}
+
+	const Helix::StructType* myType = [decl, fields](){
+		if (!decl->getIdentifier()) {
+			return Helix::StructType::CreateUnnamedStruct(fields);
+		} else {
+			llvm::StringRef name = decl->getName();
+			return Helix::StructType::CreateNamedStruct(name.str(), fields);
+		}
+	}();
+
+	m_Records.insert({ty, myType});
+}
 
 void CodeGenerator::DoGoto(clang::GotoStmt* gotoStmt)
 {
@@ -334,6 +395,10 @@ Helix::Value* CodeGenerator::DoLValue(clang::Expr* expr)
 
 	case clang::Stmt::CompoundAssignOperatorClass: {
 		return this->DoCompoundAssignOp(clang::cast<clang::CompoundAssignOperator>(expr));
+	}
+
+	case clang::Stmt::MemberExprClass: {
+		return this->DoMemberExpr(clang::cast<clang::MemberExpr>(expr));
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -486,6 +551,13 @@ const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 	if (type->isArrayType()) {
 		const clang::ArrayType* arrayType = clang::dyn_cast<clang::ArrayType>(type);
 		return this->ConvertType(arrayType->getElementType());
+	}
+
+	if (type->isRecordType()) {
+		auto it = m_Records.find(type);
+		helix_assert(it != m_Records.end(), "No such record");
+
+		return it->second;
 	}
 
 	frontend_unimplemented(fmt::format("Unknown type '{}'", clang::QualType(type,0).getAsString(clang::PrintingPolicy { {} })));
@@ -872,6 +944,14 @@ void CodeGenerator::DoIfStmt(clang::IfStmt* ifStmt)
 void CodeGenerator::DoDecl(clang::Decl* decl)
 {
 	switch (decl->getKind()) {
+	case clang::Decl::Function:
+		this->DoFunctionDecl(clang::cast<clang::FunctionDecl>(decl));
+		break;
+
+	case clang::Decl::Record:
+		this->DoRecordDecl(clang::cast<clang::RecordDecl>(decl));
+		break;
+
 	case clang::Decl::Var:
 		this->DoVarDecl(clang::dyn_cast<clang::VarDecl>(decl));
 		break;
@@ -1165,7 +1245,7 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
+void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 {
 	HELIX_PROFILE_ZONE;
 
@@ -1254,8 +1334,6 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 			}
 		}
 	}
-
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
