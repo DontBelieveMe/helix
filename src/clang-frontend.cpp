@@ -194,6 +194,8 @@ private:
 	TypeInfo           GetTypeInfo(clang::QualType type);
 	TypeInfo           GetTypeInfo(const clang::Type* typePtr);
 
+	Helix::Integer EvaluteConstantIntegralExpression(clang::Expr* expr);
+
 private:
 	std::vector<Helix::Function*>    m_Functions;
 	Helix::Function::block_iterator  m_BasicBlockIterator;
@@ -213,6 +215,90 @@ private:
 
 	const Helix::Type* m_SizeType;
 };
+
+Helix::Integer CodeGenerator::EvaluteConstantIntegralExpression(clang::Expr* expr)
+{
+	frontend_assert_at(expr->getType()->isIntegerType(), "cannot evaluate constant non integral expression", expr->getExprLoc());
+
+	switch (expr->getStmtClass()) {
+	case clang::Expr::ConstantExprClass:
+		return this->EvaluteConstantIntegralExpression(clang::cast<clang::ConstantExpr>(expr)->getSubExpr());
+
+	case clang::Expr::IntegerLiteralClass: {
+		clang::IntegerLiteral* p = clang::cast<clang::IntegerLiteral>(expr);
+		return Helix::Integer(p->getValue().getZExtValue());
+	}
+	case clang::Expr::BinaryOperatorClass: {
+		clang::BinaryOperator* p = clang::cast<clang::BinaryOperator>(expr);
+
+		Helix::Integer l = EvaluteConstantIntegralExpression(p->getLHS());
+		Helix::Integer r = EvaluteConstantIntegralExpression(p->getRHS());
+
+		switch (p->getOpcode()) {
+		case clang::BO_Add: return l + r;
+		case clang::BO_Mul: return l * r;
+		case clang::BO_Div: return l / r;
+		case clang::BO_Sub: return l - r;
+		case clang::BO_And: return l & r;
+		case clang::BO_Or:  return l | r;
+		case clang::BO_Xor: return l ^ r;
+		default:
+			frontend_unimplemented_at("unknown constant binary operator", expr->getExprLoc());
+			break;
+		}
+
+		return 0;
+	}
+	case clang::Expr::UnaryExprOrTypeTraitExprClass: {
+		clang::UnaryExprOrTypeTraitExpr* uett = clang::cast<clang::UnaryExprOrTypeTraitExpr>(expr);
+
+		switch (uett->getKind()) {
+		case clang::UETT_SizeOf: {
+			return Helix::Integer(this->GetTypeInfo(uett->getTypeOfArgument()).Width);
+		}
+		default:
+			frontend_unimplemented_at("unknown constant unary expr or type trait", expr->getExprLoc());
+		}
+
+		break;
+	}
+	case clang::Expr::ImplicitCastExprClass:
+		return this->EvaluteConstantIntegralExpression(clang::cast<clang::ImplicitCastExpr>(expr)->getSubExpr());
+
+	case clang::Expr::DeclRefExprClass: {
+		clang::DeclRefExpr* p = clang::cast<clang::DeclRefExpr>(expr);
+		clang::ValueDecl* valueDecl = p->getDecl();
+
+		switch (valueDecl->getKind()) {
+		case clang::ValueDecl::EnumConstant: {
+			clang::EnumConstantDecl* enumConstantDecl = clang::cast<clang::EnumConstantDecl>(valueDecl);
+
+			const Helix::Integer integralValue = [this, enumConstantDecl]() {
+				if (enumConstantDecl->getInitExpr()) {
+					return this->EvaluteConstantIntegralExpression(enumConstantDecl->getInitExpr());
+				}
+				else {
+					return enumConstantDecl->getInitVal().getZExtValue();
+				}
+			}();
+
+			return integralValue;
+		}
+
+		default:
+			frontend_unimplemented_at("unknown DeclRefExpr here", expr->getExprLoc());
+			break;
+		}
+
+		break;
+	}
+	default:
+		frontend_unimplemented_at("unknown constant expression type", expr->getExprLoc());
+		break;
+	}
+
+	return 0;
+}
 
 Helix::Value* CodeGenerator::DoMemberExpr(clang::MemberExpr* memberExpr)
 {
@@ -560,6 +646,10 @@ const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 		return it->second;
 	}
 
+	if (type->isEnumeralType()) {
+		return Helix::BuiltinTypes::GetInt32();
+	}
+
 	frontend_unimplemented(fmt::format("Unknown type '{}'", clang::QualType(type,0).getAsString(clang::PrintingPolicy { {} })));
 
 	return nullptr;
@@ -634,6 +724,10 @@ Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType or
 
 	const Type* srcType = this->ConvertType(originalType);
 	const Type* dstType = this->ConvertType(requiredType);
+
+	if (srcType == dstType) {
+		return expr;
+	}
 
 	if (srcType->IsIntegral()) {
 
@@ -1235,6 +1329,42 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 		break;
 	}
 
+	case clang::Stmt::ConstantExprClass: {
+		clang::ConstantExpr* cexpr = clang::cast<clang::ConstantExpr>(expr);
+
+		helix_assert(cexpr->getSubExpr(), "null subexpr");
+
+		return this->DoExpr(cexpr->getSubExpr());
+	}
+
+	case clang::Stmt::DeclRefExprClass: {
+		clang::DeclRefExpr* declRefExpr = clang::cast<clang::DeclRefExpr>(expr);
+		clang::ValueDecl*   valueDecl   = declRefExpr->getDecl();
+
+		switch (valueDecl->getKind()) {
+		case clang::ValueDecl::EnumConstant: {
+			clang::EnumConstantDecl* enumConstantDecl = clang::cast<clang::EnumConstantDecl>(valueDecl);
+			
+			const Helix::Integer integralValue = [this, enumConstantDecl]() {
+				if (enumConstantDecl->getInitExpr()) {
+					return this->EvaluteConstantIntegralExpression(enumConstantDecl->getInitExpr());
+				}
+				else {
+					return enumConstantDecl->getInitVal().getZExtValue();
+				}
+			}();
+
+			return Helix::ConstantInt::Create(Helix::BuiltinTypes::GetInt32(), integralValue);
+		}
+
+		default:
+			frontend_unimplemented_at("unknown DeclRefExpr here", expr->getExprLoc());
+			break;
+		}
+
+		break;
+	}
+	
 	default:
 		frontend_unimplemented_at("Cannot codegen for unsupported expression type", expr->getExprLoc());
 		break;
