@@ -150,25 +150,6 @@
       data: {
         labels: labels,
         datasets: [
-
-          {
-            data: fails,
-            lineTension: 0,
-            backgroundColor: 'red',
-            borderColor: '#007bff',
-            borderWidth: 1,
-            label: "Fails",
-            fill: true
-          },
-          {
-            data: skipped,
-            lineTension: 0,
-            backgroundColor: 'purple',
-            borderColor: '#007bff',
-            borderWidth: 1,
-            label: "Skipped",
-            fill: true,
-          },
           {
             data: passes,
             lineTension: 0,
@@ -178,6 +159,26 @@
             label: "Passes",
             fill: true
           },
+ 
+          {
+            data: fails,
+            lineTension: 0,
+            backgroundColor: 'red',
+            borderColor: '#007bff',
+            borderWidth: 1,
+            label: "Fails",
+            fill: true
+          },
+         {
+            data: skipped,
+            lineTension: 0,
+            backgroundColor: 'purple',
+            borderColor: '#007bff',
+            borderWidth: 1,
+            label: "Skipped",
+            fill: true,
+          },
+
         ]
       },
       options: {
