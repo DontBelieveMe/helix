@@ -1185,7 +1185,7 @@ bool CodeGenerator::VisitFunctionDecl(clang::FunctionDecl* functionDecl)
 	m_BasicBlockIterator = m_CurrentFunction->begin();
 	EmitBasicBlock(CreateBasicBlock());
 
-	// And clear the value map, since variables don't persist accross functions.
+	// And clear the value map, since variables don't persist across functions.
 	m_ValueMap.clear();
 
 	FunctionDef::ParamTypeList paramTypes;
