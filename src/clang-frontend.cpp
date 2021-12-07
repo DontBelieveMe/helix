@@ -326,6 +326,9 @@ Helix::Value* CodeGenerator::DoMemberExpr(clang::MemberExpr* memberExpr)
 
 void CodeGenerator::DoRecordDecl(clang::RecordDecl* decl)
 {
+	if (decl->getName() == "_GUID")
+		return;
+
 	frontend_assert_at(decl->isStruct(), "Only struct records are supported", decl->getBeginLoc());
 
 	const clang::Type* ty = decl->getTypeForDecl();

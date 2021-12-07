@@ -262,9 +262,31 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Funct
 
 static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Module& mod)
 {
+	for (auto it = mod.structs_begin(); it != mod.structs_end(); it++) {
+		const StructType* ty = *it;
+
+		out.Write("%s = struct { ", ty->GetName());
+
+		for (auto fit = ty->fields_begin(); fit != ty->fields_end(); ++fit) {
+			const Type* field = *fit;
+
+			out.Write("%s", GetTypeName(field));
+
+			if (fit + 1 != ty->fields_end()) {
+				out.Write(", ");
+			}
+		}
+
+		out.Write(" }\n");
+	}
+
+	out.Write("\n");
+
 	for (auto it = mod.functions_begin(); it != mod.functions_end(); it++) {
+		const Function* fn = *it;
+
 		slots.Reset();
-		InternalPrint(slots, out, **it);
+		InternalPrint(slots, out, *fn);
 	}
 }
 

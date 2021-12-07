@@ -101,6 +101,9 @@ namespace Helix
 	public:
 		using FieldList = std::vector<const Type*>;
 
+		using fields_iterator = FieldList::iterator;
+		using const_fields_iterator = FieldList::const_iterator;
+
 	public:
 		StructType(const std::string& name, const FieldList& fields)
 			: Type(kType_Struct), m_Name(name), m_Members(fields)
@@ -122,6 +125,14 @@ namespace Helix
 		}
 
 		const char* GetName() const { return m_Name.c_str(); }
+
+		size_t GetCountFields() const { return m_Members.size(); }
+
+		fields_iterator fields_begin() { return m_Members.begin(); }
+		fields_iterator fields_end() { return m_Members.end(); }
+
+		const_fields_iterator fields_begin() const { return m_Members.begin(); }
+		const_fields_iterator fields_end() const { return m_Members.end(); }
 
 	private:
 		std::vector<const Type*> m_Members;

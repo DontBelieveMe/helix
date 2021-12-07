@@ -6,6 +6,8 @@
 	</TestFlags>
 
 	<ExpectedOutput>
+MyStruct = struct { ptr, i32 }
+
 function main(): i32 {
 .0:
 	stack_alloc [MyStruct x 1], %0:ptr
