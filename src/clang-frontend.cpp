@@ -29,7 +29,6 @@
 #pragma warning(push, 0) 
 
 #include <clang/AST/ASTConsumer.h>
-#include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/Tooling.h>
@@ -93,7 +92,7 @@ struct TypeInfo
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class CodeGenerator : public clang::RecursiveASTVisitor<CodeGenerator>
+class CodeGenerator
 {
 public:
 	CodeGenerator()
@@ -107,7 +106,7 @@ public:
 		m_Module = Helix::CreateModule();
 	}
 
-	bool VisitTranslationUnitDecl(clang::TranslationUnitDecl* tuDecl)
+	void CodeGenTranslationUnit(clang::TranslationUnitDecl* tuDecl)
 	{
 		for (clang::Decl* decl : tuDecl->decls()) {
 			if (clang::VarDecl* topLevelVarDecl = clang::dyn_cast<clang::VarDecl>(decl)) {
@@ -117,8 +116,6 @@ public:
 
 			this->DoDecl(decl);
 		}
-
-		return true;
 	}
 
 	Helix::Module* GetModule() const { return m_Module; }
@@ -1530,7 +1527,7 @@ void CodeGenerator_ASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
 	HELIX_PROFILE_ZONE;
 
 	g_GlobalASTContext = &ctx;
-	m_CodeGen.TraverseDecl(ctx.getTranslationUnitDecl());
+	m_CodeGen.CodeGenTranslationUnit(ctx.getTranslationUnitDecl());
 	g_GlobalASTContext = nullptr;
 
 	Helix::Module* module = m_CodeGen.GetModule();
