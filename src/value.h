@@ -58,6 +58,7 @@ namespace Helix
 		kValue_ConstantFloat,
 		kValue_BasicBlock,
 		kValue_Function,
+		kValue_GlobalVar,
 		kValue_Undef
 	};
 
@@ -96,6 +97,11 @@ namespace Helix
 		const_use_iterator uses_end()   const { return m_Users.begin(); }
 
 		void SetType(const Type* ty) { m_Type = ty; }
+
+		bool IsConstant() const
+		{
+			return m_ValueID == kValue_ConstantInt || m_ValueID == kValue_ConstantFloat;
+		}
 
 	private:
 		ValueType   m_ValueID = kValue_Undef;
@@ -240,11 +246,45 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	class GlobalVariable : public Value
+	{
+	public:
+		GlobalVariable(const std::string& name, const Type* baseType, Value* init)
+			: Value(kValue_GlobalVar, BuiltinTypes::GetPointer()),
+			  m_BaseType(baseType), m_Init(init), m_Name(name)
+		{ }
+
+		const char* GetName() const { return m_Name.c_str(); }
+
+		bool HasInit() const { return m_Init != nullptr; }
+		Value* GetInit() const { return m_Init; }
+
+		const Type* GetBaseType() const { return m_BaseType; }
+
+		static GlobalVariable* Create(const std::string& name, const Type* baseType, Value* init)
+		{
+			return new GlobalVariable(name, baseType, init);
+		}
+
+		static GlobalVariable* Create(const std::string& name, const Type* baseType)
+		{
+			return new GlobalVariable(name, baseType, nullptr);
+		}
+
+	private:
+		const Type* m_BaseType;
+		Value*      m_Init;
+		std::string m_Name;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	IMPLEMENT_VALUE_TRAITS( VirtualRegisterName,  kValue_VirtualRegisterName );
 	IMPLEMENT_VALUE_TRAITS( ConstantInt,          kValue_ConstantInt         );
 	IMPLEMENT_VALUE_TRAITS( ConstantFloat,        kValue_ConstantFloat       );
 	IMPLEMENT_VALUE_TRAITS( BlockBranchTarget,    kValue_BasicBlock          );
 	IMPLEMENT_VALUE_TRAITS( UndefValue,           kValue_Undef               );
+	IMPLEMENT_VALUE_TRAITS( GlobalVariable,       kValue_GlobalVar           );
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

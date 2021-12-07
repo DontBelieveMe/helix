@@ -121,7 +121,7 @@ namespace Helix
 	class BinOpInsn : public Instruction
 	{
 	public:
-		BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+		BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, Value* result);
 
 		Value* GetLHS()                  const { return this->GetOperand(0);                                  }
 		Value* GetRHS()                  const { return this->GetOperand(1);                                  }
@@ -133,7 +133,7 @@ namespace Helix
 	class StoreInsn : public Instruction
 	{
 	public:
-		StoreInsn(Value* src, VirtualRegisterName* dst);
+		StoreInsn(Value* src, Value* dst);
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ namespace Helix
 	class LoadInsn : public Instruction
 	{
 	public:
-		LoadInsn(VirtualRegisterName* src, VirtualRegisterName* dst);
+		LoadInsn(Value* src, Value* dst);
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +149,7 @@ namespace Helix
 	class StackAllocInsn : public Instruction
 	{
 	public:
-		StackAllocInsn(VirtualRegisterName* dst, const Type* type, size_t count);
+		StackAllocInsn(Value* dst, const Type* type, size_t count);
 
 		inline const Type* GetType()  const { return m_Type;  }
 		inline size_t      GetCount() const { return m_Count; }
@@ -204,7 +204,7 @@ namespace Helix
 	class CompareInsn : public Instruction
 	{
 	public:
-		CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+		CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,7 +212,7 @@ namespace Helix
 	class LoadEffectiveAddressInsn : public Instruction
 	{
 	public:
-		LoadEffectiveAddressInsn(const Type* baseType, Value* inputPtr, Value* index, VirtualRegisterName* outputPtr)
+		LoadEffectiveAddressInsn(const Type* baseType, Value* inputPtr, Value* index, Value* outputPtr)
 			: Instruction(kInsn_Lea, 3), m_Type(baseType)
 		{
 			m_Operands[0] = inputPtr;
@@ -230,7 +230,7 @@ namespace Helix
 
 	/// Create a comparison instruction that compares 'lhs' and 'rhs' and stores the result to the given
 	/// 'result' register.
-	CompareInsn* CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+	CompareInsn* CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);
 
 	/// Create a conditional branch that, if the given 'cond' value evaluates to true
 	/// jumps to the basic block 'trueBB', and if it's false jump to falseBB.
@@ -250,23 +250,23 @@ namespace Helix
 	RetInsn* CreateRet(Value* value);
 
 	/// Create a binary operation such that `<op> <lhs>, <rhs>, <result>`
-	BinOpInsn* CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result);
+	BinOpInsn* CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, Value* result);
 
 	/// Create a store instruction that stores value 'src' at memory location
 	/// given by 'dst' (`store <src>, <dst>`)
-	StoreInsn* CreateStore(Value* src, VirtualRegisterName* dst);
+	StoreInsn* CreateStore(Value* src, Value* dst);
 
 	/// Create a load instruction that loads a value from the memory address given in 'src'
 	/// to the register 'dst' (`load <src>, <dst>`)
-	LoadInsn* CreateLoad(VirtualRegisterName* src, VirtualRegisterName* dst);
+	LoadInsn* CreateLoad(Value* src, Value* dst);
 
 	/// Create a stack_alloc instruction that allocates space on the stack and returns
 	/// a pointer (memory address) to that space in register 'dst'.
 	/// The type of register 'dst' specifies the amount of memory that should be allocated.
-	StackAllocInsn* CreateStackAlloc(VirtualRegisterName* dst, const Type* type, size_t count);
+	StackAllocInsn* CreateStackAlloc(Value* dst, const Type* type, size_t count);
 
 	CallInsn* CreateCall(FunctionDef* fn, const ParameterList& params);
 	CallInsn* CreateCall(FunctionDef* fn, Value* returnValue, const ParameterList& params);
 
-	LoadEffectiveAddressInsn* CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, VirtualRegisterName* outputPtr);
+	LoadEffectiveAddressInsn* CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, Value* outputPtr);
 }

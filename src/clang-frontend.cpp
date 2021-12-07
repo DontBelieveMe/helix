@@ -110,6 +110,11 @@ public:
 	bool VisitTranslationUnitDecl(clang::TranslationUnitDecl* tuDecl)
 	{
 		for (clang::Decl* decl : tuDecl->decls()) {
+			if (clang::VarDecl* topLevelVarDecl = clang::dyn_cast<clang::VarDecl>(decl)) {
+				this->DoGlobalVariable(topLevelVarDecl);				
+				continue;
+			}
+
 			this->DoDecl(decl);
 		}
 
@@ -138,11 +143,19 @@ private:
 		m_InstructionIterator = m_BasicBlockIterator->InsertAfter(m_InstructionIterator, insn);
 	}
 
-	Helix::VirtualRegisterName* FindValueForDecl(clang::ValueDecl* decl)
+	Helix::Value* FindValueForDecl(clang::ValueDecl* decl)
 	{
 		auto it = m_ValueMap.find(decl);
-		if (it == m_ValueMap.end())
-			return nullptr;
+
+		if (it == m_ValueMap.end()) {
+			auto git = m_GlobalVars.find(decl);
+			
+			if (git == m_GlobalVars.end())
+				return nullptr;
+
+			return git->second;
+		}
+
 		return it->second;
 	}
 
@@ -163,6 +176,7 @@ private:
 	void DoLabel(clang::LabelStmt* labelStmt);
 	void DoRecordDecl(clang::RecordDecl* recordDecl);
 	void DoFunctionDecl(clang::FunctionDecl* functionDecl);
+	void DoGlobalVariable(clang::VarDecl* varDecl);
 
 	Helix::Value* DoLValue(clang::Expr* expr);
 
@@ -207,6 +221,7 @@ private:
 	std::stack<Helix::BasicBlock*>   m_LoopBreakStack;
 	std::stack<Helix::BasicBlock*>   m_LoopContinueStack;
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
+	std::unordered_map<clang::ValueDecl*, Helix::GlobalVariable*> m_GlobalVars;
 	std::unordered_map<clang::FunctionDecl*, Helix::FunctionDef*> m_FunctionDecls;
 
 	std::unique_ptr<Helix::TargetInfo> m_TargetInfo;
@@ -217,6 +232,32 @@ private:
 
 	const Helix::Type* m_SizeType;
 };
+
+void CodeGenerator::DoGlobalVariable(clang::VarDecl* varDecl)
+{
+	using namespace Helix;
+
+	const Type* baseType = this->ConvertType(varDecl->getType());
+
+	GlobalVariable* gvar = [this, varDecl, baseType]() {
+		std::string name = varDecl->getName().str();
+
+		if (varDecl->hasInit()) {
+			Value* init = this->DoExpr(varDecl->getInit());
+			
+			helix_assert(init->IsConstant(), "global var initializer is not constant value");
+
+			return GlobalVariable::Create(name, baseType, init);
+		} else {
+			return GlobalVariable::Create(name, baseType);
+		}
+	}();
+
+	helix_assert(m_GlobalVars.find(varDecl) == m_GlobalVars.end(), "global VarDecl is not unique");
+
+	m_GlobalVars.insert({ varDecl, gvar });
+	m_Module->RegisterGlobalVariable(gvar);
+}
 
 Helix::Integer CodeGenerator::EvaluteConstantIntegralExpression(clang::Expr* expr)
 {
@@ -308,8 +349,8 @@ Helix::Value* CodeGenerator::DoMemberExpr(clang::MemberExpr* memberExpr)
 
 	clang::Expr* base = memberExpr->getBase();
 
-	Helix::VirtualRegisterName* base_lvalue = value_cast<VirtualRegisterName>(this->DoLValue(base));
-	helix_assert(base_lvalue && base_lvalue->GetType()->IsPointer(), "base lvalue not vreg ptr");
+	Value* base_lvalue = this->DoLValue(base);
+	helix_assert(base_lvalue && base_lvalue->GetType()->IsPointer(), "base lvalue not ptr");
 
 	clang::NamedDecl* memberDecl = memberExpr->getMemberDecl();
 	clang::FieldDecl* fieldDecl = clang::dyn_cast<clang::FieldDecl>(memberDecl);
@@ -433,7 +474,7 @@ Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* a
 {
 	using namespace Helix;
 
-	VirtualRegisterName* lhs = value_cast<VirtualRegisterName>(this->DoLValue(assignmentOp->getLHS()));
+	Value* lhs = this->DoLValue(assignmentOp->getLHS());
 	frontend_assert(lhs && lhs->GetType()->IsPointer(), "lhs of compound assignment is not valid lvalue");
 
 	Value* rhs = this->DoExpr(assignmentOp->getRHS());
@@ -702,7 +743,6 @@ Helix::Value* CodeGenerator::DoArraySubscriptExpr(clang::ArraySubscriptExpr* sub
 	Value* base = this->DoLValue(baseExpr);
 	Value* index = this->DoExpr(indexExpr);
 
-	frontend_assert(base->IsA<VirtualRegisterName>(), "base is not a virtual register name");
 	frontend_assert(base->GetType()->IsPointer(), "base is not of pointer type");
 
 	const clang::QualType pointerType = baseExpr->getType();
@@ -772,10 +812,10 @@ Helix::Value* CodeGenerator::DoCastExpr(clang::CastExpr* castExpr)
 	switch (castExpr->getCastKind()) {
 	case clang::CK_LValueToRValue: {
 		Helix::Value* lvalue = this->DoLValue(subExpr);
-		frontend_assert(lvalue->IsA<Helix::VirtualRegisterName>() && lvalue->GetType()->IsPointer(), "bad lvalue");
+		frontend_assert(lvalue->GetType()->IsPointer(), "bad lvalue");
 		const Helix::Type* ty = this->ConvertType(subExpr->getType());
 		Helix::VirtualRegisterName* vreg = Helix::VirtualRegisterName::Create(ty);
-		this->EmitInsn(Helix::CreateLoad(Helix::value_cast<Helix::VirtualRegisterName>(lvalue), vreg));
+		this->EmitInsn(Helix::CreateLoad(lvalue, vreg));
 		return vreg;
 	}
 
@@ -814,11 +854,11 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 	case clang::UO_PostInc:
 	case clang::UO_PreDec:
 	case clang::UO_PostDec: {
-		VirtualRegisterName* ptr = value_cast<VirtualRegisterName>(this->DoLValue(subExpr));
+		Value* ptr = this->DoLValue(subExpr);
 
 		frontend_assert(
 			ptr && ptr->GetType()->IsPointer(),
-			"lvalue should evaluate to ptr vreg"
+			"lvalue should evaluate to ptr"
 		);
 
 		const Type* subExprType = this->ConvertType(subExpr->getType());
@@ -850,13 +890,10 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 	case clang::UO_Deref: {
 		Value* value = this->DoExpr(subExpr);
 
-		VirtualRegisterName* exprReg = value_cast<VirtualRegisterName>(value);
-
-		frontend_assert(exprReg, "deref expression type is not vreg");
 		frontend_assert(value->GetType()->IsPointer(), "cannot dereference non pointer type");
 		frontend_assert(subExpr->getType()->isPointerType(), "clang: sub expr not pointer");
 
-		return exprReg;
+		return value;
 	}
 
 	case clang::UO_AddrOf: {
@@ -1207,10 +1244,9 @@ Helix::Value* CodeGenerator::DoAssignment(clang::BinaryOperator* binOp)
 	using namespace Helix;
 
 	clang::Expr* lhsExpr = binOp->getLHS();
-	VirtualRegisterName* dst = Helix::value_cast<VirtualRegisterName>(this->DoLValue(lhsExpr));
+	Value* dst = this->DoLValue(lhsExpr);
 
-	frontend_assert(dst, "lvalue in assignment is not of vreg type");
-	frontend_assert(dst->GetType()->IsPointer(), "lhs of assignment is not a pointer");
+	frontend_assert(dst && dst->GetType()->IsPointer(), "lhs of assignment is not a pointer");
 
 	Helix::Value* rhs = this->DoExpr(binOp->getRHS());
 	EmitInsn(Helix::CreateStore(rhs, dst));

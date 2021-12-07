@@ -130,6 +130,8 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 		suppressTypeInfo = true;
 	} else if (const UndefValue* v = value_cast<UndefValue>(&value)) {
 		out.Write("undef");
+	} else if (const GlobalVariable* v = value_cast<GlobalVariable>(&value)) {
+		out.Write("@%s", v->GetName());
 	}
 
 	if (!suppressTypeInfo) {
@@ -278,6 +280,23 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Modul
 		}
 
 		out.Write(" }\n");
+	}
+
+	if (mod.GetCountGlobalVars() > 0) {
+		out.Write("\n");
+
+		for (auto it = mod.globals_begin(); it != mod.globals_end(); ++it) {
+			const GlobalVariable* gvar = *it;
+
+			out.Write("@%s:ptr = global %s", gvar->GetName(), GetTypeName(gvar->GetBaseType()));
+
+			if (gvar->HasInit()) {
+				out.Write(" ");
+				InternalPrint(slots, out, *gvar->GetInit());
+			}
+
+			out.Write("\n");
+		}
 	}
 
 	out.Write("\n");

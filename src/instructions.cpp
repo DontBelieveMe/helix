@@ -3,7 +3,7 @@
 
 using namespace Helix;
 
-LoadEffectiveAddressInsn* Helix::CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, VirtualRegisterName* outputPtr)
+LoadEffectiveAddressInsn* Helix::CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, Value* outputPtr)
 {
 	return new LoadEffectiveAddressInsn(baseType, input, index, outputPtr);
 }
@@ -24,14 +24,14 @@ CallInsn* Helix::CreateCall(FunctionDef* fn, Value* returnValue, const Parameter
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CompareInsn* Helix::CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
+CompareInsn* Helix::CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result)
 {
 	return new CompareInsn(cmpOpcode, lhs, rhs, result);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BinOpInsn* Helix::CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
+BinOpInsn* Helix::CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, Value* result)
 {
 	return new BinOpInsn(opcode, lhs, rhs, result);
 }
@@ -52,21 +52,21 @@ ConditionalBranchInsn* Helix::CreateConditionalBranch(BasicBlock* trueBB, BasicB
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-StoreInsn* Helix::CreateStore(Value* src, VirtualRegisterName* dst)
+StoreInsn* Helix::CreateStore(Value* src, Value* dst)
 {
 	return new StoreInsn(src, dst);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LoadInsn* Helix::CreateLoad(VirtualRegisterName* src, VirtualRegisterName* dst)
+LoadInsn* Helix::CreateLoad(Value* src, Value* dst)
 {
 	return new LoadInsn(src, dst);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-StackAllocInsn* Helix::CreateStackAlloc(VirtualRegisterName* dst, const Type* type, size_t count)
+StackAllocInsn* Helix::CreateStackAlloc(Value* dst, const Type* type, size_t count)
 {
 	return new StackAllocInsn(dst, type, count);
 }
@@ -119,7 +119,7 @@ UnconditionalBranchInsn::UnconditionalBranchInsn(BasicBlock* bb)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BinOpInsn::BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
+BinOpInsn::BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, Value* result)
 	: Instruction(opcode, 3)
 {
 	m_Operands[0] = lhs;
@@ -129,7 +129,7 @@ BinOpInsn::BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, VirtualRegisterName*
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-StoreInsn::StoreInsn(Value* src, VirtualRegisterName* dst)
+StoreInsn::StoreInsn(Value* src, Value* dst)
 	: Instruction(kInsn_Store, 2)
 {
 	m_Operands[0] = src;
@@ -138,7 +138,7 @@ StoreInsn::StoreInsn(Value* src, VirtualRegisterName* dst)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LoadInsn::LoadInsn(VirtualRegisterName* src, VirtualRegisterName* dst)
+LoadInsn::LoadInsn(Value* src, Value* dst)
 	: Instruction(kInsn_Load, 2)
 {
 	m_Operands[0] = src;
@@ -147,7 +147,7 @@ LoadInsn::LoadInsn(VirtualRegisterName* src, VirtualRegisterName* dst)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-StackAllocInsn::StackAllocInsn(VirtualRegisterName* dst, const Type* type, size_t count)
+StackAllocInsn::StackAllocInsn(Value* dst, const Type* type, size_t count)
 	: Instruction(kInsn_StackAlloc, 1), m_Type(type), m_Count(count)
 {
 	m_Operands[0] = dst;
@@ -155,7 +155,7 @@ StackAllocInsn::StackAllocInsn(VirtualRegisterName* dst, const Type* type, size_
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CompareInsn::CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, VirtualRegisterName* result)
+CompareInsn::CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result)
 	: Instruction(cmpOpcode, 3)
 {
 	this->SetOperand(0, lhs);
