@@ -973,8 +973,12 @@ void CodeGenerator::DoForStmt(clang::ForStmt* forStmt)
 	this->EmitBasicBlock(conditionBlock);
 	m_InstructionIterator = conditionBlock->begin();
 
-	Value* conditionValue = this->DoExpr(forStmt->getCond());
-	this->EmitInsn(Helix::CreateConditionalBranch(bodyBlock, tailBlock, conditionValue));
+	if (forStmt->getCond()) {
+		Value* conditionValue = this->DoExpr(forStmt->getCond());
+		this->EmitInsn(Helix::CreateConditionalBranch(bodyBlock, tailBlock, conditionValue));
+	} else {
+		this->EmitInsn(Helix::CreateUnconditionalBranch(bodyBlock));
+	}
 
 	m_LoopBreakStack.push(tailBlock);
 	m_LoopContinueStack.push(conditionBlock);
