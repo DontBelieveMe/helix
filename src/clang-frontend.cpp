@@ -103,6 +103,8 @@ public:
 
 		const TargetInfo::IntType ty = m_TargetInfo->GetSizeType();
 		m_SizeType = IntegerType::Create(m_TargetInfo->GetIntBitWidth(ty));
+
+		m_Module = Helix::CreateModule();
 	}
 
 	bool VisitTranslationUnitDecl(clang::TranslationUnitDecl* tuDecl)
@@ -114,7 +116,7 @@ public:
 		return true;
 	}
 
-	std::vector<Helix::Function*> GetFunctions() { return m_Functions; }
+	Helix::Module* GetModule() const { return m_Module; }
 
 private:
 	Helix::BasicBlock* CreateBasicBlock()
@@ -197,7 +199,7 @@ private:
 	Helix::Integer EvaluteConstantIntegralExpression(clang::Expr* expr);
 
 private:
-	std::vector<Helix::Function*>    m_Functions;
+	Helix::Module*                   m_Module;
 	Helix::Function::block_iterator  m_BasicBlockIterator;
 	Helix::BasicBlock::insn_iterator m_InstructionIterator;
 	Helix::Function*                 m_CurrentFunction = nullptr;
@@ -347,6 +349,7 @@ void CodeGenerator::DoRecordDecl(clang::RecordDecl* decl)
 	}();
 
 	m_Records.insert({ty, myType});
+	m_Module->RegisterStruct(myType);
 }
 
 void CodeGenerator::DoGoto(clang::GotoStmt* gotoStmt)
@@ -1426,7 +1429,7 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 
 	// Add the new function to the list of functions that we've generated code for in
 	// this translation unit.
-	m_Functions.push_back(m_CurrentFunction);
+	m_Module->RegisterFunction(m_CurrentFunction);
 
 	if (functionDecl->hasBody())
 		this->DoStmt(functionDecl->getBody());
@@ -1487,11 +1490,9 @@ void CodeGenerator_ASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
 	m_CodeGen.TraverseDecl(ctx.getTranslationUnitDecl());
 	g_GlobalASTContext = nullptr;
 
-	const std::vector<Helix::Function*> functions = m_CodeGen.GetFunctions();
-
-	for (Helix::Function* fn : functions) {
-		Helix::DebugDump(*fn);
-	}
+	Helix::Module* module = m_CodeGen.GetModule();
+	helix_assert(module, "null module ptr");
+	Helix::DebugDump(*module);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

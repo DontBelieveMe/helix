@@ -260,6 +260,16 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Funct
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Module& mod)
+{
+	for (auto it = mod.functions_begin(); it != mod.functions_end(); it++) {
+		slots.Reset();
+		InternalPrint(slots, out, **it);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Helix::Print(TextOutputStream& out, const Value& value)
 {
 	SlotTracker slots;
@@ -285,6 +295,14 @@ void Helix::Print(TextOutputStream& out, const BasicBlock& value)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Helix::Print(TextOutputStream& out, const Function& value)
+{
+	SlotTracker slots;
+	InternalPrint(slots, out, value);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Helix::Print(TextOutputStream& out, const Module& value)
 {
 	SlotTracker slots;
 	InternalPrint(slots, out, value);

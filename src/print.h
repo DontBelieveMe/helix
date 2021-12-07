@@ -5,6 +5,7 @@
 #include "function.h"
 #include "system.h"
 #include "options.h"
+#include "module.h"
 
 #include <unordered_map>
 
@@ -110,6 +111,12 @@ namespace Helix
 			return it->second;
 		}
 
+		void Reset()
+		{
+			m_ValueSlots.clear();
+			m_BlockSlots.clear();
+		}
+
 	private:
 		std::unordered_map<const Value*, size_t>      m_ValueSlots;
 		std::unordered_map<const BasicBlock*, size_t> m_BlockSlots;
@@ -127,6 +134,7 @@ namespace Helix
 	void Print(TextOutputStream& out, const Value& value);
 	void Print(TextOutputStream& out, const BasicBlock& bb);
 	void Print(TextOutputStream& out, const Function& fn);
+	void Print(TextOutputStream& out, const Module& module);
 
 	/// Utility function for printing any 'Print(...)' overloaded type to stdout
 	template <typename T>

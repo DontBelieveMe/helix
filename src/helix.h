@@ -8,6 +8,7 @@
 #include "value.h"
 #include "print.h"
 #include "options.h"
+#include "module.h"
 
 namespace Helix
 {

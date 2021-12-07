@@ -36,6 +36,7 @@ add_library(libhelix
 	src/target-info.h
 	src/target-info-armv7.h
 	src/target-info-armv7.cpp
+	src/module.h
 )
 
 target_link_libraries(libhelix PUBLIC spdlog::spdlog Tracy::TracyClient)
