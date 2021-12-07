@@ -124,7 +124,7 @@ namespace Testify
             Console.Write("{0}... ", sourceFile);
 
             Stopwatch timer = Stopwatch.StartNew();
-            ProgramOutput output = ProcessHelpers.RunExternalProcess("vs2019/Debug/helix.exe", flagsString);
+            ProgramOutput output = ProcessHelpers.RunExternalProcess(HelixHelpers.GetCompilerPath(), flagsString);
             timer.Stop();
 
             stats.ExecutionTimes.Add(timer.ElapsedMilliseconds);

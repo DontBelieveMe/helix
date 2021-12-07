@@ -80,11 +80,11 @@ namespace Testify
                 }
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
-                ProgramOutput output = ProcessHelpers.RunExternalProcess("vs2019/Debug/helix.exe", string.Join(" ", args));
+                ProgramOutput output = ProcessHelpers.RunExternalProcess(HelixHelpers.GetCompilerPath(), string.Join(" ", args));
                 stopwatch.Stop();
                 stats.ExecutionTimes.Add(stopwatch.ElapsedMilliseconds);
 
-                Console.Write(file + ".. .");
+                Console.Write(file + "...");
 
                 TestRun run = new TestRun();
                 run.ExecutionTime = (int) stopwatch.ElapsedMilliseconds;
