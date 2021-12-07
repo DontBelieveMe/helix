@@ -57,6 +57,8 @@ const char* Helix::GetOpcodeName(Opcode opcode)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static std::unordered_map<const Type*, std::string> s_TypeNameCache;
+
 const char* Helix::GetTypeName(const Helix::Type* type)
 {
 	switch (type->GetTypeID()) {
@@ -84,10 +86,27 @@ const char* Helix::GetTypeName(const Helix::Type* type)
 		const Helix::StructType* ty = Helix::type_cast<StructType>(type);
 		return ty->GetName();
 	}
+	case Helix::kType_Array: {
+		const Helix::ArrayType* arrayType = Helix::type_cast<ArrayType>(type);
+		auto it = s_TypeNameCache.find(type);
+
+		if (it == s_TypeNameCache.end()) {
+			const char* elementType = GetTypeName(arrayType->GetBaseType());
+			const std::string typeName = fmt::format("[{} x {}]", elementType, arrayType->GetCountElements());
+
+			s_TypeNameCache.insert({type, typeName});
+			it = s_TypeNameCache.find(type);
+
+			helix_assert(it != s_TypeNameCache.end(), "failed to cache array type name");
+		}
+
+		return it->second.c_str();
+	}
 	default:
 		return "?";
 	}
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,10 +182,27 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instr
 
 	if (insn.GetOpcode() == kInsn_StackAlloc) {
 		const StackAllocInsn& stackAlloc = static_cast<const StackAllocInsn&>(insn);
-		const char* typeName = Helix::GetTypeName(stackAlloc.GetType());
-		const size_t count = stackAlloc.GetCount();
+		const std::string typeName = [&stackAlloc]() -> std::string {
+			// #FIXME(bwilks): This special formatting is to keep compatibility when ArrayType
+			//                 didn't exist, and StackAlloc stored its element type/count (and
+			//                 as such would always print those elemtnts as "[<type> x <count>]",
+			//                 even if it was only allocating a scalar element).
+			//                 Now ArrayType exists, StackAlloc just stores a type reference and not
+			//                 the count. The expected formatting for StackAlloc would now look like:
+			//                 "[<type> x <count>]" for ArrayType, and "<type>" for scalars, but in
+			//                 order to stop all the tests that depend on the old formatting from breaking
+			//                 make sure to print scalar types in the old format (e.g. "<type> x 1").
+			//
+			//                 Should go through and update the tests to fix this.
+			if (const Helix::ArrayType* arrayType = Helix::type_cast<ArrayType>(stackAlloc.GetType())) {
+				return Helix::GetTypeName(arrayType);
+			} else {
+				const char* elementType = Helix::GetTypeName(stackAlloc.GetType());
+				return fmt::format("[{} x 1]", elementType);
+			}
+		}();
 
-		out.Write("[%s x %zu], ", typeName, count);
+		out.Write("%s, ", typeName.c_str());
 	}
 	else if (insn.GetOpcode() == kInsn_Lea) {
 		const LoadEffectiveAddressInsn& lea = static_cast<const LoadEffectiveAddressInsn&>(insn);

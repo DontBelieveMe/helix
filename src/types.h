@@ -40,6 +40,9 @@ namespace Helix
 		/// Unknown type, a "invalid" state for Type.
 		kType_Undefined,
 
+		/// An array of elements
+		kType_Array,
+
 		/// User defined structure
 		kType_Struct
 	};
@@ -95,6 +98,30 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	class ArrayType : public Type
+	{
+	public:
+		ArrayType(): Type(kType_Array) { }
+
+		static const ArrayType* CreateArrayType(size_t nElements, const Type* baseType)
+		{
+			ArrayType* ty = new ArrayType();
+
+			ty->m_CountElements = nElements;
+			ty->m_BaseType      = baseType;
+
+			return ty;
+		}
+
+		size_t GetCountElements() const { return m_CountElements; }
+		const Type* GetBaseType() const { return m_BaseType; }
+
+	private:
+		size_t      m_CountElements;
+		const Type* m_BaseType;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	class StructType : public Type
 	{
@@ -143,6 +170,7 @@ namespace Helix
 
 	IMPLEMENT_TYPE_TRAITS(IntegerType, kType_Integer);
 	IMPLEMENT_TYPE_TRAITS(StructType,  kType_Struct);
+	IMPLEMENT_TYPE_TRAITS(ArrayType,   kType_Array);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -202,7 +202,7 @@ private:
 
 	Helix::FunctionDef* LookupFunction(clang::FunctionDecl* decl);
 
-	size_t GetAllocaElementCount(clang::QualType type);
+	size_t GetArrayElementCount(const clang::ArrayType* type);
 
 	const Helix::Type* GetSizeType() const { return m_SizeType; }
 	TypeInfo           GetTypeInfo(clang::QualType type);
@@ -696,7 +696,11 @@ const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 
 	if (type->isArrayType()) {
 		const clang::ArrayType* arrayType = clang::dyn_cast<clang::ArrayType>(type);
-		return this->ConvertType(arrayType->getElementType());
+
+		const size_t elementCount = this->GetArrayElementCount(arrayType);
+		const Helix::Type* elementType = this->ConvertType(arrayType->getElementType());
+
+		return Helix::ArrayType::CreateArrayType(elementCount, elementType);
 	}
 
 	if (type->isRecordType()) {
@@ -727,20 +731,14 @@ Helix::Value* CodeGenerator::DoSizeOf(clang::QualType type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-size_t CodeGenerator::GetAllocaElementCount(clang::QualType type)
+size_t CodeGenerator::GetArrayElementCount(const clang::ArrayType* type)
 {
-	type = type.getCanonicalType();
-
-	if (!type->isArrayType()) {
-		return 1;
-	}
-
 	if (const clang::ConstantArrayType* constantArray = clang::dyn_cast<clang::ConstantArrayType>(type)) {
 		const llvm::APInt& apSize = constantArray->getSize();
 		return (size_t) apSize.getZExtValue();
 	}
 
-	frontend_unimplemented(fmt::format("Unknown array type '{}'", type.getAsString(clang::PrintingPolicy { {} })));
+	frontend_unimplemented(fmt::format("Unknown array type '{}'", clang::QualType(type,0).getAsString(clang::PrintingPolicy { {} })));
 	return 1;
 }
 
@@ -1234,13 +1232,11 @@ void CodeGenerator::DoVarDecl(clang::VarDecl* varDecl)
 
 	const Type* type = this->ConvertType(varDecl->getType());
 
-	const size_t elementCount = this->GetAllocaElementCount(varDecl->getType());
-
 	// ... and then actually create the instruction to allocate space for the variable.
 	//
 	//              #FIXME(bwilks): This needs to pass some type information so that
 	//                              it knows how much space to allocate :)
-	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister, type, elementCount));
+	EmitInsn(Helix::CreateStackAlloc(variableAddressRegister, type));
 
 	if (varDecl->hasInit()) {
 		// Evaluate the RHS assignment of this var decl and store it at the
@@ -1470,7 +1466,7 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 
 		VirtualRegisterName* addr = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
 
-		this->EmitInsn(Helix::CreateStackAlloc(addr, ty, 1));
+		this->EmitInsn(Helix::CreateStackAlloc(addr, ty));
 		this->EmitInsn(Helix::CreateStore(paramRegister, addr));
 
 		m_ValueMap.insert({param, addr});

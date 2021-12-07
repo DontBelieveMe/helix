@@ -66,9 +66,9 @@ LoadInsn* Helix::CreateLoad(Value* src, Value* dst)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-StackAllocInsn* Helix::CreateStackAlloc(Value* dst, const Type* type, size_t count)
+StackAllocInsn* Helix::CreateStackAlloc(Value* dst, const Type* type)
 {
-	return new StackAllocInsn(dst, type, count);
+	return new StackAllocInsn(dst, type);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,8 +147,8 @@ LoadInsn::LoadInsn(Value* src, Value* dst)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-StackAllocInsn::StackAllocInsn(Value* dst, const Type* type, size_t count)
-	: Instruction(kInsn_StackAlloc, 1), m_Type(type), m_Count(count)
+StackAllocInsn::StackAllocInsn(Value* dst, const Type* type)
+	: Instruction(kInsn_StackAlloc, 1), m_Type(type)
 {
 	m_Operands[0] = dst;
 }
