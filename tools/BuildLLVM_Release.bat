@@ -12,8 +12,9 @@ cmake -Sllvm -Bbuild-release -A x64 -Thost=x64 ^
 
 echo Building Binaries...
 cmake --build build-release ^
-      --target clangAST ^
+      --parallel 7 ^
       --config Release ^
+      --target clangAST ^
 clangASTMatchers ^
 clangAnalysis ^
 clangBasic ^
@@ -29,14 +30,14 @@ clangTooling ^
 clangToolingCore ^
 clangToolingSyntax
 
-xcopy build-debug\Release\lib\*.lib ..\..\lib\bin\ /S /Y
+xcopy build-release\Release\lib\*.lib ..\..\lib\bin\ /S /Y
 
-xcopy build-debug\include\*.h ..\..\lib\include\ /S /y
-xcopy build-debug\include\*.def ..\..\lib\include\ /S /y
-xcopy build-debug\include\*.inc ..\..\lib\include\ /S /y
+xcopy build-release\include\*.h ..\..\lib\include\ /S /y
+xcopy build-release\include\*.def ..\..\lib\include\ /S /y
+xcopy build-release\include\*.inc ..\..\lib\include\ /S /y
 
-xcopy build-debug\tools\clang\include\*.h ..\..\lib\include\ /S /y
-xcopy build-debug\tools\clang\include\*.def ..\..\lib\include\ /S /y
-xcopy build-debug\tools\clang\include\*.inc ..\..\lib\include\ /S /y
+xcopy build-release\tools\clang\include\*.h ..\..\lib\include\ /S /y
+xcopy build-release\tools\clang\include\*.def ..\..\lib\include\ /S /y
+xcopy build-release\tools\clang\include\*.inc ..\..\lib\include\ /S /y
 
 popd
