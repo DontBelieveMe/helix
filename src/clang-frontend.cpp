@@ -189,6 +189,7 @@ private:
 	Helix::Value* DoArraySubscriptExpr(clang::ArraySubscriptExpr* subscriptExpr);
 	Helix::Value* DoCompoundAssignOp(clang::CompoundAssignOperator* assignmentOp);
 	Helix::Value* DoMemberExpr(clang::MemberExpr* memberExpr);
+	Helix::Value* DoCharacterLiteral(clang::CharacterLiteral* characterLiteral);
 
 	Helix::Value* DoSizeOf(clang::QualType type);
 
@@ -229,6 +230,21 @@ private:
 
 	const Helix::Type* m_SizeType;
 };
+
+Helix::Value* CodeGenerator::DoCharacterLiteral(clang::CharacterLiteral* characterLiteral)
+{
+	using namespace Helix;
+
+	frontend_assert_at(
+		characterLiteral->getKind() == clang::CharacterLiteral::Ascii,
+		"only ascii character literals are supported",
+		characterLiteral->getBeginLoc()
+	);
+
+	const unsigned value = characterLiteral->getValue();
+
+	return ConstantInt::Create(BuiltinTypes::GetInt32(), Helix::Integer(value));
+}
 
 void CodeGenerator::DoGlobalVariable(clang::VarDecl* varDecl)
 {
@@ -1340,6 +1356,9 @@ Helix::Value* CodeGenerator::DoImplicitCastExpr(clang::ImplicitCastExpr* implici
 Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 {
 	switch (expr->getStmtClass()) {
+	case clang::Stmt::CharacterLiteralClass:
+		return DoCharacterLiteral(clang::cast<clang::CharacterLiteral>(expr));
+
 	case clang::Stmt::IntegerLiteralClass:
 		return DoIntegerLiteral(clang::dyn_cast<clang::IntegerLiteral>(expr));
 
