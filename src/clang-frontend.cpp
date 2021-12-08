@@ -47,6 +47,7 @@ static llvm::cl::extrahelp      CommonHelp(clang::tooling::CommonOptionsParser::
 static llvm::cl::extrahelp      MoreHelp("\nHelix C/C++ Compiler...\n");
 
 static clang::ASTContext* g_GlobalASTContext;
+static Helix::Module*     g_TranslationUnit = nullptr;
 
 static const char* GetFileNameFromPath(const char* path)
 {
@@ -1439,11 +1440,18 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 
 	using namespace Helix;
 
+
+	Function::ParamList params;
+
+	for (clang::ParmVarDecl* param : functionDecl->parameters()) {
+		const Type*          ty            = this->ConvertType(param->getType());
+		params.push_back(VirtualRegisterName::Create(ty));
+	}
+
 	const Type* returnType = this->ConvertType(functionDecl->getReturnType());
+	m_CurrentFunction = Function::Create(functionDecl->getNameAsString(), returnType, params);
 
-
-	// Create the function
-	m_CurrentFunction = Function::Create(functionDecl->getNameAsString(), returnType);
+	m_ValueMap.clear();
 
 	// Reset the basic block insert point so that the next basic block will be created
 	// at the start of the new function.
@@ -1453,33 +1461,19 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 	m_BasicBlockIterator = m_CurrentFunction->begin();
 	EmitBasicBlock(CreateBasicBlock());
 
-	// And clear the value map, since variables don't persist across functions.
-	m_ValueMap.clear();
-
-	FunctionDef::ParamTypeList paramTypes;
-
-	for (clang::ParmVarDecl* param : functionDecl->parameters()) {
-		const Type*          ty            = this->ConvertType(param->getType());
-		VirtualRegisterName* paramRegister = VirtualRegisterName::Create(ty);
-
-		m_CurrentFunction->AddParameter(paramRegister);
-
+	for (size_t i = 0; i < params.size(); ++i) {
+		const Type* ty = params[i]->GetType();
 		VirtualRegisterName* addr = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
 
 		this->EmitInsn(Helix::CreateStackAlloc(addr, ty));
-		this->EmitInsn(Helix::CreateStore(paramRegister, addr));
+		this->EmitInsn(Helix::CreateStore(params[i], addr));
 
-		m_ValueMap.insert({param, addr});
-		paramTypes.push_back(ty);
+		m_ValueMap.insert({*(functionDecl->param_begin() + i), addr });
 	}
 
 	m_FunctionDecls.insert({
 		functionDecl,
-		FunctionDef::Create(
-			functionDecl->getNameAsString(),
-			returnType,
-			paramTypes
-		)
+		m_CurrentFunction->GetDefinition()
 	});
 
 	// Add the new function to the list of functions that we've generated code for in
@@ -1545,9 +1539,8 @@ void CodeGenerator_ASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
 	m_CodeGen.CodeGenTranslationUnit(ctx.getTranslationUnitDecl());
 	g_GlobalASTContext = nullptr;
 
-	Helix::Module* module = m_CodeGen.GetModule();
-	helix_assert(module, "null module ptr");
-	Helix::DebugDump(*module);
+	g_TranslationUnit = m_CodeGen.GetModule();
+	Helix::DebugDump(*g_TranslationUnit);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1579,7 +1572,7 @@ void Helix::Frontend::Initialise()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Helix::Frontend::Run(int argc, const char** argv)
+Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 {
 	HELIX_PROFILE_ZONE;
 
@@ -1589,7 +1582,7 @@ void Helix::Frontend::Run(int argc, const char** argv)
 
 	if (!expectedOptionsParser) {
 		llvm::errs() << expectedOptionsParser.takeError();
-		return;
+		return nullptr;
 	}
 
 	{
@@ -1604,6 +1597,8 @@ void Helix::Frontend::Run(int argc, const char** argv)
 
 		tool.run(clang::tooling::newFrontendActionFactory<ParserAction>().get());
 	}
+
+	return g_TranslationUnit;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

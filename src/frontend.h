@@ -1,8 +1,10 @@
 #pragma once
 
+namespace Helix { class Module; }
+
 namespace Helix::Frontend
 {
 	void Initialise();
-	void Run(int argc, const char** argv);
+	Module* Run(int argc, const char** argv);
 	void Shutdown();
 }
