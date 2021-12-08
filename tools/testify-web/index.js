@@ -105,7 +105,7 @@
             var value = stati[index];
             return value === "pass" ? "green" : value === "fail" ? "red" : "purple";
           },
-          label: "Status over Execution Time"
+          label: "Compile Time"
         }]
       },
       options: {
