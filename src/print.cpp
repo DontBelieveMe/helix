@@ -300,9 +300,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Funct
 
 static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Module& mod)
 {
-	for (auto it = mod.structs_begin(); it != mod.structs_end(); it++) {
-		const StructType* ty = *it;
-
+	for (const StructType* ty : mod.structs()) {
 		out.Write("%s = struct { ", ty->GetName());
 
 		for (auto fit = ty->fields_begin(); fit != ty->fields_end(); ++fit) {
@@ -321,9 +319,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Modul
 	if (mod.GetCountGlobalVars() > 0) {
 		out.Write("\n");
 
-		for (auto it = mod.globals_begin(); it != mod.globals_end(); ++it) {
-			const GlobalVariable* gvar = *it;
-
+		for (const GlobalVariable* gvar : mod.globals()) {
 			out.Write("@%s:ptr = global %s", gvar->GetName(), GetTypeName(gvar->GetBaseType()));
 
 			if (gvar->HasInit()) {
@@ -337,9 +333,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Modul
 
 	out.Write("\n");
 
-	for (auto it = mod.functions_begin(); it != mod.functions_end(); it++) {
-		const Function* fn = *it;
-
+	for (const Function* fn : mod.functions()) {
 		slots.Reset();
 		InternalPrint(slots, out, *fn);
 	}

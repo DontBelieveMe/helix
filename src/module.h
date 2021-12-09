@@ -2,6 +2,7 @@
 
 #include "function.h"
 #include "types.h"
+#include "iterator-range.h"
 
 #include <vector>
 
@@ -56,6 +57,14 @@ namespace Helix
         const_globals_iterator  globals_begin()   const { return m_GlobalVariables.begin();   }
         const_globals_iterator  globals_end()     const { return m_GlobalVariables.end();     }
 
+
+        iterator_range<const_function_iterator> functions() const { return iterator_range(m_Functions.begin(), m_Functions.end()); }
+        iterator_range<const_globals_iterator>  globals()   const { return iterator_range(m_GlobalVariables.begin(), m_GlobalVariables.end()); }
+        iterator_range<const_struct_iterator>   structs()   const { return iterator_range(m_Structs.begin(), m_Structs.end()); }
+
+        iterator_range<function_iterator>       functions()       { return iterator_range(m_Functions.begin(), m_Functions.end()); }
+        iterator_range<globals_iterator>        globals()         { return iterator_range(m_GlobalVariables.begin(), m_GlobalVariables.end()); }
+        iterator_range<struct_iterator>         structs()         { return iterator_range(m_Structs.begin(), m_Structs.end()); }
 
     private:
         FunctionList m_Functions;

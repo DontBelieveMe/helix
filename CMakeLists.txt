@@ -16,7 +16,6 @@ add_library(LibHelix
 	src/basic-block.cpp
 	src/instructions.h
 	src/instructions.cpp
-	src/intrusive-list.h
 	src/value.h
 	src/value.cpp
 	src/types.h
@@ -36,6 +35,9 @@ add_library(LibHelix
 	src/target-info-armv7.h
 	src/target-info-armv7.cpp
 	src/module.h
+
+	src/intrusive-list.h
+	src/iterator-range.h
 )
 
 target_link_libraries(LibHelix PUBLIC spdlog::spdlog Tracy::TracyClient)
