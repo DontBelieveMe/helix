@@ -1,3 +1,8 @@
+/**
+ * @file instructions.h
+ * @author Barney Wilks
+ */
+
 #pragma once
 
 #include "intrusive-list.h"
@@ -15,29 +20,67 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	/**
+	 * @enum Opcode
+	 *
+	 * Represents each type of instruction, and their categories (categories are defined
+	 * by kInsnStart_* and kInsnEnd_* pairs).
+	 **/
 	enum Opcode
 	{
 		kInsnStart_BinaryOp,
+			/// Scalar integer addition
 			kInsn_IAdd,
+
+			/// Scalar integer subtraction
 			kInsn_ISub,
+
+			/// Scalar integer multiplication
 			kInsn_IMul,
+
+			/// Scalar unsigned integer division
 			kInsn_IDiv,
+
+			/// Scalar integer remainder operation
 			kInsn_IRem,
+
+			/// Scalar floating point addition
 			kInsn_FAdd,
+
+			/// Scalar floating point subtraction
 			kInsn_FSub,
+
+			/// Scalar floating point multiplication
 			kInsn_FMul,
+
+			/// Scalar floating point division
 			kInsn_FDiv,
 
+			/// Integral bitwise AND
 			kInsn_And,
+
+			/// Integral bitwise OR
 			kInsn_Or,
+
+			/// Integral shift left
 			kInsn_Shl,
+
+			/// Integral shift right
 			kInsn_Shr,
+
+			/// Integral bitwise XOR
 			kInsn_Xor,
 		kInsnEnd_BinaryOp,
 
+		/// Load a value (dest) of arbitrary type from memory (src) into a given value virtual register
 		kInsn_Load,
+
+		/// Store a value in a given value virtual register (src) to memory (desc)
 		kInsn_Store,
+
+		/// Allocate space on the stack for the given type, and store a pointer to that memory in the output register
 		kInsn_StackAlloc,
+
 		kInsn_Lea,
 
 		kInsnStart_Branch,
@@ -99,9 +142,32 @@ namespace Helix
 		    : m_Opcode(opcode)
 		{ }
 
+		/**
+		 * Set the operand at the given index to 'value'.
+		 * 
+		 * This instruction is added as a user of the new value, and if there
+		 * is a non null value already in the index, this instruction is removed as a user.
+		 * If value is null, this clears any operands (and uses) at the current index, nullifying
+		 * the operand.
+		 * 
+		 * Behavior is undefined if index is out of bounds.
+		 * 
+		 * @param index The index of the operand to set.
+		 * @param value The new value, can be null (in which case the operand is cleared).
+		 */
 		void SetOperand(size_t index, Value* value);
+		
+		/**
+		 * Set a debug comment for this instruction, which gets printed alongside this
+		 * instruction for human readable text dumps. Mostly useful for debug & development reasons.
+		 * 
+		 * @param comment A comment to associate with this instruction.
+		 */
 		void SetComment(const std::string& comment) { m_DebugComment = comment; }
-
+		
+		/**
+		 * Return the opcode for this instruction, represented by ::Opcode
+		 */
 		inline Opcode      GetOpcode()              const { return m_Opcode;                    }
 		inline size_t      GetCountOperands()       const { return m_Operands.size();           }
 		inline Value*      GetOperand(size_t index) const { return m_Operands[index];           }
