@@ -11,8 +11,8 @@
 function f(): i32 {
 .0:
 	stack_alloc [[i32 x 10] x 10], %0:ptr
-	lea [[i32 x 10]], %0:ptr, 1:i32, %1:ptr
-	lea [i32], %1:ptr, 2:i32, %2:ptr
+	lea [[i32 x 10]*], %0:ptr, 1:i32, %1:ptr
+	lea [i32*], %1:ptr, 2:i32, %2:ptr
 	load %2:ptr, %3:i32
 	ret %3:i32
 }

@@ -371,11 +371,11 @@ Helix::Value* CodeGenerator::DoMemberExpr(clang::MemberExpr* memberExpr)
 
 	helix_assert(fieldDecl, "member decl not a FieldDecl");
 
-	const Helix::Type* baseType = this->ConvertType(fieldDecl->getParent()->getTypeForDecl());
+	const Helix::StructType* baseType = type_cast<StructType>(this->ConvertType(fieldDecl->getParent()->getTypeForDecl()));
+	frontend_assert_at(baseType, "base type not struct", memberExpr->getExprLoc());
 
 	VirtualRegisterName* result = VirtualRegisterName::Create(Helix::BuiltinTypes::GetPointer());
-	ConstantInt* index = ConstantInt::Create(BuiltinTypes::GetInt64(), fieldDecl->getFieldIndex());
-	this->EmitInsn(Helix::CreateLoadEffectiveAddress(baseType, base_lvalue, index, result));
+	this->EmitInsn(Helix::CreateLoadFieldAddress(baseType, base_lvalue, fieldDecl->getFieldIndex(), result));
 	return result;
 }
 

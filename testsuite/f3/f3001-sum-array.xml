@@ -25,7 +25,7 @@ function sum(%0:ptr, %1:i32): i32 {
 .2:
 	load %2:ptr, %9:ptr
 	load %5:ptr, %10:i32
-	lea [i32], %9:ptr, %10:i32, %11:ptr
+	lea [i32*], %9:ptr, %10:i32, %11:ptr
 	load %11:ptr, %12:i32
 	load %4:ptr, %13:i32
 	iadd %13:i32, %12:i32, %14:i32

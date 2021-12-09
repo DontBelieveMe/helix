@@ -48,6 +48,7 @@ const char* Helix::GetOpcodeName(Opcode opcode)
 	case kInsn_ICmp_Lte:   return "icmp_lte";
 	case kInsn_ICmp_Gte:   return "icmp_gte";
 	case kInsn_Lea:        return "lea";
+	case kInsn_Lfa:        return "lfa";
 
 	case kInsn_Undefined:
 	default:
@@ -208,7 +209,13 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instr
 		const LoadEffectiveAddressInsn& lea = static_cast<const LoadEffectiveAddressInsn&>(insn);
 
 		const char* baseTypeName = Helix::GetTypeName(lea.GetBaseType());
-		out.Write("[%s], ", baseTypeName);
+		out.Write("[%s*], ", baseTypeName);
+	}
+	else if (insn.GetOpcode() == kInsn_Lfa) {
+		const LoadFieldAddressInsn& lfa = static_cast<const LoadFieldAddressInsn&>(insn);
+
+		const char* baseTypeName = Helix::GetTypeName(lfa.GetBaseType());
+		out.Write("[%s:%u], ", baseTypeName, lfa.GetFieldIndex());
 	}
 
 	for (size_t i = 0; i < nOperands; ++i) {

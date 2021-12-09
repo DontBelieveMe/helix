@@ -82,6 +82,7 @@ namespace Helix
 		kInsn_StackAlloc,
 
 		kInsn_Lea,
+		kInsn_Lfa,
 
 		kInsnStart_Branch,
 			kInsnStart_Terminator,
@@ -286,6 +287,26 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	class LoadFieldAddressInsn : public Instruction
+	{
+	public:
+		LoadFieldAddressInsn(const StructType* baseType, Value* inputPtr, unsigned int index, Value* outputPtr)
+			: Instruction(kInsn_Lfa, 2), m_BaseType(baseType), m_Index(index)
+		{
+			m_Operands[0] = inputPtr;
+			m_Operands[1] = outputPtr;
+		}
+
+		const Type* GetBaseType() const { return m_BaseType; }
+		unsigned int GetFieldIndex() const { return m_Index; }
+
+	private:
+		const Type* m_BaseType;
+		unsigned int m_Index;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/// Create a comparison instruction that compares 'lhs' and 'rhs' and stores the result to the given
 	/// 'result' register.
 	CompareInsn* CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);
@@ -327,4 +348,5 @@ namespace Helix
 	CallInsn* CreateCall(Function* fn, Value* returnValue, const ParameterList& params);
 
 	LoadEffectiveAddressInsn* CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, Value* outputPtr);
+	LoadFieldAddressInsn* CreateLoadFieldAddress(const StructType* baseType, Value* input, unsigned int index, Value* outputPtr);
 }

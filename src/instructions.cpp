@@ -4,6 +4,15 @@
 
 using namespace Helix;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+LoadFieldAddressInsn* Helix::CreateLoadFieldAddress(const StructType* baseType, Value* input, unsigned int index, Value* outputPtr)
+{
+	return new LoadFieldAddressInsn(baseType, input, index, outputPtr);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 LoadEffectiveAddressInsn* Helix::CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, Value* outputPtr)
 {
 	return new LoadEffectiveAddressInsn(baseType, input, index, outputPtr);
