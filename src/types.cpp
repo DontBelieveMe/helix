@@ -25,10 +25,9 @@ BUILTIN_TYPE(VoidType);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Type* Type::Create(TypeID base)
+static const Type* InternalCreateType(TypeID base)
 {
-	const Type* type = new Type(base);
-	return type;
+	return new Type(base);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +39,7 @@ const IntegerType* IntegerType::Create(size_t width)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void DestroyType(const Type* type)
+static void InternalDestroyType(const Type* type)
 {
 	delete type;
 }
@@ -53,28 +52,29 @@ void BuiltinTypes::Init()
 	s_Int16        = IntegerType::Create(16);
 	s_Int32        = IntegerType::Create(32);
 	s_Int64        = IntegerType::Create(64);
-	s_Float32      = Type::Create(kType_Float32);
-	s_Float64      = Type::Create(kType_Float64);
-	s_LabelType    = Type::Create(kType_LabelType);
-	s_FunctionType = Type::Create(kType_FunctionType);
-	s_Pointer      = Type::Create(kType_Pointer);
-	s_VoidType     = Type::Create(kType_Void);
+
+	s_Float32      = InternalCreateType(kType_Float32);
+	s_Float64      = InternalCreateType(kType_Float64);
+	s_LabelType    = InternalCreateType(kType_LabelType);
+	s_FunctionType = InternalCreateType(kType_FunctionType);
+	s_Pointer      = InternalCreateType(kType_Pointer);
+	s_VoidType     = InternalCreateType(kType_Void);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BuiltinTypes::Destroy()
 {
-	DestroyType(s_Int8);
-	DestroyType(s_Int16);
-	DestroyType(s_Int32);
-	DestroyType(s_Int64);
-	DestroyType(s_Float32);
-	DestroyType(s_Float64);
-	DestroyType(s_LabelType);
-	DestroyType(s_FunctionType);
-	DestroyType(s_Pointer);
-	DestroyType(s_VoidType);
+	InternalDestroyType(s_Int8);
+	InternalDestroyType(s_Int16);
+	InternalDestroyType(s_Int32);
+	InternalDestroyType(s_Int64);
+	InternalDestroyType(s_Float32);
+	InternalDestroyType(s_Float64);
+	InternalDestroyType(s_LabelType);
+	InternalDestroyType(s_FunctionType);
+	InternalDestroyType(s_Pointer);
+	InternalDestroyType(s_VoidType);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

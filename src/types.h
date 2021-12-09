@@ -68,8 +68,6 @@ namespace Helix
 			return m_BaseID == TypeTraits<T>::ID;
 		}
 
-		static const Type* Create(TypeID base);
-
 		TypeID GetTypeID() const { return m_BaseID; }
 
 		bool IsPointer() const { return m_BaseID == kType_Pointer; }
@@ -166,11 +164,37 @@ namespace Helix
 		std::string m_Name;
 	};
 
+	class FunctionType : public Type
+	{
+	public:
+		using ParametersList = std::vector<const Type*>;
+
+		FunctionType(const Type* returnType, const ParametersList& params)
+			: Type(kType_FunctionType), m_ReturnType(returnType), m_Parameters(params)
+		{ }
+
+		static const FunctionType* Create(const Type* returnType, const ParametersList& params)
+		{
+			return new FunctionType(returnType, params);
+		}
+
+		const Type* GetReturnType() const { return m_ReturnType; }
+		const ParametersList& GetParameters() const { return m_Parameters; }
+
+		ParametersList::const_iterator params_begin() const { return m_Parameters.begin(); }
+		ParametersList::const_iterator params_end() const { return m_Parameters.end(); }
+
+	private:
+		const Type*    m_ReturnType;
+		ParametersList m_Parameters;
+	};
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	IMPLEMENT_TYPE_TRAITS(IntegerType, kType_Integer);
-	IMPLEMENT_TYPE_TRAITS(StructType,  kType_Struct);
-	IMPLEMENT_TYPE_TRAITS(ArrayType,   kType_Array);
+	IMPLEMENT_TYPE_TRAITS(IntegerType,  kType_Integer);
+	IMPLEMENT_TYPE_TRAITS(StructType,   kType_Struct);
+	IMPLEMENT_TYPE_TRAITS(ArrayType,    kType_Array);
+	IMPLEMENT_TYPE_TRAITS(FunctionType, kType_FunctionType);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

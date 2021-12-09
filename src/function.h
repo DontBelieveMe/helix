@@ -7,9 +7,12 @@
 
 namespace Helix
 {
-	class Function
+	class Function : public Value
 	{
 	public:
+		Function(const FunctionType* ty)
+			: Value(kValue_Function, ty) { }
+
 		using BlockList = intrusive_list<BasicBlock>;
 		using ParamList = std::vector<Value*>;
 
@@ -32,18 +35,12 @@ namespace Helix
 		const_param_iterator params_begin() const { return m_Parameters.begin(); }
 		const_param_iterator params_end()   const { return m_Parameters.end();   }
 
-		static Function* Create(const std::string& name, const Type* returnType, const ParamList& params)
+		static Function* Create(const FunctionType* type, const std::string& name, const ParamList& params)
 		{
-			Function* fn = new Function();
-			
-			FunctionDef::ParamTypeList paramTypes;
-			paramTypes.reserve(params.size());
-			for (Value* v : params) {
-				paramTypes.push_back(v->GetType());
-			}
+			Function* fn = new Function(type);
 
+			fn->m_Name       = name;
 			fn->m_Parameters = params;
-			fn->m_Def = FunctionDef::Create(name, returnType, paramTypes);
 
 			return fn;
 		}
@@ -53,16 +50,17 @@ namespace Helix
 
 		void Remove(iterator where);
 
-		FunctionDef* GetDefinition() const { return m_Def; }
-		const Type* GetReturnType() const { return m_Def->GetReturnType(); }
-		bool IsVoidReturn() const { return GetReturnType() == BuiltinTypes::GetVoidType(); }
-		inline std::string GetName() const { return m_Def->GetName(); }
+		bool               IsVoidReturn()  const { return GetReturnType() == BuiltinTypes::GetVoidType();     }
+		const Type*        GetReturnType() const { return ((const FunctionType*) GetType())->GetReturnType(); }
+		inline std::string GetName()       const { return m_Name;                                             }
 
 		size_t GetCountBlocks() const { return m_Blocks.size(); }
 
 	private:
-		FunctionDef* m_Def;
 		BlockList    m_Blocks;
 		ParamList    m_Parameters;
+		std::string  m_Name;
 	};
+
+	IMPLEMENT_VALUE_TRAITS(Function, kValue_Function);
 }

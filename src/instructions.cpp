@@ -1,5 +1,6 @@
 #include "instructions.h"
 #include "basic-block.h"
+#include "function.h"
 
 using namespace Helix;
 
@@ -10,14 +11,14 @@ LoadEffectiveAddressInsn* Helix::CreateLoadEffectiveAddress(const Type* baseType
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CallInsn* Helix::CreateCall(FunctionDef* fn, const ParameterList& params)
+CallInsn* Helix::CreateCall(Function* fn, const ParameterList& params)
 {
 	return new CallInsn(fn, UndefValue::Get(fn->GetReturnType()), params);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CallInsn* Helix::CreateCall(FunctionDef* fn, Value* returnValue, const ParameterList& params)
+CallInsn* Helix::CreateCall(Function* fn, Value* returnValue, const ParameterList& params)
 {
 	return new CallInsn(fn, returnValue, params);
 }
@@ -97,6 +98,18 @@ void Instruction::SetOperand(size_t index, Value* value)
 
 	m_Operands[index] = value;
 	value->AddUse(this, (uint16_t) index);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CallInsn::CallInsn(Function* function, Value* ret, const ParameterList& params)
+	: Instruction(kInsn_Call)
+{
+	m_Operands.resize(params.size() + 2);
+	m_Operands[0] = ret;
+	m_Operands[1] = function;
+
+	std::copy(params.begin(), params.end(), m_Operands.begin() + 2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

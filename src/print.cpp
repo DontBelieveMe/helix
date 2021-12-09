@@ -131,16 +131,16 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 		BasicBlock* bb = bbt->GetParent();
 		out.Write(".%zu", slots.GetBasicBlockSlot(bb));
 		suppressTypeInfo = true;
-	} else if (const FunctionDef* fd = value_cast<FunctionDef>(&value)) {
-		const char* functionName = fd->GetName();
+	} else if (const Function* fd = value_cast<Function>(&value)) {
+		const std::string& functionName = fd->GetName();
 		out.Write("%s(", functionName);
 
-		const FunctionDef::ParamTypeList& params = fd->GetParamTypes();
+		const FunctionType* functionType = type_cast<FunctionType>(fd->GetType());
 
-		for (auto it = params.begin(); it != params.end(); ++it) {
+		for (auto it = functionType->params_begin(); it != functionType->params_end(); ++it) {
 			out.Write(GetTypeName(*it));
 
-			if (it < params.end() - 1) {
+			if (it < functionType->params_end() - 1) {
 				out.Write(", ");
 			}
 		}

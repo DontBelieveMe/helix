@@ -9,6 +9,7 @@
 namespace Helix
 {
 	class BasicBlock;
+	class Function;
 
 	using ParameterList = std::vector<Value*>;
 
@@ -178,14 +179,7 @@ namespace Helix
 	class CallInsn : public Instruction
 	{
 	public:
-		CallInsn(FunctionDef* functionDef, Value* ret, const ParameterList& params)
-			: Instruction(kInsn_Call)
-		{
-			m_Operands.resize(params.size() + 2);
-			m_Operands[0] = ret;
-			m_Operands[1] = functionDef;
-			std::copy(params.begin(), params.end(), m_Operands.begin() + 2);
-		}
+		CallInsn(Function* function, Value* ret, const ParameterList& params);
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,8 +257,8 @@ namespace Helix
 	/// The type of register 'dst' specifies the amount of memory that should be allocated.
 	StackAllocInsn* CreateStackAlloc(Value* dst, const Type* type);
 
-	CallInsn* CreateCall(FunctionDef* fn, const ParameterList& params);
-	CallInsn* CreateCall(FunctionDef* fn, Value* returnValue, const ParameterList& params);
+	CallInsn* CreateCall(Function* fn, const ParameterList& params);
+	CallInsn* CreateCall(Function* fn, Value* returnValue, const ParameterList& params);
 
 	LoadEffectiveAddressInsn* CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, Value* outputPtr);
 }

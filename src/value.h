@@ -18,10 +18,16 @@
 
 namespace Helix
 {
+	class Instruction;
+	class Function;
+	class BasicBlock;
+
+	template <typename T>
+	struct ValueTraits;
+
+	using Integer = uint64_t;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	class Instruction;
 
 	class Use
 	{
@@ -39,18 +45,6 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	using Integer = uint64_t;
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	template <typename T>
-	struct ValueTraits;
-
-	class Function;
-	class BasicBlock;
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	enum ValueType
 	{
 		kValue_VirtualRegisterName,
@@ -59,7 +53,7 @@ namespace Helix
 		kValue_BasicBlock,
 		kValue_Function,
 		kValue_GlobalVar,
-		kValue_Undef
+		kValue_Undef,
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -162,39 +156,6 @@ namespace Helix
 	private:
 		BasicBlock* m_Parent;
 	};
-
-	class FunctionDef : public Value
-	{
-	public:
-		using ParamTypeList = std::vector<const Type*>;
-
-	private:
-
-		FunctionDef(const std::string& name, const Type* returnType, const ParamTypeList& params)
-		    : Value(kValue_Function, BuiltinTypes::GetFunctionType()),
-		      m_Name(name), m_ReturnType(returnType), m_ParamTypes(params)
-		{ }
-
-	public:
-		using ParamTypeList = std::vector<const Type*>;
-
-		static FunctionDef* Create(const std::string& name, const Type* returnType, const ParamTypeList& params)
-		{
-			return new FunctionDef(name, returnType, params);
-		}
-
-		const char* GetName() const { return m_Name.c_str(); }
-		const Type* GetReturnType() const { return m_ReturnType; }
-
-		const ParamTypeList& GetParamTypes() const { return m_ParamTypes; }
-
-	private:
-		std::string   m_Name;
-		const Type*   m_ReturnType;
-		ParamTypeList m_ParamTypes;
-	};
-
-	IMPLEMENT_VALUE_TRAITS( FunctionDef, kValue_Function );
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

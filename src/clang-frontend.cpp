@@ -201,7 +201,7 @@ private:
 
 	const Helix::Type* ConvertBuiltinType(const clang::BuiltinType* builtinType);
 
-	Helix::FunctionDef* LookupFunction(clang::FunctionDecl* decl);
+	Helix::Function* LookupFunction(clang::FunctionDecl* decl);
 
 	size_t GetArrayElementCount(const clang::ArrayType* type);
 
@@ -221,7 +221,7 @@ private:
 	std::stack<Helix::BasicBlock*>   m_LoopContinueStack;
 	std::unordered_map<clang::ValueDecl*, Helix::VirtualRegisterName*> m_ValueMap;
 	std::unordered_map<clang::ValueDecl*, Helix::GlobalVariable*> m_GlobalVars;
-	std::unordered_map<clang::FunctionDecl*, Helix::FunctionDef*> m_FunctionDecls;
+	std::unordered_map<clang::FunctionDecl*, Helix::Function*> m_FunctionDecls;
 
 	std::unique_ptr<Helix::TargetInfo> m_TargetInfo;
 
@@ -631,7 +631,7 @@ TypeInfo CodeGenerator::GetTypeInfo(clang::QualType type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Helix::FunctionDef* CodeGenerator::LookupFunction(clang::FunctionDecl* decl)
+Helix::Function* CodeGenerator::LookupFunction(clang::FunctionDecl* decl)
 {
 	auto it = m_FunctionDecls.find(decl);
 	return it != m_FunctionDecls.end() ? it->second : nullptr;
@@ -931,7 +931,7 @@ Helix::Value* CodeGenerator::DoCallExpr(clang::CallExpr* callExpr)
 	const Helix::Type* returnType = this->ConvertType(functionDecl->getReturnType());
 
 	Helix::Value* retValue = Helix::UndefValue::Get(returnType);
-	Helix::FunctionDef* fn = this->LookupFunction(functionDecl);
+	Helix::Function* fn = this->LookupFunction(functionDecl);
 
 	if (!functionDecl->getReturnType()->isVoidType()) {
 		retValue = Helix::VirtualRegisterName::Create(returnType);
@@ -1440,16 +1440,20 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 
 	using namespace Helix;
 
-
-	Function::ParamList params;
+	Function::ParamList          parameterValues;
+	FunctionType::ParametersList parameterTypes;
 
 	for (clang::ParmVarDecl* param : functionDecl->parameters()) {
 		const Type*          ty            = this->ConvertType(param->getType());
-		params.push_back(VirtualRegisterName::Create(ty));
+
+		parameterValues.push_back(VirtualRegisterName::Create(ty));
+		parameterTypes.push_back(ty);
 	}
 
 	const Type* returnType = this->ConvertType(functionDecl->getReturnType());
-	m_CurrentFunction = Function::Create(functionDecl->getNameAsString(), returnType, params);
+	const FunctionType* functionType = FunctionType::Create(returnType, parameterTypes);
+
+	m_CurrentFunction = Function::Create(functionType, functionDecl->getNameAsString(), parameterValues);
 
 	m_ValueMap.clear();
 
@@ -1461,19 +1465,19 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 	m_BasicBlockIterator = m_CurrentFunction->begin();
 	EmitBasicBlock(CreateBasicBlock());
 
-	for (size_t i = 0; i < params.size(); ++i) {
-		const Type* ty = params[i]->GetType();
+	for (size_t i = 0; i < parameterValues.size(); ++i) {
+		const Type* ty = parameterValues[i]->GetType();
 		VirtualRegisterName* addr = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
 
 		this->EmitInsn(Helix::CreateStackAlloc(addr, ty));
-		this->EmitInsn(Helix::CreateStore(params[i], addr));
+		this->EmitInsn(Helix::CreateStore(parameterValues[i], addr));
 
 		m_ValueMap.insert({*(functionDecl->param_begin() + i), addr });
 	}
 
 	m_FunctionDecls.insert({
 		functionDecl,
-		m_CurrentFunction->GetDefinition()
+		m_CurrentFunction
 	});
 
 	// Add the new function to the list of functions that we've generated code for in
