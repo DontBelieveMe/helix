@@ -35,6 +35,8 @@ add_library(LibHelix
 	src/target-info-armv7.h
 	src/target-info-armv7.cpp
 	src/module.h
+	src/pass-manager.h
+	src/pass-manager.cpp
 
 	src/intrusive-list.h
 	src/iterator-range.h

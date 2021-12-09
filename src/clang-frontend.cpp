@@ -1544,7 +1544,6 @@ void CodeGenerator_ASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
 	g_GlobalASTContext = nullptr;
 
 	g_TranslationUnit = m_CodeGen.GetModule();
-	Helix::DebugDump(*g_TranslationUnit);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

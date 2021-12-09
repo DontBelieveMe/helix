@@ -9,6 +9,7 @@
 #include "print.h"
 #include "options.h"
 #include "module.h"
+#include "pass-manager.h"
 
 namespace Helix
 {

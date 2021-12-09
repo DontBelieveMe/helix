@@ -18,6 +18,11 @@ int main(int argc, const char** argv)
 		return 1;
 	}
 
+	PassManager passManager;
+	passManager.Execute(tu);
+
+	Helix::DebugDump(*tu);
+
 	Shutdown();
 	HELIX_PROFILE_END
 	return 0;
