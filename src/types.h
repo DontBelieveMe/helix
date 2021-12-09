@@ -59,8 +59,7 @@ namespace Helix
 	public:
 		virtual ~Type() = default;
 
-		Type(TypeID baseType)
-			: m_BaseID(baseType) { }
+		Type(TypeID baseType);
 
 		template <typename T>
 		bool IsA() const
@@ -68,10 +67,9 @@ namespace Helix
 			return m_BaseID == TypeTraits<T>::ID;
 		}
 
-		TypeID GetTypeID() const { return m_BaseID; }
-
-		bool IsPointer() const { return m_BaseID == kType_Pointer; }
-		bool IsIntegral() const { return m_BaseID == kType_Integer; }
+		TypeID GetTypeID()   const { return m_BaseID;                  }
+		bool   IsPointer()   const { return m_BaseID == kType_Pointer; }
+		bool   IsIntegral()  const { return m_BaseID == kType_Integer; }
 
 	private:
 		TypeID m_BaseID = kType_Undefined;
@@ -99,17 +97,9 @@ namespace Helix
 	class ArrayType : public Type
 	{
 	public:
-		ArrayType(): Type(kType_Array) { }
+		ArrayType();
 
-		static const ArrayType* CreateArrayType(size_t nElements, const Type* baseType)
-		{
-			ArrayType* ty = new ArrayType();
-
-			ty->m_CountElements = nElements;
-			ty->m_BaseType      = baseType;
-
-			return ty;
-		}
+		static const ArrayType* Create(size_t nElements, const Type* baseType);
 
 		size_t GetCountElements() const { return m_CountElements; }
 		const Type* GetBaseType() const { return m_BaseType; }
@@ -134,34 +124,20 @@ namespace Helix
 			: Type(kType_Struct), m_Name(name), m_Members(fields)
 		{ }
 
-		static const StructType* CreateNamedStruct(const std::string& name, const FieldList& fields)
-		{
-			return new StructType(name, fields);
-		}
+		static const StructType* Create(const std::string& name, const FieldList& fields);
+		static const StructType* Create(const FieldList& fields);
 
-		static const StructType* CreateUnnamedStruct(const FieldList& fields)
-		{
-			static size_t anonStructCounter = 0;
+		const char* GetName()        const { return m_Name.c_str();   }
+		size_t      GetCountFields() const { return m_Members.size(); }
 
-			const std::string name = "anon." + std::to_string(anonStructCounter);
-			anonStructCounter += 1;
-
-			return CreateNamedStruct(name, fields);
-		}
-
-		const char* GetName() const { return m_Name.c_str(); }
-
-		size_t GetCountFields() const { return m_Members.size(); }
-
-		fields_iterator fields_begin() { return m_Members.begin(); }
-		fields_iterator fields_end() { return m_Members.end(); }
-
+		fields_iterator       fields_begin()       { return m_Members.begin(); }
+		fields_iterator       fields_end()         { return m_Members.end();   }
 		const_fields_iterator fields_begin() const { return m_Members.begin(); }
-		const_fields_iterator fields_end() const { return m_Members.end(); }
+		const_fields_iterator fields_end()   const { return m_Members.end();   }
 
 	private:
 		std::vector<const Type*> m_Members;
-		std::string m_Name;
+		std::string              m_Name;
 	};
 
 	class FunctionType : public Type
@@ -169,16 +145,11 @@ namespace Helix
 	public:
 		using ParametersList = std::vector<const Type*>;
 
-		FunctionType(const Type* returnType, const ParametersList& params)
-			: Type(kType_FunctionType), m_ReturnType(returnType), m_Parameters(params)
-		{ }
+		FunctionType(const Type* returnType, const ParametersList& params);
 
-		static const FunctionType* Create(const Type* returnType, const ParametersList& params)
-		{
-			return new FunctionType(returnType, params);
-		}
+		static const FunctionType* Create(const Type* returnType, const ParametersList& params);
 
-		const Type* GetReturnType() const { return m_ReturnType; }
+		const Type*           GetReturnType() const { return m_ReturnType; }
 		const ParametersList& GetParameters() const { return m_Parameters; }
 
 		ParametersList::const_iterator params_begin() const { return m_Parameters.begin(); }

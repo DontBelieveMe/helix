@@ -399,10 +399,10 @@ void CodeGenerator::DoRecordDecl(clang::RecordDecl* decl)
 
 	const Helix::StructType* myType = [decl, fields](){
 		if (!decl->getIdentifier()) {
-			return Helix::StructType::CreateUnnamedStruct(fields);
+			return Helix::StructType::Create(fields);
 		} else {
 			llvm::StringRef name = decl->getName();
-			return Helix::StructType::CreateNamedStruct(name.str(), fields);
+			return Helix::StructType::Create(name.str(), fields);
 		}
 	}();
 
@@ -701,7 +701,7 @@ const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 		const size_t elementCount = this->GetArrayElementCount(arrayType);
 		const Helix::Type* elementType = this->ConvertType(arrayType->getElementType());
 
-		return Helix::ArrayType::CreateArrayType(elementCount, elementType);
+		return Helix::ArrayType::Create(elementCount, elementType);
 	}
 
 	if (type->isRecordType()) {

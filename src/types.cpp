@@ -32,13 +32,6 @@ static const Type* InternalCreateType(TypeID base)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const IntegerType* IntegerType::Create(size_t width)
-{
-	return new IntegerType(width);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 static void InternalDestroyType(const Type* type)
 {
 	delete type;
@@ -79,3 +72,49 @@ void BuiltinTypes::Destroy()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Type::Type(TypeID baseType)
+	: m_BaseID(baseType)
+{ }
+
+ArrayType::ArrayType()
+	: Type(kType_Array)
+{ }
+
+FunctionType::FunctionType(const Type* returnType, const ParametersList& params)
+	: Type(kType_FunctionType), m_ReturnType(returnType), m_Parameters(params)
+{ }
+
+const FunctionType* FunctionType::Create(const Type* returnType, const ParametersList& params)
+{
+	return new FunctionType(returnType, params);
+}
+
+const IntegerType* IntegerType::Create(size_t width)
+{
+	return new IntegerType(width);
+}
+
+const ArrayType* ArrayType::Create(size_t nElements, const Type* baseType)
+{
+	ArrayType* ty = new ArrayType();
+
+	ty->m_CountElements = nElements;
+	ty->m_BaseType = baseType;
+
+	return ty;
+}
+
+const StructType* StructType::Create(const std::string& name, const FieldList& fields)
+{
+	return new StructType(name, fields);
+}
+
+const StructType* StructType::Create(const FieldList& fields)
+{
+	static size_t anonStructCounter = 0;
+
+	const std::string name = "anon." + std::to_string(anonStructCounter);
+	anonStructCounter += 1;
+
+	return Create(name, fields);
+}
