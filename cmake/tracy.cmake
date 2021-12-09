@@ -36,3 +36,5 @@ set_option(TRACE_NO_SAMPLING "Disable call stack sampling" OFF)
 set_option(TRACY_NO_VERIFY "Disable zone validation for C API" OFF)
 set_option(TRACY_NO_VSYNC_CAPTURE "Disable capture of hardware Vsync events" OFF)
 
+
+set_property(TARGET TracyClient PROPERTY FOLDER "External")

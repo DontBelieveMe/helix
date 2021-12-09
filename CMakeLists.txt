@@ -3,6 +3,7 @@ project(Helix)
 
 include(cmake/clang.cmake)
 include(cmake/tracy.cmake)
+include(cmake/spdlog.cmake)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,9 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-add_subdirectory(external/spdlog)
-
-add_library(libhelix
+add_library(LibHelix
 	src/basic-block.h
 	src/basic-block.cpp
 	src/instructions.h
@@ -39,19 +38,19 @@ add_library(libhelix
 	src/module.h
 )
 
-target_link_libraries(libhelix PUBLIC spdlog::spdlog Tracy::TracyClient)
+target_link_libraries(LibHelix PUBLIC spdlog::spdlog Tracy::TracyClient)
 
-add_executable(helix
+add_executable(Helix
 	src/main.cpp
 	src/clang-frontend.cpp
 	src/frontend.h
 )
 
-target_link_libraries(helix Clang::LibTooling libhelix)
-target_link_options(helix PRIVATE /ignore:4099)
-target_compile_options(helix PRIVATE /wd26812 /W4)
+target_link_libraries(Helix Clang::LibTooling LibHelix)
+target_link_options(Helix PRIVATE /ignore:4099)
+target_compile_options(Helix PRIVATE /wd26812 /W4)
 
-add_executable(unit-tests
+add_executable(LibHelixTests
 	src/tests/test_intrusive_list.cpp
 	src/tests/test_bytecode.cpp
 	src/tests/test_value.cpp
@@ -61,4 +60,10 @@ add_executable(unit-tests
 	src/tests/catch.hpp
 )
 
-target_link_libraries(unit-tests libhelix)
+target_link_libraries(LibHelixTests LibHelix)
+
+set_target_properties(LibHelixTests PROPERTIES FOLDER "Tests")
+
+set_target_properties(LibHelixTests PROPERTIES OUTPUT_NAME libhelix-tests)
+set_target_properties(Helix PROPERTIES OUTPUT_NAME helix)
+
