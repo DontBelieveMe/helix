@@ -81,13 +81,21 @@ namespace Helix
 		/// Allocate space on the stack for the given type, and store a pointer to that memory in the output register
 		kInsn_StackAlloc,
 
+		/// Given a pointer to an array of elements, calculate the address of the element at a specific index
 		kInsn_Lea,
+
+		/// Given a pointer to a struct, get a pointer to the field specified by a compile time constant index
 		kInsn_Lfa,
 
 		kInsnStart_Branch,
 			kInsnStart_Terminator,
+				/// Conditionally branch to a target if the condition is true, else if it's false branch to the other target
 				kInsn_Cbr,
+
+				/// Unconditionally branch to the given basic block
 				kInsn_Br,
+
+				/// Return control flow from this function to the caller, optionally passing a value as the first operand
 				kInsn_Ret,
 			kInsnEnd_Terminator,
 
