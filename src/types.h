@@ -97,7 +97,7 @@ namespace Helix
 	class ArrayType : public Type
 	{
 	public:
-		ArrayType();
+		ArrayType(size_t nElements, const Type* baseType);
 
 		static const ArrayType* Create(size_t nElements, const Type* baseType);
 

@@ -76,8 +76,8 @@ Type::Type(TypeID baseType)
 	: m_BaseID(baseType)
 { }
 
-ArrayType::ArrayType()
-	: Type(kType_Array)
+ArrayType::ArrayType(size_t nElements, const Type* baseType)
+	: Type(kType_Array), m_CountElements(nElements), m_BaseType(baseType)
 { }
 
 FunctionType::FunctionType(const Type* returnType, const ParametersList& params)
@@ -96,12 +96,7 @@ const IntegerType* IntegerType::Create(size_t width)
 
 const ArrayType* ArrayType::Create(size_t nElements, const Type* baseType)
 {
-	ArrayType* ty = new ArrayType();
-
-	ty->m_CountElements = nElements;
-	ty->m_BaseType = baseType;
-
-	return ty;
+	return new ArrayType(nElements, baseType);
 }
 
 const StructType* StructType::Create(const std::string& name, const FieldList& fields)
