@@ -6,8 +6,6 @@ int main(int argc, const char** argv)
 	using namespace Helix;
 
 	Initialise();
-	Options::Parse(argc, argv);
-
 	Frontend::Initialise();
 	Module* tu = Frontend::Run(argc, argv);
 	Frontend::Shutdown();
@@ -16,6 +14,12 @@ int main(int argc, const char** argv)
 		Shutdown();
 		HELIX_PROFILE_END;
 		return 1;
+	}
+
+	if (Options::GetEmitIR()) {
+		Helix::DebugDump(*tu);
+		Shutdown();
+		return 0;
 	}
 
 	PassManager passManager;

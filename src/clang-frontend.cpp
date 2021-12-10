@@ -46,6 +46,12 @@ static llvm::cl::OptionCategory Category("helx options");
 static llvm::cl::extrahelp      CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage);
 static llvm::cl::extrahelp      MoreHelp("\nHelix C/C++ Compiler...\n");
 
+#define ARGUMENT(type,def,varName,cliName,descstr) \
+	static llvm::cl::opt<type> s_Opt##varName(cliName, llvm::cl::desc(descstr), llvm::cl::cat(Category), llvm::cl::init(def)); \
+	type Helix::Options::Get##varName() { return s_Opt##varName.getValue(); }
+
+	#include "options.def"
+
 static clang::ASTContext* g_GlobalASTContext;
 static Helix::Module*     g_TranslationUnit = nullptr;
 

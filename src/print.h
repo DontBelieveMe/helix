@@ -57,7 +57,7 @@ namespace Helix
 		/// For any other files or outputting to string this does not do anything.
 		void SetColour(const char* code)
 		{
-			if (Options::GetDisableTerminalColouring())
+			if (Options::GetDisableColours())
 				return;
 
 			if (m_File == stdout || m_File == stderr)
@@ -68,7 +68,7 @@ namespace Helix
 		/// stderr.
 		void ResetColour()
 		{
-			if (Options::GetDisableTerminalColouring())
+			if (Options::GetDisableColours())
 				return;
 
 			if (m_File == stdout || m_File == stderr)
