@@ -35,17 +35,17 @@ namespace Testify
 
         public long GetSmallestCompilationTime()
         {
-            return _tests.Min((TestRun run) => { return run.CompilationTime; });
+            return _tests.Min((TestRun run) => { return run.Compilation.CompilationTime; });
         }
 
         public long GetLargestCompilationTime()
         {
-            return _tests.Max((TestRun run) => { return run.CompilationTime; });
+            return _tests.Max((TestRun run) => { return run.Compilation.CompilationTime; });
         }
 
         public double GetAverageCompilationTime()
         {
-            return _tests.Average((TestRun run) => { return run.CompilationTime; });
+            return _tests.Average((TestRun run) => { return run.Compilation.CompilationTime; });
         }
     }
 }

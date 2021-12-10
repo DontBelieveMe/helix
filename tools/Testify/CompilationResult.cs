@@ -19,5 +19,7 @@
             CompilerExitCode = compilerExitCode;
             CompilationTime = compilationTime;
         }
+
+        public static readonly CompilationResult SkippedCompilation = new CompilationResult("", "", 0, 0);
     }
 }

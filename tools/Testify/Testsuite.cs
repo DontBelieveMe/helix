@@ -15,12 +15,12 @@ namespace Testify
     class TestRun
     {
         public TestStatus Status { get; private set; }
-        public long CompilationTime { get; private set; }
+        public CompilationResult Compilation { get; private set; }
 
-        public TestRun(TestStatus status, long compilationTime)
+        public TestRun(TestStatus status, CompilationResult compilation)
         {
             this.Status = status;
-            this.CompilationTime = compilationTime;
+            this.Compilation = compilation;
         }
     }
 
@@ -31,9 +31,9 @@ namespace Testify
             // If we expected a test to fail (or expected it to be an xfail) and it did fail, then report
             // it as an xfail instead of an actual failure
             if (expectedStatus == TestStatus.Fail || expectedStatus == TestStatus.XFail)
-                return new TestRun(TestStatus.XFail, result.CompilationTime);
+                return new TestRun(TestStatus.XFail, result);
 
-            return new TestRun(TestStatus.Fail, result.CompilationTime);
+            return new TestRun(TestStatus.Fail, result);
         }
     }
 

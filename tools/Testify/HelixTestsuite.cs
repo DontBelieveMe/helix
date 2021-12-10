@@ -46,7 +46,7 @@ namespace Testify
 
             if (TextMatches(expectedStdout, actualStdout, testDefinition.ExpectedOutputComparisonMode))
             {
-                return new TestRun(TestStatus.Pass, result.CompilationTime);
+                return new TestRun(TestStatus.Pass, result);
             }
             else
             {

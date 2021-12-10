@@ -28,15 +28,15 @@ namespace Testify
 
             if (skip)
             {
-                return new TestRun(TestStatus.Skipped, 0);
+                return new TestRun(TestStatus.Skipped, CompilationResult.SkippedCompilation);
             }
 
             CompilationResult result = HelixCompiler.CompileSingleFile(filepath, "");
 
             if (result.CompilerExitCode == 0)
-                return new TestRun(TestStatus.Pass, result.CompilationTime);
+                return new TestRun(TestStatus.Pass, result);
             else
-                return new TestRun(TestStatus.Fail, result.CompilationTime);
+                return new TestRun(TestStatus.Fail, result);
         }
     }
 }
