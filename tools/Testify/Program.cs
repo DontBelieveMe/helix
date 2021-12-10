@@ -98,7 +98,7 @@ namespace Testify
             string expectedOutputString = expectedOutputNode.InnerText.Trim().Replace("\r\n", "\n");
             string flagsString = flagsNode.InnerText;
             string sourceFile = testfile.Replace(".xml", ".c");
-            flagsString = sourceFile + " " + flagsString;
+            flagsString = sourceFile + " --no-colours " + flagsString;
             flagsString += " --";
 
             bool useRegex = false;
