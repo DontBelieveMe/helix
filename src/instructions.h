@@ -118,6 +118,11 @@ namespace Helix
 			kInsn_ICmp_Lte,
 		kInsnEnd_Compare,
 
+		kInsnStart_Cast,
+			kInsn_PtrToInt,
+			kInsn_IntToPtr,
+		kInsnEnd_Cast,
+
 		kInsn_Undefined,
 	};
 
@@ -131,6 +136,7 @@ namespace Helix
 	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(BinaryOp)
 	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Branch)
 	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Terminator)
+	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Cast)
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -185,6 +191,13 @@ namespace Helix
 		inline bool        HasComment()             const { return m_DebugComment.length() > 0; }
 
 		bool IsTerminator() const { return Helix::IsTerminator(m_Opcode); }
+
+		void Clear()
+		{
+			for (size_t i = 0; i < m_Operands.size(); ++i) {
+				SetOperand(i, nullptr);
+			}
+		}
 
 	protected:
 		Opcode      m_Opcode = kInsn_Undefined;
@@ -282,12 +295,16 @@ namespace Helix
 		LoadEffectiveAddressInsn(const Type* baseType, Value* inputPtr, Value* index, Value* outputPtr)
 			: Instruction(kInsn_Lea, 3), m_Type(baseType)
 		{
-			m_Operands[0] = inputPtr;
-			m_Operands[1] = index;
-			m_Operands[2] = outputPtr;
+			this->SetOperand(0, inputPtr);
+			this->SetOperand(1, index);
+			this->SetOperand(2, outputPtr);
 		}
 
 		const Type* GetBaseType() const { return m_Type; }
+
+		Value* GetInputPtr() const { return this->GetOperand(0); }
+		Value* GetIndex() const { return this->GetOperand(1); }
+		Value* GetOutputPtr() const { return this->GetOperand(2); }
 
 	private:
 		const Type* m_Type;
@@ -301,8 +318,8 @@ namespace Helix
 		LoadFieldAddressInsn(const StructType* baseType, Value* inputPtr, unsigned int index, Value* outputPtr)
 			: Instruction(kInsn_Lfa, 2), m_BaseType(baseType), m_Index(index)
 		{
-			m_Operands[0] = inputPtr;
-			m_Operands[1] = outputPtr;
+			this->SetOperand(0, inputPtr);
+			this->SetOperand(1, outputPtr);
 		}
 
 		const Type* GetBaseType() const { return m_BaseType; }
@@ -311,6 +328,26 @@ namespace Helix
 	private:
 		const Type* m_BaseType;
 		unsigned int m_Index;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class CastInsn : public Instruction
+	{
+	public:
+		CastInsn(Opcode opc, const Type* srcTy, const Type* dstTy, Value* in, Value* out)
+			: Instruction(opc, 2), m_SrcType(srcTy), m_DstType(dstTy)
+		{
+			this->SetOperand(0, in);
+			this->SetOperand(1, out);
+		}
+
+		const Type* GetSrcType() const { return m_SrcType; }
+		const Type* GetDstType() const { return m_DstType; }
+
+	private:
+		const Type* m_SrcType;
+		const Type* m_DstType;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,4 +394,9 @@ namespace Helix
 
 	LoadEffectiveAddressInsn* CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, Value* outputPtr);
 	LoadFieldAddressInsn* CreateLoadFieldAddress(const StructType* baseType, Value* input, unsigned int index, Value* outputPtr);
+
+	CastInsn* CreatePtrToInt(const Type* dstIntType, Value* inputPtr, Value* outputInt);
+	CastInsn* CreateIntToPtr(const Type* srcIntType, Value* inputInt, Value* outputPtr);
+
+	void DestroyInstruction(Instruction* insn);
 }

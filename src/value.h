@@ -26,6 +26,7 @@ namespace Helix
 	struct ValueTraits;
 
 	using Integer = uint64_t;
+	class Value;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +38,8 @@ namespace Helix
 		{ }
 
 		bool operator==(const Use& other) const;
+
+		void ReplaceWith(Value* newValue);
 
 	private:
 		Instruction* m_User;

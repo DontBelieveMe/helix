@@ -40,6 +40,7 @@
 #include "instructions.h"
 #include "value.h"
 #include "system.h"
+#include "iterator-range.h"
 
 namespace Helix
 {
@@ -85,7 +86,26 @@ namespace Helix
 		const char*        GetName()         const { return Name;                        }
 		BlockBranchTarget* GetBranchTarget()       { return &BranchTarget;               }
 
+		void Replace(Instruction* original, Instruction* newValue)
+		{
+			Instructions.replace(original, newValue);
+		}
+
+		void Remove(iterator where) { Instructions.remove(where); }
+
 		bool CanDelete() const;
+
+		iterator_range<iterator> insns() { return iterator_range(begin(), end()); }
+
+		iterator Where(Instruction* insn) const { return iterator(insn); }
+		const_iterator Where(const Instruction* insn) const { return const_iterator(insn); }
+
+		void Delete(iterator insn)
+		{
+			Remove(insn);
+			insn->Clear();
+			Helix::DestroyInstruction(&(*insn));
+		}
 
 	private:
 		InstructionList   Instructions;

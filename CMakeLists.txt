@@ -37,6 +37,8 @@ add_library(LibHelix
 	src/module.h
 	src/pass-manager.h
 	src/pass-manager.cpp
+	src/lower.h
+	src/lower.cpp
 
 	src/intrusive-list.h
 	src/iterator-range.h

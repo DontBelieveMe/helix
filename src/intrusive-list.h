@@ -153,6 +153,18 @@ namespace Helix
 			m_size--;
 		}
 
+		void replace(T* original_value, T* new_value)
+		{
+			new_value->set_next(original_value->get_next());
+			new_value->set_prev(original_value->get_prev());
+
+			original_value->get_prev()->set_next(new_value);
+			original_value->get_next()->set_prev(new_value);
+
+			original_value->set_next(nullptr);
+			original_value->set_prev(nullptr);
+		}
+
 		void push_back(T* value) { this->insert_before(end(), value); }
 
 		T& back() { return *static_cast<T*>(m_sentinel.get_prev()); }

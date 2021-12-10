@@ -2,10 +2,13 @@
 
 #include "module.h"
 
+#include "lower.h"
+
 using namespace Helix;
 
 PassManager::PassManager()
 {
+    AddPass<GenericLowering>();
 }
 
 void PassManager::Execute(Module* mod)

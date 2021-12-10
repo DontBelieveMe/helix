@@ -1,6 +1,7 @@
 #include "value.h"
 #include "hash.h"
 #include "system.h"
+#include "instructions.h"
 
 #include <unordered_map>
 #include <algorithm>
@@ -152,3 +153,9 @@ UndefValue* UndefValue::Get(const Type* ty)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Use::ReplaceWith(Value* newValue) {
+	if (m_User) {
+		m_User->SetOperand(m_OperandIndex, newValue);
+	}
+}

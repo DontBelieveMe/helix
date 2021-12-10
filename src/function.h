@@ -2,6 +2,7 @@
 
 #include "intrusive-list.h"
 #include "basic-block.h"
+#include "iterator-range.h"
 
 #include <string>
 
@@ -55,6 +56,8 @@ namespace Helix
 		inline std::string GetName()       const { return m_Name;                                             }
 
 		size_t GetCountBlocks() const { return m_Blocks.size(); }
+
+		iterator_range<block_iterator> blocks() { return iterator_range(begin(), end()); }
 
 	private:
 		BlockList    m_Blocks;

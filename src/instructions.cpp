@@ -4,6 +4,19 @@
 
 using namespace Helix;
 
+
+CastInsn* Helix::CreatePtrToInt(const Type* dstIntType, Value* inputPtr, Value* outputInt)
+{
+	return new CastInsn(kInsn_PtrToInt, BuiltinTypes::GetPointer(), dstIntType, inputPtr, outputInt);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CastInsn* Helix::CreateIntToPtr(const Type* srcIntType, Value* inputInt, Value* outputPtr)
+{
+	return new CastInsn(kInsn_IntToPtr, srcIntType, BuiltinTypes::GetPointer(), inputInt, outputPtr);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 LoadFieldAddressInsn* Helix::CreateLoadFieldAddress(const StructType* baseType, Value* input, unsigned int index, Value* outputPtr)
@@ -106,7 +119,10 @@ void Instruction::SetOperand(size_t index, Value* value)
 	}
 
 	m_Operands[index] = value;
-	value->AddUse(this, (uint16_t) index);
+
+	if (value) {
+		value->AddUse(this, (uint16_t) index);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,11 +130,14 @@ void Instruction::SetOperand(size_t index, Value* value)
 CallInsn::CallInsn(Function* function, Value* ret, const ParameterList& params)
 	: Instruction(kInsn_Call)
 {
-	m_Operands.resize(params.size() + 2);
-	m_Operands[0] = ret;
-	m_Operands[1] = function;
+	m_Operands.resize(params.size() + 2, nullptr);
 
-	std::copy(params.begin(), params.end(), m_Operands.begin() + 2);
+	this->SetOperand(0, ret);
+	this->SetOperand(1, function);
+
+	for (size_t i = 2; i < m_Operands.size(); ++i) {
+		this->SetOperand(i, params[i - 2]);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +155,7 @@ ConditionalBranchInsn::ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* fal
 UnconditionalBranchInsn::UnconditionalBranchInsn(BasicBlock* bb)
 	: Instruction(kInsn_Br, 1)
 {
-	m_Operands[0] = bb->GetBranchTarget();
+	this->SetOperand(0, bb->GetBranchTarget());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,9 +163,9 @@ UnconditionalBranchInsn::UnconditionalBranchInsn(BasicBlock* bb)
 BinOpInsn::BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, Value* result)
 	: Instruction(opcode, 3)
 {
-	m_Operands[0] = lhs;
-	m_Operands[1] = rhs;
-	m_Operands[2] = result;
+	this->SetOperand(0, lhs);
+	this->SetOperand(1, rhs);
+	this->SetOperand(2, result);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,8 +173,8 @@ BinOpInsn::BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, Value* result)
 StoreInsn::StoreInsn(Value* src, Value* dst)
 	: Instruction(kInsn_Store, 2)
 {
-	m_Operands[0] = src;
-	m_Operands[1] = dst;
+	this->SetOperand(0, src);
+	this->SetOperand(1, dst);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,8 +182,8 @@ StoreInsn::StoreInsn(Value* src, Value* dst)
 LoadInsn::LoadInsn(Value* src, Value* dst)
 	: Instruction(kInsn_Load, 2)
 {
-	m_Operands[0] = src;
-	m_Operands[1] = dst;
+	this->SetOperand(0, src);
+	this->SetOperand(1, dst);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -172,7 +191,7 @@ LoadInsn::LoadInsn(Value* src, Value* dst)
 StackAllocInsn::StackAllocInsn(Value* dst, const Type* type)
 	: Instruction(kInsn_StackAlloc, 1), m_Type(type)
 {
-	m_Operands[0] = dst;
+	this->SetOperand(0, dst);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,3 +219,8 @@ RetInsn::RetInsn()
 { }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Helix::DestroyInstruction(Instruction* insn)
+{
+	delete insn;
+}
