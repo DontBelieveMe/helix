@@ -51,8 +51,11 @@ add_executable(Helix
 )
 
 target_link_libraries(Helix Clang::LibTooling LibHelix)
-target_link_options(Helix PRIVATE /ignore:4099)
-target_compile_options(Helix PRIVATE /wd26812 /W4)
+target_link_options(Helix PRIVATE /ignore:4099 /DEBUG)
+target_link_options(LibHelix PRIVATE /DEBUG)
+
+target_compile_options(Helix PRIVATE /wd26812 /W4 /Zi)
+target_compile_options(LibHelix PRIVATE /wd26812 /W4 /Zi)
 
 add_executable(LibHelixTests
 	src/tests/test_intrusive_list.cpp
