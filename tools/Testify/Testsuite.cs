@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Testify
 {
-    enum TestStatus
+    public enum TestStatus
     {
         Pass,
         Fail,
@@ -12,7 +12,7 @@ namespace Testify
         Skipped
     }
 
-    class TestRun
+    public class TestRun
     {
         public TestStatus Status { get; private set; }
         public CompilationResult Compilation { get; private set; }
@@ -37,7 +37,7 @@ namespace Testify
         }
     }
 
-    interface ITestsuite
+    public interface ITestsuite
     {
         TestRun RunTest(string filepath);
         string[] GetAllTestFiles();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -32,8 +33,10 @@ namespace Testify
             string filepath = GetExecutablePath();
             string[] args = { commandLine, sourceFile, "--" };
 
+            Stopwatch stopwatch = Stopwatch.StartNew();
             ProgramOutput output = ProcessHelpers.RunExternalProcess(filepath, string.Join(" ", args));
-            return new CompilationResult(output.Stdout, output.Stderr, output.ExitCode, output.Time);
+            stopwatch.Stop();
+            return new CompilationResult(output.Stdout, output.Stderr, output.ExitCode, stopwatch.ElapsedMilliseconds, sourceFile);
         }
     }
 }

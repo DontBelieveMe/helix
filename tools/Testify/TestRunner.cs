@@ -8,9 +8,11 @@ namespace Testify
     class TestRunner
     {
         private ITestsuite _testsuite;
+        private string _name;
 
-        public TestRunner(ITestsuite testsuite)
+        public TestRunner(string name, ITestsuite testsuite)
         {
+            _name = name;
             _testsuite = testsuite;
         }
 
@@ -69,7 +71,9 @@ namespace Testify
 
             timer.Stop();
 
+            report.Name = _name;
             report.OverallRuntime = timer.ElapsedMilliseconds;
+            report.GenerationTime = DateTime.Now;
 
             return report;
         }

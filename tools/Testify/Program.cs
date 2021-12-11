@@ -3,23 +3,28 @@ using System.Collections.Generic;
 
 namespace Testify
 {
-    class Program
+    public class Program
     {
         private static Dictionary<string, Func<IReportPrinter>> _printers = new Dictionary<string, Func<IReportPrinter>>
         {
-            { "json", () => { return new SummaryPrinter(); } },
-            { "html", () => { return new SummaryPrinter(); } },
+            { "html", () => { return new HtmlPrinter(); } },
         };
 
-        private static Dictionary<string, Func<ITestsuite>> _testsuites = new Dictionary<string, Func<ITestsuite>>
+        public static Dictionary<string, Func<ITestsuite>> Testsuites = new Dictionary<string, Func<ITestsuite>>
         {
             { "helix",      () => { return new HelixTestsuite(); } },
             { "ctestsuite", () => { return new CTestsuite(); } },
+            { "stub",       () => { return new StubTestsuite(); } },
         };
+
+        public static string GetLinkToTestsuite(string name)
+        {
+            return name + ".html";
+        }
 
         private static void RunTestsuite(string name)
         {
-            TestRunner runner = new TestRunner(_testsuites[name]());
+            TestRunner runner = new TestRunner(name, Testsuites[name]());
 
             Report report = runner.RunAll();
 

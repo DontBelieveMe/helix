@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Testify
 {
-    class Report
+    public class Report
     {
         private List<TestRun> _tests = new List<TestRun>();
 
@@ -13,6 +13,9 @@ namespace Testify
         {
             _tests.Add(info);
         }
+
+        public string Name;
+        public DateTime GenerationTime;
 
         /// <summary>
         /// Overall testsuite runtime in milliseconds
@@ -32,6 +35,11 @@ namespace Testify
         }
 
         public int TotalTestsRan { get { return _tests.Count; } }
+
+        public string ToJson()
+        {
+            return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+        }
 
         public long GetSmallestCompilationTime()
         {

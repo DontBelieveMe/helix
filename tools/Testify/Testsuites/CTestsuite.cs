@@ -28,7 +28,7 @@ namespace Testify
 
             if (skip)
             {
-                return new TestRun(TestStatus.Skipped, CompilationResult.SkippedCompilation);
+                return new TestRun(TestStatus.Skipped, new CompilationResult("", "", 0, 0, filepath));
             }
 
             CompilationResult result = HelixCompiler.CompileSingleFile(filepath, "");
