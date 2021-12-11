@@ -315,7 +315,9 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Funct
 static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Module& mod)
 {
 	for (const StructType* ty : mod.structs()) {
-		out.Write("%s = struct { ", ty->GetName());
+		out.Write("%s = ", ty->GetName());
+		out.SetColour(kColour_Keyword); out.Write("struct"); out.ResetColour();
+		out.Write(" { ");
 
 		for (auto fit = ty->fields_begin(); fit != ty->fields_end(); ++fit) {
 			const Type* field = *fit;
