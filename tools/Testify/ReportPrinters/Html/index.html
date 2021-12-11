@@ -108,15 +108,15 @@
                       <div id="item_@Model.HtmlId(item)" class="collapse">
                         <table style="width: 100%">
                           <thead>
-                            <th>Source</th>
-                            <th>Actual (stdout)</th>
-                            <th>Expected (stdout)</th>
+                            <th style="padding: 15px">Source</th>
+                            <th style="padding: 15px">Actual (stdout)</th>
+                            <th style="padding: 15px">Expected (stdout)</th>
                           </thead>
                           <tbody>
                             <tr>
-                              <td style="background-color: #f0f0f0;"><pre><code>@Model.GetSourceCode(item)</code></pre>
-                              <td style="background-color: #f0f0f0;"><pre><code class="language-plaintext">@item.Compilation.CompilerStdout</code></pre>
-                              <td style="background-color: #f0f0f0;"><pre><code class="language-plaintext">@item.ExpectedStdout</code></pre>
+                              <td style="padding: 15px" valign="top"><pre><code>@Model.GetSourceCode(item)</code></pre></td>
+                              <td style="padding: 15px" valign="top"><pre>@item.Compilation.CompilerStdout</pre></td>
+                              <td style="padding: 15px" valign="top"><pre>@item.ExpectedStdout</pre></td>
                             </tr>
                           </tbody>
                         </table>
