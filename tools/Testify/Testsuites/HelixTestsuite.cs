@@ -36,21 +36,21 @@ namespace Testify
 
             CompilationResult result = HelixCompiler.CompileSingleFile(sourcefilePath, string.Join(" ", flags));
 
-            if (result.CompilerExitCode != 0)
-            {
-                return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result);
-            }
-
             string expectedStdout = testDefinition.ExpectedOutput.Trim().Replace("\r\n", "\n");
             string actualStdout = result.CompilerStdout.Trim().Replace("\r\n", "\n");
 
+            if (result.CompilerExitCode != 0)
+            {
+                return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
+            }
+
             if (TextMatches(expectedStdout, actualStdout, testDefinition.ExpectedOutputComparisonMode))
             {
-                return new TestRun(TestStatus.Pass, result);
+                return new TestRun(TestStatus.Pass, result, expectedStdout);
             }
             else
             {
-                return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result);
+                return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
             }
         }
     }

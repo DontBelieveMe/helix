@@ -84,24 +84,42 @@
           <canvas class="my-4 w-100" id="regressionChart"></canvas>
 
           <h2>Tests</h2>
-          <div class="table-responsive">
-            <table class="table table-striped table-sm results-table">
+          <div>
+            <table class="table table-sm results-table">
               <thead>
                 <tr>
                   <th scope="col">Test File</th>
                   <th scope="col">Status</th>
                   <th scope="col">Compile Time (ms)</th>
-                  <th scope="col">Tags</th>
+                  <th scope="col">Compiler Exit Code</th>
                 </tr>
               </thead>
               <tbody>
                 @foreach (var item in Model.TestReport.Tests)
                 {
-                  <tr>
+                  <tr data-toggle="collapse" data-target="#item_@Model.HtmlId(item)" class="clickable">
                     <td>@item.Compilation.SourceFile</td>
                     <td style="color: @Model.GetStatusColour(item.Status)">@item.Status</td>
                     <td>@item.Compilation.CompilationTime</td>
-                    <td></td>
+                    <td>@item.Compilation.CompilerExitCode</td>
+                  </tr>
+                  <tr>
+                    <td class="hiddenRow" colspan="4">
+                      <div id="item_@Model.HtmlId(item)" class="collapse">
+                        <table style="width: 100%">
+                          <thead>
+                            <th>Actual (stdout)</th>
+                            <th>Expected (stdout)</th>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td><pre>@item.Compilation.CompilerStdout</pre>
+                              <td><pre>@item.ExpectedStdout</pre>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -110,8 +128,11 @@
         </main>
       </div>
     </div>
+  
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
-    <script src="bootstrap.bundle.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"
             integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous"></script>

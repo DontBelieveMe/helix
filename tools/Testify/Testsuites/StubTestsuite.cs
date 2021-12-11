@@ -13,7 +13,7 @@ namespace Testify
 
         public TestRun RunTest(string filepath)
         {
-            return new TestRun(TestStatus.Skipped, new CompilationResult("", "", 0, 10, filepath));
+            return new TestRun(TestStatus.Skipped, new CompilationResult("", "", 0, 10, filepath), "");
         }
     }
 }

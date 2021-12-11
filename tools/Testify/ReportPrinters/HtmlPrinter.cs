@@ -28,6 +28,11 @@ namespace Testify
             }
             return "black";
         }
+
+        public string HtmlId(TestRun testrun)
+        {
+            return Math.Abs(testrun.Compilation.SourceFile.GetHashCode()).ToString();
+        }
     }
 
     public class HtmlPrinter : IReportPrinter
