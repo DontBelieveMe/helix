@@ -322,6 +322,9 @@ namespace Helix
 			this->SetOperand(1, outputPtr);
 		}
 
+		Value* GetInputPtr() const { return this->GetOperand(0); }
+		Value* GetOutputPtr() const { return this->GetOperand(1); }
+
 		const Type* GetBaseType() const { return m_BaseType; }
 		unsigned int GetFieldIndex() const { return m_Index; }
 

@@ -28,6 +28,10 @@ namespace ARMv7
 			return arr->GetCountElements() * ARMv7::TypeSize(arr->GetBaseType());
 		}
 
+		case kType_Pointer: {
+			return 4;
+		}
+
 		case kType_Struct: {
 			const StructType* st = type_cast<StructType>(ty);
 			return std::accumulate(
@@ -85,6 +89,30 @@ void GenericLowering::Lower_Lea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
 
 void GenericLowering::Lower_Lfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 {
+	VirtualRegisterName* inputInteger = VirtualRegisterName::Create(ARMv7::PointerType());
+	VirtualRegisterName* newAddress = VirtualRegisterName::Create(ARMv7::PointerType());
+	VirtualRegisterName* resultPointer = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+
+	const StructType* structType = type_cast<StructType>(insn.GetBaseType());
+	helix_assert(structType, "LoadFieldAddress should only ever have StructType base types");
+
+	size_t offsetValue = 0;
+
+	for (size_t i = 0; i < insn.GetFieldIndex(); ++i) {
+		offsetValue += ARMv7::TypeSize(*(structType->fields_begin() + i));
+	}
+
+	ConstantInt* offset = ConstantInt::Create(ARMv7::PointerType(), offsetValue);
+
+	BasicBlock::iterator where = bb.Where(&insn);
+
+	where = bb.InsertAfter(where, Helix::CreatePtrToInt(ARMv7::PointerType(), insn.GetInputPtr(), inputInteger));
+	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, inputInteger, offset, newAddress));
+	where = bb.InsertAfter(where, Helix::CreateIntToPtr(ARMv7::PointerType(), newAddress, resultPointer));
+
+	IR::ReplaceAllUsesWith(insn.GetOutputPtr(), resultPointer);
+
+	bb.Delete(bb.Where(&insn));
 }
 
 void GenericLowering::Execute(Function* fn)
