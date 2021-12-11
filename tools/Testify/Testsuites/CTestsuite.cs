@@ -31,7 +31,9 @@ namespace Testify
                 return new TestRun(TestStatus.Skipped, new CompilationResult("", "", 0, 0, filepath), "");
             }
 
-            CompilationResult result = HelixCompiler.CompileSingleFile(filepath, "");
+            string[] flags = { "--no-colours" };
+
+            CompilationResult result = HelixCompiler.CompileSingleFile(filepath, string.Join(" ", flags));
 
             if (result.CompilerExitCode == 0)
                 return new TestRun(TestStatus.Pass, result, "");

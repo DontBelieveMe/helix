@@ -29,6 +29,11 @@ namespace Testify
             return "black";
         }
 
+        public string GetSourceCode(TestRun run)
+        {
+            return File.ReadAllText(run.Compilation.SourceFile);
+        }
+
         public string HtmlId(TestRun testrun)
         {
             return Math.Abs(testrun.Compilation.SourceFile.GetHashCode()).ToString();
