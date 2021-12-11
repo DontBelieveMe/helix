@@ -13,3 +13,5 @@ tools/Testify/Properties/launchSettings.json
 .vscode/
 
 docs/generated/
+
+.testify/
