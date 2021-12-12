@@ -1,0 +1,81 @@
+#ifndef DEF_INSN
+	#define DEF_INSN(code_name, pretty_name)
+#endif
+
+#ifndef BEGIN_INSN_CLASS
+	#define BEGIN_INSN_CLASS(class_name)
+#endif
+
+#ifndef END_INSN_CLASS
+	#define END_INSN_CLASS(class_name)
+#endif
+
+BEGIN_INSN_CLASS(BinaryOp)
+	DEF_INSN(IAdd, "iadd")
+
+	DEF_INSN(ISub, "isub")
+
+	DEF_INSN(IMul, "imul")
+
+	DEF_INSN(IDiv, "idiv")
+
+	DEF_INSN(IRem, "irem")
+
+	DEF_INSN(And, "and")
+
+	DEF_INSN(Or, "or")
+
+	DEF_INSN(Shl, "shl")
+
+	DEF_INSN(Shr, "shr")
+
+	DEF_INSN(Xor, "xor")
+END_INSN_CLASS(BinaryOp)
+
+DEF_INSN(Load, "load")
+
+DEF_INSN(Store, "store")
+
+DEF_INSN(StackAlloc, "stack_alloc")
+
+DEF_INSN(LoadElementAddress, "lea")
+
+DEF_INSN(LoadFieldAddress, "lfa")
+
+BEGIN_INSN_CLASS(Branch)
+	BEGIN_INSN_CLASS(Terminator)
+		DEF_INSN(ConditionalBranch, "cbr")
+		
+		DEF_INSN(UnconditionalBranch, "br")
+		
+		DEF_INSN(Return, "ret")
+	END_INSN_CLASS(Terminator)
+
+	DEF_INSN(Call, "call")
+END_INSN_CLASS(Branch)
+
+BEGIN_INSN_CLASS(Compare)
+	DEF_INSN(ICmp_Neq, "icmp_neq")
+	
+	DEF_INSN(ICmp_Eq, "icmp_eq")
+	
+	DEF_INSN(ICmp_Gt, "icmp_gt")
+	
+	DEF_INSN(ICmp_Lt, "icmp_lt")
+	
+	DEF_INSN(ICmp_Gte, "icmp_gte")
+	
+	DEF_INSN(ICmp_Lte, "icmp_lte")
+END_INSN_CLASS(Compare)
+
+BEGIN_INSN_CLASS(Cast)
+	DEF_INSN(PtrToInt, "ptrtoint")
+	
+	DEF_INSN(IntToPtr, "inttoptr")
+END_INSN_CLASS(Cast)
+
+DEF_INSN(Undefined, "undef")
+
+#undef BEGIN_INSN_CLASS
+#undef END_INSN_CLASS
+#undef DEF_INSN

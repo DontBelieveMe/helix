@@ -14,47 +14,13 @@ static const char* kColour_Typename = Helix::TextOutputStream::kColour_Red;
 const char* Helix::GetOpcodeName(Opcode opcode)
 {
 	switch (opcode) {
-	case kInsn_IAdd:       return "iadd";
-	case kInsn_ISub:       return "isub";
-	case kInsn_IMul:       return "imul";
-	case kInsn_IDiv:       return "idiv";
-	case kInsn_IRem:       return "irem";
-	case kInsn_FAdd:       return "fadd";
-	case kInsn_FSub:       return "fsub";
-	case kInsn_FMul:       return "fmul";
-	case kInsn_FDiv:       return "fdiv";
-	case kInsn_And:        return "and";
-	case kInsn_Or:         return "or";
-	case kInsn_Shl:        return "shl";
-	case kInsn_Shr:        return "shr";
-	case kInsn_Xor:        return "xor";
-	case kInsn_Load:       return "load";
-	case kInsn_Store:      return "store";
-	case kInsn_StackAlloc: return "stack_alloc";
-	case kInsn_Ret:        return "ret";
-	case kInsn_Br:         return "br";
-	case kInsn_Cbr:        return "cbr";
-	case kInsn_Call:       return "call";
-	case kInsn_FCmp_Eq:    return "fcmp_eq";
-	case kInsn_FCmp_Neq:   return "fcmp_neq";
-	case kInsn_FCmp_Lt:    return "fcmp_lt";
-	case kInsn_FCmp_Gt:    return "fcmp_gt";
-	case kInsn_FCmp_Lte:   return "fcmp_lte";
-	case kInsn_FCmp_Gte:   return "fcmp_gte";
-	case kInsn_ICmp_Eq:    return "icmp_eq";
-	case kInsn_ICmp_Neq:   return "icmp_neq";
-	case kInsn_ICmp_Lt:    return "icmp_lt";
-	case kInsn_ICmp_Gt:    return "icmp_gt";
-	case kInsn_ICmp_Lte:   return "icmp_lte";
-	case kInsn_ICmp_Gte:   return "icmp_gte";
-	case kInsn_Lea:        return "lea";
-	case kInsn_Lfa:        return "lfa";
-	case kInsn_PtrToInt:   return "ptrtoint";
-	case kInsn_IntToPtr:   return "inttoptr";
+		#define BEGIN_INSN_CLASS(_)
+		#define END_INSN_CLASS(_)
+		#define DEF_INSN(code_name,pretty_name) case kInsn_##code_name: return pretty_name;
+			#include "insns.def"
 
-	case kInsn_Undefined:
 	default:
-		return "undef";
+		return "bad_insn";
 	}
 }
 
@@ -207,13 +173,13 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instr
 
 		out.Write("%s, ", typeName.c_str());
 	}
-	else if (insn.GetOpcode() == kInsn_Lea) {
+	else if (insn.GetOpcode() == kInsn_LoadElementAddress) {
 		const LoadEffectiveAddressInsn& lea = static_cast<const LoadEffectiveAddressInsn&>(insn);
 
 		const char* baseTypeName = Helix::GetTypeName(lea.GetBaseType());
 		out.Write("[%s*], ", baseTypeName);
 	}
-	else if (insn.GetOpcode() == kInsn_Lfa) {
+	else if (insn.GetOpcode() == kInsn_LoadFieldAddress) {
 		const LoadFieldAddressInsn& lfa = static_cast<const LoadFieldAddressInsn&>(insn);
 
 		const char* baseTypeName = Helix::GetTypeName(lfa.GetBaseType());

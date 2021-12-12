@@ -20,110 +20,12 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * @enum Opcode
-	 *
-	 * Represents each type of instruction, and their categories (categories are defined
-	 * by kInsnStart_* and kInsnEnd_* pairs).
-	 **/
 	enum Opcode
 	{
-		kInsnStart_BinaryOp,
-			/// Scalar integer addition
-			kInsn_IAdd,
-
-			/// Scalar integer subtraction
-			kInsn_ISub,
-
-			/// Scalar integer multiplication
-			kInsn_IMul,
-
-			/// Scalar unsigned integer division
-			kInsn_IDiv,
-
-			/// Scalar integer remainder operation
-			kInsn_IRem,
-
-			/// Scalar floating point addition
-			kInsn_FAdd,
-
-			/// Scalar floating point subtraction
-			kInsn_FSub,
-
-			/// Scalar floating point multiplication
-			kInsn_FMul,
-
-			/// Scalar floating point division
-			kInsn_FDiv,
-
-			/// Integral bitwise AND
-			kInsn_And,
-
-			/// Integral bitwise OR
-			kInsn_Or,
-
-			/// Integral shift left
-			kInsn_Shl,
-
-			/// Integral shift right
-			kInsn_Shr,
-
-			/// Integral bitwise XOR
-			kInsn_Xor,
-		kInsnEnd_BinaryOp,
-
-		/// Load a value (dest) of arbitrary type from memory (src) into a given value virtual register
-		kInsn_Load,
-
-		/// Store a value in a given value virtual register (src) to memory (desc)
-		kInsn_Store,
-
-		/// Allocate space on the stack for the given type, and store a pointer to that memory in the output register
-		kInsn_StackAlloc,
-
-		/// Given a pointer to an array of elements, calculate the address of the element at a specific index
-		kInsn_Lea,
-
-		/// Given a pointer to a struct, get a pointer to the field specified by a compile time constant index
-		kInsn_Lfa,
-
-		kInsnStart_Branch,
-			kInsnStart_Terminator,
-				/// Conditionally branch to a target if the condition is true, else if it's false branch to the other target
-				kInsn_Cbr,
-
-				/// Unconditionally branch to the given basic block
-				kInsn_Br,
-
-				/// Return control flow from this function to the caller, optionally passing a value as the first operand
-				kInsn_Ret,
-			kInsnEnd_Terminator,
-
-			kInsn_Call,
-		kInsnEnd_Branch,
-
-		kInsnStart_Compare,
-			kInsn_FCmp_Neq,
-			kInsn_FCmp_Eq,
-			kInsn_FCmp_Gt,
-			kInsn_FCmp_Lt,
-			kInsn_FCmp_Gte,
-			kInsn_FCmp_Lte,
-
-			kInsn_ICmp_Neq,
-			kInsn_ICmp_Eq,
-			kInsn_ICmp_Gt,
-			kInsn_ICmp_Lt,
-			kInsn_ICmp_Gte,
-			kInsn_ICmp_Lte,
-		kInsnEnd_Compare,
-
-		kInsnStart_Cast,
-			kInsn_PtrToInt,
-			kInsn_IntToPtr,
-		kInsnEnd_Cast,
-
-		kInsn_Undefined,
+		#define BEGIN_INSN_CLASS(class_name) kInsnStart_##class_name,
+		#define END_INSN_CLASS(class_name) kInsnEnd_##class_name,
+		#define DEF_INSN(code_name, pretty_name) kInsn_##code_name,
+			#include "insns.def"
 	};
 
 #define IMPLEMENT_OPCODE_CATEGORY_IDENTITY(category) \
@@ -293,7 +195,7 @@ namespace Helix
 	{
 	public:
 		LoadEffectiveAddressInsn(const Type* baseType, Value* inputPtr, Value* index, Value* outputPtr)
-			: Instruction(kInsn_Lea, 3), m_Type(baseType)
+			: Instruction(kInsn_LoadElementAddress, 3), m_Type(baseType)
 		{
 			this->SetOperand(0, inputPtr);
 			this->SetOperand(1, index);
@@ -316,7 +218,7 @@ namespace Helix
 	{
 	public:
 		LoadFieldAddressInsn(const StructType* baseType, Value* inputPtr, unsigned int index, Value* outputPtr)
-			: Instruction(kInsn_Lfa, 2), m_BaseType(baseType), m_Index(index)
+			: Instruction(kInsn_LoadFieldAddress, 2), m_BaseType(baseType), m_Index(index)
 		{
 			this->SetOperand(0, inputPtr);
 			this->SetOperand(1, outputPtr);

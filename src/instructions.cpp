@@ -143,7 +143,7 @@ CallInsn::CallInsn(Function* function, Value* ret, const ParameterList& params)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ConditionalBranchInsn::ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* falseBB, Value* cond)
-	: Instruction(kInsn_Cbr, 3)
+	: Instruction(kInsn_ConditionalBranch, 3)
 {
 	this->SetOperand(0, trueBB->GetBranchTarget());
 	this->SetOperand(1, falseBB->GetBranchTarget());
@@ -153,7 +153,7 @@ ConditionalBranchInsn::ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* fal
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UnconditionalBranchInsn::UnconditionalBranchInsn(BasicBlock* bb)
-	: Instruction(kInsn_Br, 1)
+	: Instruction(kInsn_UnconditionalBranch, 1)
 {
 	this->SetOperand(0, bb->GetBranchTarget());
 }
@@ -207,7 +207,7 @@ CompareInsn::CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RetInsn::RetInsn(Value* value)
-	: Instruction(kInsn_Ret, 1)
+	: Instruction(kInsn_Return, 1)
 {
 	this->SetOperand(0, value);
 }
@@ -215,7 +215,7 @@ RetInsn::RetInsn(Value* value)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RetInsn::RetInsn()
-	: Instruction(kInsn_Ret, 0)
+	: Instruction(kInsn_Return, 0)
 { }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

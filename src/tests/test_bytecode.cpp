@@ -24,7 +24,7 @@ TEST_CASE("Non empty basic block", "[Bytecode]")
 	Value* rhs = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
 
 	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
-	Instruction* fcmp = Helix::CreateCompare(kInsn_FCmp_Gt, lhs, rhs, result);
+	Instruction* fcmp = Helix::CreateCompare(kInsn_ICmp_Gt, lhs, rhs, result);
 	bb->InsertAfter(bb->begin(), fcmp);
 
 	REQUIRE(!bb->IsEmpty());
@@ -34,16 +34,16 @@ TEST_CASE("Non empty basic block", "[Bytecode]")
 
 TEST_CASE("Verify opcode categories", "[Bytecode]")
 {
-	REQUIRE(IsCompare(kInsn_FCmp_Eq));
+	REQUIRE(IsCompare(kInsn_ICmp_Eq));
 	REQUIRE(IsCompare(kInsn_ICmp_Lte));
 	REQUIRE(!IsCompare(kInsn_IAdd));
 	REQUIRE(IsBinaryOp(kInsn_IAdd));
 
-	REQUIRE(IsTerminator(kInsn_Cbr));
-	REQUIRE(IsBranch(kInsn_Cbr));
+	REQUIRE(IsTerminator(kInsn_ConditionalBranch));
+	REQUIRE(IsBranch(kInsn_ConditionalBranch));
 
-	REQUIRE(IsTerminator(kInsn_Ret));
-	REQUIRE(IsBranch(kInsn_Ret));
+	REQUIRE(IsTerminator(kInsn_Return));
+	REQUIRE(IsBranch(kInsn_Return));
 
 	REQUIRE(!IsTerminator(kInsn_Call));
 	REQUIRE(IsBranch(kInsn_Call));
@@ -60,7 +60,7 @@ TEST_CASE("Creating a floating point compare", "[Bytecode]")
 
 	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
 
-	Instruction* fcmp = Helix::CreateCompare(kInsn_FCmp_Gt, lhs, rhs, result);
+	Instruction* fcmp = Helix::CreateCompare(kInsn_ICmp_Gt, lhs, rhs, result);
 
 	REQUIRE(fcmp->GetOperand(0) == lhs);
 	REQUIRE(fcmp->GetOperand(1) == rhs);

@@ -40,6 +40,9 @@ add_library(LibHelix
 	src/lower.h
 	src/lower.cpp
 
+	src/options.def
+	src/insns.def
+
 	src/intrusive-list.h
 	src/iterator-range.h
 )

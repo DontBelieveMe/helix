@@ -124,8 +124,8 @@ void GenericLowering::Execute(Function* fn)
 	for (BasicBlock& bb : fn->blocks()) {
 		for (Instruction& insn : bb.insns()) {
 			switch (insn.GetOpcode()) {
-			case kInsn_Lea:
-			case kInsn_Lfa:
+			case kInsn_LoadElementAddress:
+			case kInsn_LoadFieldAddress:
 				worklist.push_back({&insn, &bb});
 				break;
 
@@ -137,11 +137,11 @@ void GenericLowering::Execute(Function* fn)
 
 	for (const WorkPair& workload : worklist) {
 		switch (workload.insn->GetOpcode()) {
-		case kInsn_Lea:
+		case kInsn_LoadElementAddress:
 			this->Lower_Lea(*workload.bb, *static_cast<LoadEffectiveAddressInsn*>(workload.insn));
 			break;
 
-		case kInsn_Lfa:
+		case kInsn_LoadFieldAddress:
 			this->Lower_Lfa(*workload.bb, *static_cast<LoadFieldAddressInsn*>(workload.insn));
 			break;
 
