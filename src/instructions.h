@@ -34,11 +34,10 @@ namespace Helix
 		return opc > kInsnStart_##category && opc < kInsnEnd_##category; \
 	}
 
-	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Compare)
-	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(BinaryOp)
-	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Branch)
-	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Terminator)
-	IMPLEMENT_OPCODE_CATEGORY_IDENTITY(Cast)
+	#define BEGIN_INSN_CLASS(class_name) IMPLEMENT_OPCODE_CATEGORY_IDENTITY(class_name)
+	#define END_INSN_CLASS(class_name)
+	#define DEF_INSN(code_name, pretty_name)
+		#include "insns.def"
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
