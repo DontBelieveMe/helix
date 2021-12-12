@@ -102,7 +102,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 		suppressTypeInfo = true;
 	} else if (const Function* fd = value_cast<Function>(&value)) {
 		const std::string& functionName = fd->GetName();
-		out.Write("%s(", functionName);
+		out.Write("%s(", functionName.c_str());
 
 		const FunctionType* functionType = type_cast<FunctionType>(fd->GetType());
 
@@ -116,10 +116,10 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 
 		out.Write(")");
 		suppressTypeInfo = true;
-	} else if (const UndefValue* v = value_cast<UndefValue>(&value)) {
+	} else if (value_cast<UndefValue>(&value)) {
 		out.Write("undef");
-	} else if (const GlobalVariable* v = value_cast<GlobalVariable>(&value)) {
-		out.Write("@%s", v->GetName());
+	} else if (const GlobalVariable* gv = value_cast<GlobalVariable>(&value)) {
+		out.Write("@%s", gv->GetName());
 	}
 
 	if (!suppressTypeInfo) {
