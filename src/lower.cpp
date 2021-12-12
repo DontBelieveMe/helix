@@ -158,10 +158,10 @@ void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
 	// The type we're storing into the memory address given by dst
 	const Type* storeType = store.GetSrc()->GetType();
 
-	if (const ArrayType* srcArrayType = type_cast<ArrayType>(storeType)) {
-		Value* src = store.GetSrc();
-		Value* dst = store.GetDst();
+	Value* src = store.GetSrc();
+	Value* dst = store.GetDst();
 
+	if (const ArrayType* srcArrayType = type_cast<ArrayType>(storeType)) {
 		if (ConstantArray* constantArray = value_cast<ConstantArray>(src)) {
 			BasicBlock::iterator where = bb.Where(&store);
 
@@ -179,6 +179,23 @@ void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
 
 		return;
 	}
+	else if (const StructType* srcStructType = type_cast<StructType>(storeType)) {
+		if (ConstantStruct* constantStruct = value_cast<ConstantStruct>(src)) {
+			BasicBlock::iterator where = bb.Where(&store);
+
+			for (size_t i = 0; i < constantStruct->GetCountValues(); ++i) {
+				Value* initValue = constantStruct->GetValue(i);
+				VirtualRegisterName* ptr = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+				
+				where = bb.InsertAfter(where, Helix::CreateLoadFieldAddress(srcStructType, dst, i, ptr));
+				where = bb.InsertAfter(where, Helix::CreateStore(initValue, ptr));
+			}
+
+			bb.Delete(bb.Where(&store));
+		}
+
+		return;
+	}
 
 	helix_unreachable("cannot legalise store with unsupported value type");
 }
@@ -187,30 +204,34 @@ void GenericLegalizer::Execute(Function* fn)
 {
 	struct Store { StoreInsn& insn; BasicBlock& bb; };
 
-	std::vector<Store> illegalStores;
+	bool dirty = true;
 
-	for (BasicBlock& bb : fn->blocks()) {
-		for (Instruction& insn : bb.insns()) {
-			switch (insn.GetOpcode()) {
-			case kInsn_Store: {
-				StoreInsn& store = static_cast<StoreInsn&>(insn);
+	do {
+		std::vector<Store> illegalStores;
 
-				if (value_isa<ConstantArray>(store.GetSrc())) {
-					illegalStores.push_back({store, bb });
+		for (BasicBlock& bb : fn->blocks()) {
+			for (Instruction& insn : bb.insns()) {
+				switch (insn.GetOpcode()) {
+				case kInsn_Store: {
+					StoreInsn& store = static_cast<StoreInsn&>(insn);
+
+					if (value_isa<ConstantArray>(store.GetSrc()) || value_isa<ConstantStruct>(store.GetSrc())) {
+						illegalStores.push_back({store, bb });
+					}
+
+					break;
 				}
 
-				break;
-			}
-
-			default:
-				break;
+				default:
+					break;
+				}
 			}
 		}
-	}
 
-	for (Store& store : illegalStores) {
-		LegaliseStore(store.bb, store.insn);
-	}
+		for (Store& store : illegalStores) {
+			LegaliseStore(store.bb, store.insn);
+		}
 
-
+		dirty = !illegalStores.empty();
+	} while (dirty);
 }

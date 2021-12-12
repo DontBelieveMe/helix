@@ -1,0 +1,28 @@
+<Test>
+	<Flags>--emit-ir-post=genlegal</Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+E = struct { i32 }
+ST = struct { i32, i32, i32, E }
+
+function get_st(): ST {
+.0:
+	stack_alloc [ST x 1], %0:ptr
+	lfa [ST:0], %0:ptr, %1:ptr
+	store 10:i32, %1:ptr
+	lfa [ST:1], %0:ptr, %2:ptr
+	store 20:i32, %2:ptr
+	lfa [ST:2], %0:ptr, %3:ptr
+	store 30:i32, %3:ptr
+	lfa [ST:3], %0:ptr, %4:ptr
+	lfa [E:0], %4:ptr, %5:ptr
+	store 40:i32, %5:ptr
+	load %0:ptr, %6:ST
+	ret %6:ST
+}
+	</ExpectedOutput>
+</Test>

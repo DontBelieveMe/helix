@@ -1,0 +1,36 @@
+<Test>
+	<Flags>--emit-ir-post=genlegal</Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+WorldDef = struct { i32, ptr }
+
+@str.0:ptr = global [i8 x 10] "spiderman\0":[i8 x 10]
+@str.1:ptr = global [i8 x 9] "superman\0":[i8 x 9]
+@str.2:ptr = global [i8 x 7] "batman\0":[i8 x 7]
+
+function main(): i32 {
+.0:
+	stack_alloc [WorldDef x 3], %0:ptr
+	lea [WorldDef*], %0:ptr, 0:i32, %1:ptr
+	lfa [WorldDef:0], %1:ptr, %2:ptr
+	store 0:i32, %2:ptr
+	lfa [WorldDef:1], %1:ptr, %3:ptr
+	store @str.0:ptr, %3:ptr
+	lea [WorldDef*], %0:ptr, 1:i32, %4:ptr
+	lfa [WorldDef:0], %4:ptr, %5:ptr
+	store 2:i32, %5:ptr
+	lfa [WorldDef:1], %4:ptr, %6:ptr
+	store @str.1:ptr, %6:ptr
+	lea [WorldDef*], %0:ptr, 2:i32, %7:ptr
+	lfa [WorldDef:0], %7:ptr, %8:ptr
+	store 3:i32, %8:ptr
+	lfa [WorldDef:1], %7:ptr, %9:ptr
+	store @str.2:ptr, %9:ptr
+	ret 0:i32
+}
+	</ExpectedOutput>
+</Test>
