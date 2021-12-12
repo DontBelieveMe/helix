@@ -1683,7 +1683,10 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 			optionsParser.getSourcePathList()
 		);
 
-		tool.run(clang::tooling::newFrontendActionFactory<ParserAction>().get());
+		const int status = tool.run(clang::tooling::newFrontendActionFactory<ParserAction>().get());
+
+		if (status > 0)
+			return nullptr;
 	}
 
 	return g_TranslationUnit;
