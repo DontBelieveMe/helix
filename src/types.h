@@ -137,6 +137,8 @@ namespace Helix
 		const_fields_iterator fields_begin() const { return m_Members.begin(); }
 		const_fields_iterator fields_end()   const { return m_Members.end();   }
 
+		const Type* GetField(size_t index) const { return m_Members[index]; }
+
 	private:
 		std::vector<const Type*> m_Members;
 		std::string              m_Name;

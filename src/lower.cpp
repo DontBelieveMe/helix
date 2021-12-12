@@ -99,7 +99,7 @@ void GenericLowering::Lower_Lfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 	size_t offsetValue = 0;
 
 	for (size_t i = 0; i < insn.GetFieldIndex(); ++i) {
-		offsetValue += ARMv7::TypeSize(*(structType->fields_begin() + i));
+		offsetValue += ARMv7::TypeSize(structType->GetField(i));
 	}
 
 	ConstantInt* offset = ConstantInt::Create(ARMv7::PointerType(), offsetValue);
