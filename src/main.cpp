@@ -25,7 +25,8 @@ int main(int argc, const char** argv)
 	PassManager passManager;
 	passManager.Execute(tu);
 
-	Helix::DebugDump(*tu);
+	if (Options::GetEmitIRPostPass().empty())
+		Helix::DebugDump(*tu);
 
 	Shutdown();
 	HELIX_PROFILE_END

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace Helix
 {
 	namespace Options

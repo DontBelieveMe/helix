@@ -6,5 +6,6 @@ ARGUMENT(bool, false, EmitIR, "emit-ir-1", "Print module IR immediately after co
 ARGUMENT(bool, false, DisableColours, "no-colours", "Disable the use of ASCII colour codes in std[out|err] output")
 ARGUMENT(bool, false, DebugAnnotateIR, "annotate-ir", "Toggles the display of debug comments (if specified) alongside IR")
 ARGUMENT(bool, true, DisableLogging, "no-logging", "Disable the output of debug logs")
+ARGUMENT(std::string, "", EmitIRPostPass, "emit-ir-post", "")
 
 #undef ARGUMENT
