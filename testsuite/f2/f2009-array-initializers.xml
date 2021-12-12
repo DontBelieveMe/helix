@@ -1,0 +1,38 @@
+<Test>
+	<Flags>-emit-ir-1</Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+ST = struct { i32 }
+
+@str.0:ptr = global [i8 x 3] "hi\0":[i8 x 3]
+@str.1:ptr = global [i8 x 7] "not hi\0":[i8 x 7]
+
+function int_array(): void {
+.0:
+	stack_alloc [i32 x 3], %0:ptr
+	store { 1:i32, 2:i32, 3:i32 }:[i32 x 3], %0:ptr
+	ret
+}
+function string_array(): void {
+.0:
+	stack_alloc [ptr x 2], %0:ptr
+	store { @str.0:ptr, @str.1:ptr }:[ptr x 2], %0:ptr
+	ret
+}
+function struct_array(): void {
+.0:
+	stack_alloc [ST x 1], %0:ptr
+	lfa [ST:0], %0:ptr, %1:ptr
+	store 20:i32, %1:ptr
+	stack_alloc [ST x 2], %2:ptr
+	load %0:ptr, %3:ST
+	load %0:ptr, %4:ST
+	store { %3:ST, %4:ST }:[ST x 2], %2:ptr
+	ret
+}
+	</ExpectedOutput>
+</Test>

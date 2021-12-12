@@ -1,0 +1,27 @@
+<Test>
+	<Flags></Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+@gstr:ptr = global ptr "hello world!\0":[i8 x 13]
+@str.0:ptr = global [i8 x 5] "astr\0":[i8 x 5]
+@str.1:ptr = global [i8 x 5] "bstr\0":[i8 x 5]
+
+function main(): i32 {
+.0:
+	stack_alloc [ptr x 1], %0:ptr
+	store @str.0:ptr, %0:ptr
+	stack_alloc [ptr x 1], %1:ptr
+	store @str.1:ptr, %1:ptr
+	ret 0:i32
+}
+function getgstr(): ptr {
+.0:
+	load @gstr:ptr, %0:ptr
+	ret %0:ptr
+}
+	</ExpectedOutput>
+</Test>

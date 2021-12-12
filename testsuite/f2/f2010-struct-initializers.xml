@@ -1,0 +1,31 @@
+<Test>
+	<Flags>-emit-ir-1</Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+ST = struct { i32, ptr, i16 }
+
+@str.0:ptr = global [i8 x 5] "nine\0":[i8 x 5]
+@gs:ptr = global ST { 50:i32, @str.0:ptr, 655:i16 }:ST
+@str.1:ptr = global [i8 x 7] "tester\0":[i8 x 7]
+@str.2:ptr = global [i8 x 13] "hello world!\0":[i8 x 13]
+@str.3:ptr = global [i8 x 6] "hello\0":[i8 x 6]
+@str.4:ptr = global [i8 x 6] "world\0":[i8 x 6]
+
+function single_struct(): void {
+.0:
+	stack_alloc [ST x 1], %0:ptr
+	store { 100:i32, @str.1:ptr, 123:i16 }:ST, %0:ptr
+	ret
+}
+function struct_array(): void {
+.0:
+	stack_alloc [ST x 3], %0:ptr
+	store { { 10:i32, @str.2:ptr, 20:i16 }:ST, { 20:i32, @str.3:ptr, 10:i16 }:ST, { 30:i32, @str.4:ptr, 0:i16 }:ST }:[ST x 3], %0:ptr
+	ret
+}
+	</ExpectedOutput>
+</Test>
