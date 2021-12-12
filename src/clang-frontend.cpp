@@ -198,9 +198,11 @@ private:
 	Helix::Value* DoMemberExpr(clang::MemberExpr* memberExpr);
 	Helix::Value* DoCharacterLiteral(clang::CharacterLiteral* characterLiteral);
 	Helix::Value* DoInitListExpr(clang::InitListExpr* initListExpr);
-	Helix::Value* DoStringLiteral(clang::StringLiteral* stringLiteral);
+	Helix::Value* DoLocalStringLiteralExpr(clang::StringLiteral* stringLiteral);
+	Helix::Value* DoStringLiteral(clang::StringLiteral* stirngLiteral);
 
 	Helix::Value* DoSizeOf(clang::QualType type);
+
 
 	Helix::Value* DoScalarCast(Helix::Value* expr, clang::QualType originalType, clang::QualType requiredType);
 
@@ -253,12 +255,18 @@ Helix::Value* CodeGenerator::DoStringLiteral(clang::StringLiteral* stringLiteral
 
 	const Helix::ArrayType* at = Helix::ArrayType::Create(characters.size(), Helix::BuiltinTypes::GetInt8());
 	Helix::ConstantByteArray* ca = Helix::ConstantByteArray::Create(characters, at);
+	return ca;
+}
+
+Helix::Value* CodeGenerator::DoLocalStringLiteralExpr(clang::StringLiteral* stringLiteral)
+{
+	Helix::Value* ca = DoStringLiteral(stringLiteral);
 
 	static size_t s_StringIndex = 0;
 	const std::string name = "str." + std::to_string(s_StringIndex);
 	s_StringIndex++;
 
-	Helix::GlobalVariable* gvar = Helix::GlobalVariable::Create(name, at, ca);
+	Helix::GlobalVariable* gvar = Helix::GlobalVariable::Create(name, ca->GetType(), ca);
 	m_Module->RegisterGlobalVariable(gvar);
 	return gvar;
 }
@@ -314,9 +322,13 @@ void CodeGenerator::DoGlobalVariable(clang::VarDecl* varDecl)
 	const Type* baseType = this->ConvertType(varDecl->getType());
 
 	GlobalVariable* gvar = [this, varDecl, baseType]() {
-		std::string name = varDecl->getName().str();
+		const std::string name = varDecl->getName().str();
 
 		if (varDecl->hasInit()) {
+			if (clang::StringLiteral* stringLiteral = clang::dyn_cast<clang::StringLiteral>(varDecl->getInit()->IgnoreCasts())) {
+				return GlobalVariable::Create(name, baseType, DoStringLiteral(stringLiteral));
+			}
+			
 			Value* init = this->DoExpr(varDecl->getInit());
 			
 			// helix_assert(init->IsConstant(), "global var initializer is not constant value");
@@ -585,7 +597,7 @@ Helix::Value* CodeGenerator::DoLValue(clang::Expr* expr)
 {
 	switch (expr->getStmtClass()) {
 	case clang::Stmt::StringLiteralClass: {
-		return this->DoStringLiteral(clang::cast<clang::StringLiteral>(expr));
+		return this->DoLocalStringLiteralExpr(clang::cast<clang::StringLiteral>(expr));
 	}
 	case clang::Stmt::ImplicitCastExprClass:
 		return this->DoImplicitCastExpr(clang::dyn_cast<clang::ImplicitCastExpr>(expr));
