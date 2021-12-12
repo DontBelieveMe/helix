@@ -268,7 +268,7 @@ namespace Helix
 	UnconditionalBranchInsn* CreateUnconditionalBranch(BasicBlock* bb);
 
 	/// Create a call that executes the given function, passing the given list of parameters.
-	/// Contrl flow is returned to the instruction after the call.
+	/// Control flow is returned to the instruction after the call.
 	CallInsn* CreateCall(/* Function* fn*/);
 
 	/// Create a return instruction, that returns no value from the current function (void)
