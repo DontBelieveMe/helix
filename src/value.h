@@ -58,6 +58,7 @@ namespace Helix
 		kValue_GlobalVar,
 		kValue_Undef,
 		kValue_ConstantArray,
+		kValue_ConstantByteArray,
 		kValue_ConstantStruct,
 	};
 
@@ -269,6 +270,33 @@ namespace Helix
 		InitList m_Values;
 	};
 
+	class ConstantByteArray : public Value
+	{
+	public:
+		using ByteList = std::vector<uint8_t>;
+		using init_iterator = ByteList::iterator;
+		using const_init_iterator = ByteList::const_iterator;
+
+	public:
+		ConstantByteArray(const ByteList& values, const ArrayType* ty)
+			: Value(kValue_ConstantByteArray, ty), m_Values(values)
+		{ }
+
+		static ConstantByteArray* Create(const ByteList& values, const ArrayType* ty)
+		{
+			return new ConstantByteArray(values, ty);
+		}
+
+		/// Probably, anyway
+		bool IsString() const { return type_cast<ArrayType>(GetType())->GetBaseType() == BuiltinTypes::GetInt8(); }
+
+		const_init_iterator begin() const { return m_Values.begin(); }
+		const_init_iterator end() const { return m_Values.end(); }
+
+	private:
+		ByteList m_Values;
+	};
+
 	class ConstantStruct : public Value
 	{
 	public:
@@ -303,6 +331,7 @@ namespace Helix
 	IMPLEMENT_VALUE_TRAITS( GlobalVariable,       kValue_GlobalVar           );
 	IMPLEMENT_VALUE_TRAITS(ConstantArray, kValue_ConstantArray);
 	IMPLEMENT_VALUE_TRAITS(ConstantStruct, kValue_ConstantStruct);
+	IMPLEMENT_VALUE_TRAITS(ConstantByteArray, kValue_ConstantByteArray);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

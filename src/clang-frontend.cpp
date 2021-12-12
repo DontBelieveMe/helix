@@ -198,6 +198,7 @@ private:
 	Helix::Value* DoMemberExpr(clang::MemberExpr* memberExpr);
 	Helix::Value* DoCharacterLiteral(clang::CharacterLiteral* characterLiteral);
 	Helix::Value* DoInitListExpr(clang::InitListExpr* initListExpr);
+	Helix::Value* DoStringLiteral(clang::StringLiteral* stringLiteral);
 
 	Helix::Value* DoSizeOf(clang::QualType type);
 
@@ -233,11 +234,34 @@ private:
 	std::unique_ptr<Helix::TargetInfo> m_TargetInfo;
 
 	std::unordered_map<clang::LabelDecl*, Helix::BasicBlock*> m_Labels;
-
 	std::unordered_map<const clang::Type*, const Helix::StructType*> m_Records;
 
 	const Helix::Type* m_SizeType;
 };
+
+Helix::Value* CodeGenerator::DoStringLiteral(clang::StringLiteral* stringLiteral)
+{
+	helix_assert(stringLiteral->getCharByteWidth() == 1, "only 'char*' strings are supported");
+
+	std::vector<uint8_t> characters;
+	characters.reserve(stringLiteral->getByteLength() + 1);
+
+	for (size_t i = 0; i < stringLiteral->getByteLength(); ++i)
+		characters.push_back(stringLiteral->getCodeUnit(i));
+
+	characters.push_back('\0');
+
+	const Helix::ArrayType* at = Helix::ArrayType::Create(characters.size(), Helix::BuiltinTypes::GetInt8());
+	Helix::ConstantByteArray* ca = Helix::ConstantByteArray::Create(characters, at);
+
+	static size_t s_StringIndex = 0;
+	const std::string name = "str." + std::to_string(s_StringIndex);
+	s_StringIndex++;
+
+	Helix::GlobalVariable* gvar = Helix::GlobalVariable::Create(name, at, ca);
+	m_Module->RegisterGlobalVariable(gvar);
+	return gvar;
+}
 
 Helix::Value* CodeGenerator::DoInitListExpr(clang::InitListExpr* initListExpr)
 {
@@ -560,6 +584,9 @@ Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* a
 Helix::Value* CodeGenerator::DoLValue(clang::Expr* expr)
 {
 	switch (expr->getStmtClass()) {
+	case clang::Stmt::StringLiteralClass: {
+		return this->DoStringLiteral(clang::cast<clang::StringLiteral>(expr));
+	}
 	case clang::Stmt::ImplicitCastExprClass:
 		return this->DoImplicitCastExpr(clang::dyn_cast<clang::ImplicitCastExpr>(expr));
 
@@ -1496,8 +1523,23 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 	const FunctionType* functionType = FunctionType::Create(returnType, parameterTypes);
 
 	m_CurrentFunction = Function::Create(functionType, functionDecl->getNameAsString(), parameterValues);
-
 	m_ValueMap.clear();
+
+	m_FunctionDecls.insert({
+		functionDecl,
+		m_CurrentFunction
+	});
+
+	// Add the new function to the list of functions that we've generated code for in
+	// this translation unit.
+	m_Module->RegisterFunction(m_CurrentFunction);
+
+	if (!functionDecl->hasBody()) {
+		m_BasicBlockIterator.invalidate();
+		m_InstructionIterator.invalidate();
+		m_CurrentFunction = nullptr;
+		return;
+	}
 
 	// Reset the basic block insert point so that the next basic block will be created
 	// at the start of the new function.
@@ -1517,18 +1559,7 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 		m_ValueMap.insert({*(functionDecl->param_begin() + i), addr });
 	}
 
-	m_FunctionDecls.insert({
-		functionDecl,
-		m_CurrentFunction
-	});
-
-	// Add the new function to the list of functions that we've generated code for in
-	// this translation unit.
-	m_Module->RegisterFunction(m_CurrentFunction);
-
-	if (functionDecl->hasBody())
-		this->DoStmt(functionDecl->getBody());
-
+	this->DoStmt(functionDecl->getBody());
 
 	if (m_CurrentFunction->GetCountBlocks() > 1) {
 		// If we have more than one basic block in a function

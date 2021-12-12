@@ -145,6 +145,38 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 		}
 		out.Write(" }");
 	}
+	else if (const ConstantByteArray* cbs = value_cast<ConstantByteArray>(&value)) {
+		const bool isString = cbs->IsString();
+		
+		if (isString)
+			out.Write("\"");
+		else
+			out.Write("{ ");
+
+		for (auto it = cbs->begin(); it != cbs->end(); ++it) {
+			const uint8_t v = *it;
+
+			if (isString) {
+				if (isprint(v)) {
+					out.Write("%c", v);
+				}
+				else {
+					out.Write("\\%x", v);
+				}
+			}
+			else
+				out.Write("%i", v);
+
+			if (!isString && it < cbs->end() - 1) {
+				out.Write(", ");
+			}
+		}
+
+		if (isString)
+			out.Write("\"");
+		else
+			out.Write(" }");
+	}
 
 	if (!suppressTypeInfo) {
 		const Type* typePtr  = value.GetType();
