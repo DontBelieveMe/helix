@@ -150,3 +150,67 @@ void GenericLowering::Execute(Function* fn)
 		}
 	}
 }
+
+void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
+{
+	helix_assert(store.GetDst()->GetType()->IsPointer(), "must store into a pointer");
+
+	// The type we're storing into the memory address given by dst
+	const Type* storeType = store.GetSrc()->GetType();
+
+	if (const ArrayType* srcArrayType = type_cast<ArrayType>(storeType)) {
+		Value* src = store.GetSrc();
+		Value* dst = store.GetDst();
+
+		if (ConstantArray* constantArray = value_cast<ConstantArray>(src)) {
+			BasicBlock::iterator where = bb.Where(&store);
+
+			for (size_t i = 0; i < constantArray->GetCountValues(); ++i) {
+				Value* init = constantArray->GetValue(i);
+
+				VirtualRegisterName* ptr = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+				ConstantInt* index = ConstantInt::Create(BuiltinTypes::GetInt32(), i);
+				where = bb.InsertAfter(where, Helix::CreateLoadEffectiveAddress(srcArrayType->GetBaseType(), dst, index, ptr));
+				where = bb.InsertAfter(where, Helix::CreateStore(init, ptr));
+			}
+
+			bb.Delete(bb.Where(&store));
+		}
+
+		return;
+	}
+
+	helix_unreachable("cannot legalise store with unsupported value type");
+}
+
+void GenericLegalizer::Execute(Function* fn)
+{
+	struct Store { StoreInsn& insn; BasicBlock& bb; };
+
+	std::vector<Store> illegalStores;
+
+	for (BasicBlock& bb : fn->blocks()) {
+		for (Instruction& insn : bb.insns()) {
+			switch (insn.GetOpcode()) {
+			case kInsn_Store: {
+				StoreInsn& store = static_cast<StoreInsn&>(insn);
+
+				if (value_isa<ConstantArray>(store.GetSrc())) {
+					illegalStores.push_back({store, bb });
+				}
+
+				break;
+			}
+
+			default:
+				break;
+			}
+		}
+	}
+
+	for (Store& store : illegalStores) {
+		LegaliseStore(store.bb, store.insn);
+	}
+
+
+}

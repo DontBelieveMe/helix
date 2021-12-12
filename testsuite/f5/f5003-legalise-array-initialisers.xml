@@ -1,0 +1,21 @@
+<Test>
+	<Flags>--emit-ir-post=genlegal</Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function b(): void {
+.0:
+	stack_alloc [i32 x 3], %0:ptr
+	lea [i32*], %0:ptr, 0:i32, %1:ptr
+	store 10:i32, %1:ptr
+	lea [i32*], %0:ptr, 1:i32, %2:ptr
+	store 20:i32, %2:ptr
+	lea [i32*], %0:ptr, 2:i32, %3:ptr
+	store 30:i32, %3:ptr
+	ret
+}
+	</ExpectedOutput>
+</Test>

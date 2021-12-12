@@ -5,6 +5,16 @@ namespace Helix
 	class LoadEffectiveAddressInsn;
 	class LoadFieldAddressInsn;
 	class BasicBlock;
+	class StoreInsn;
+
+	class GenericLegalizer : public FunctionPass
+	{
+	public:
+		void Execute(Function* fn);
+
+	private:
+		void LegaliseStore(BasicBlock& bb, StoreInsn& store);
+	};
 
 	class GenericLowering : public FunctionPass
 	{
@@ -15,4 +25,7 @@ namespace Helix
 		void Lower_Lea(BasicBlock& bb, LoadEffectiveAddressInsn& insn);
 		void Lower_Lfa(BasicBlock& bb, LoadFieldAddressInsn& insn);
 	};
+
+	REGISTER_PASS(GenericLegalizer, "genlegal", "");
+	REGISTER_PASS(GenericLowering,  "genlower", "");
 }
