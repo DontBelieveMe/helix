@@ -30,7 +30,6 @@ add_library(LibHelix
 	src/system.h
 	src/system.cpp
 	src/options.h
-	src/options.cpp
 	src/target-info.h
 	src/target-info-armv7.h
 	src/target-info-armv7.cpp
@@ -39,6 +38,7 @@ add_library(LibHelix
 	src/pass-manager.cpp
 	src/lower.h
 	src/lower.cpp
+	src/profile.h
 
 	src/options.def
 	src/insns.def
