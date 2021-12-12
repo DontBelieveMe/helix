@@ -124,6 +124,9 @@ namespace Helix
 	{
 	public:
 		StoreInsn(Value* src, Value* dst);
+
+		Value* GetSrc() const { return this->GetOperand(0); }
+		Value* GetDst() const { return this->GetOperand(1); }
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -149,6 +149,15 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	template <typename T>
+	inline bool value_isa(const Value* v)
+	{
+		if (!v) return false;
+		return v->IsA<T>();
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	class BlockBranchTarget : public Value
 	{
 	public:
@@ -265,6 +274,9 @@ namespace Helix
 
 		const_init_iterator begin() const { return m_Values.begin(); }
 		const_init_iterator end() const { return m_Values.end(); }
+
+		size_t GetCountValues() const { return m_Values.size(); }
+		Value* GetValue(size_t index) const { return m_Values[index]; }
 
 	private:
 		InitList m_Values;
