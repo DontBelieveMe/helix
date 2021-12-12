@@ -57,6 +57,8 @@ namespace Helix
 		kValue_Function,
 		kValue_GlobalVar,
 		kValue_Undef,
+		kValue_ConstantArray,
+		kValue_ConstantStruct,
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -243,12 +245,64 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	class ConstantArray : public Value
+	{
+	public:
+		using InitList = std::vector<Value*>;
+		using init_iterator = InitList::iterator;
+		using const_init_iterator = InitList::const_iterator;
+
+	public:
+		ConstantArray(const InitList& values, const ArrayType* ty)
+			: Value(kValue_ConstantArray, ty), m_Values(values)
+		{ }
+
+		static ConstantArray* Create(const std::vector<Value*>& values, const ArrayType* ty)
+		{
+			return new ConstantArray(values, ty);
+		}
+
+		const_init_iterator begin() const { return m_Values.begin(); }
+		const_init_iterator end() const { return m_Values.end(); }
+
+	private:
+		InitList m_Values;
+	};
+
+	class ConstantStruct : public Value
+	{
+	public:
+		using InitList = std::vector<Value*>;
+		using init_iterator = InitList::iterator;
+		using const_init_iterator = InitList::const_iterator;
+
+	public:
+		ConstantStruct(const InitList& values, const StructType* ty)
+			: Value(kValue_ConstantStruct, ty), m_Values(values)
+		{ }
+
+		static ConstantStruct* Create(const std::vector<Value*>& values, const StructType* ty)
+		{
+			return new ConstantStruct(values, ty);
+		}
+
+		const_init_iterator begin() const { return m_Values.begin(); }
+		const_init_iterator end() const { return m_Values.end(); }
+
+	private:
+		InitList m_Values;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	IMPLEMENT_VALUE_TRAITS( VirtualRegisterName,  kValue_VirtualRegisterName );
 	IMPLEMENT_VALUE_TRAITS( ConstantInt,          kValue_ConstantInt         );
 	IMPLEMENT_VALUE_TRAITS( ConstantFloat,        kValue_ConstantFloat       );
 	IMPLEMENT_VALUE_TRAITS( BlockBranchTarget,    kValue_BasicBlock          );
 	IMPLEMENT_VALUE_TRAITS( UndefValue,           kValue_Undef               );
 	IMPLEMENT_VALUE_TRAITS( GlobalVariable,       kValue_GlobalVar           );
+	IMPLEMENT_VALUE_TRAITS(ConstantArray, kValue_ConstantArray);
+	IMPLEMENT_VALUE_TRAITS(ConstantStruct, kValue_ConstantStruct);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

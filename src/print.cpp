@@ -121,6 +121,30 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 	} else if (const GlobalVariable* gv = value_cast<GlobalVariable>(&value)) {
 		out.Write("@%s", gv->GetName());
 	}
+	else if (const ConstantArray* ca = value_cast<ConstantArray>(&value)) {
+		out.Write("{ ");
+		for (auto it = ca->begin(); it != ca->end(); ++it) {
+			const Value* v = *it;
+			InternalPrint(slots, out, *v);
+
+			if (it < ca->end() - 1) {
+				out.Write(", ");
+			}
+		}
+		out.Write(" }");
+	}
+	else if (const ConstantStruct* cs = value_cast<ConstantStruct>(&value)) {
+		out.Write("{ ");
+		for (auto it = cs->begin(); it != cs->end(); ++it) {
+			const Value* v = *it;
+			InternalPrint(slots, out, *v);
+
+			if (it < cs->end() - 1) {
+				out.Write(", ");
+			}
+		}
+		out.Write(" }");
+	}
 
 	if (!suppressTypeInfo) {
 		const Type* typePtr  = value.GetType();

@@ -69,13 +69,13 @@ static const char* GetFileNameFromPath(const char* path)
 	return path + lastSeperatorPos + 1;
 }
 
-static std::string FormatAssertAt(const char* reason, const clang::SourceLocation& loc)
+static std::string FormatAssertAt(const std::string& reason, const clang::SourceLocation& loc)
 {
 	clang::SourceManager& sm = g_GlobalASTContext->getSourceManager();
 	clang::PresumedLoc ploc = sm.getPresumedLoc(loc);
 
 	if (ploc.isInvalid())
-		return std::string(reason);
+		return reason;
 
 	const char* fileName = GetFileNameFromPath(ploc.getFilename());
 	int line = ploc.getLine();
@@ -197,6 +197,7 @@ private:
 	Helix::Value* DoCompoundAssignOp(clang::CompoundAssignOperator* assignmentOp);
 	Helix::Value* DoMemberExpr(clang::MemberExpr* memberExpr);
 	Helix::Value* DoCharacterLiteral(clang::CharacterLiteral* characterLiteral);
+	Helix::Value* DoInitListExpr(clang::InitListExpr* initListExpr);
 
 	Helix::Value* DoSizeOf(clang::QualType type);
 
@@ -238,6 +239,35 @@ private:
 	const Helix::Type* m_SizeType;
 };
 
+Helix::Value* CodeGenerator::DoInitListExpr(clang::InitListExpr* initListExpr)
+{
+	if (initListExpr->getType()->isArrayType()) {
+		std::vector<Helix::Value*> inits;
+		inits.reserve(initListExpr->getNumInits());
+
+		for (clang::Expr* init : initListExpr->inits())
+			inits.push_back(this->DoExpr(init));
+
+		const Helix::ArrayType* ty = Helix::type_cast<Helix::ArrayType>(this->ConvertType(initListExpr->getType()));
+		frontend_assert_at(ty, "init list expr not an array", initListExpr->getExprLoc());
+
+		return Helix::ConstantArray::Create(inits, ty);
+	}
+	else if (initListExpr->getType()->isRecordType()) {
+		std::vector<Helix::Value*> inits;
+		inits.reserve(initListExpr->getNumInits());
+
+		for (clang::Expr* init : initListExpr->inits())
+			inits.push_back(this->DoExpr(init));
+
+		const Helix::StructType* ty = Helix::type_cast<Helix::StructType>(this->ConvertType(initListExpr->getType()));
+		frontend_assert_at(ty, "init list expr not a struct", initListExpr->getExprLoc());
+		return Helix::ConstantStruct::Create(inits, ty);
+	}
+
+	frontend_unimplemented_at("unknown init list expr", initListExpr->getExprLoc());
+}
+
 Helix::Value* CodeGenerator::DoCharacterLiteral(clang::CharacterLiteral* characterLiteral)
 {
 	using namespace Helix;
@@ -265,7 +295,7 @@ void CodeGenerator::DoGlobalVariable(clang::VarDecl* varDecl)
 		if (varDecl->hasInit()) {
 			Value* init = this->DoExpr(varDecl->getInit());
 			
-			helix_assert(init->IsConstant(), "global var initializer is not constant value");
+			// helix_assert(init->IsConstant(), "global var initializer is not constant value");
 
 			return GlobalVariable::Create(name, baseType, init);
 		} else {
@@ -1359,6 +1389,9 @@ Helix::Value* CodeGenerator::DoImplicitCastExpr(clang::ImplicitCastExpr* implici
 Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 {
 	switch (expr->getStmtClass()) {
+	case clang::Stmt::InitListExprClass:
+		return DoInitListExpr(clang::cast<clang::InitListExpr>(expr));
+
 	case clang::Stmt::CharacterLiteralClass:
 		return DoCharacterLiteral(clang::cast<clang::CharacterLiteral>(expr));
 
@@ -1431,7 +1464,10 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 	}
 	
 	default:
-		frontend_unimplemented_at("Cannot codegen for unsupported expression type", expr->getExprLoc());
+		frontend_unimplemented_at(
+			fmt::format("Cannot codegen for unsupported expression type '{}'", expr->getStmtClassName()),
+			expr->getExprLoc()
+		);
 		break;
 	}
 	}
