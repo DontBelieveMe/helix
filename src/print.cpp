@@ -1,5 +1,6 @@
 #include "print.h"
 #include "helix.h"
+#include "target-info-armv7.h"
 
 using namespace Helix;
 
@@ -176,6 +177,10 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 			out.Write("\"");
 		else
 			out.Write(" }");
+	}
+	else if (const PhysicalRegisterName* physreg = value_cast<PhysicalRegisterName>(&value)) {
+		const char* name = PhysicalRegisters::GetRegisterString((PhysicalRegisters::ArmV7RegisterID) physreg->GetID());
+		out.Write("%s", name);
 	}
 
 	if (!suppressTypeInfo) {

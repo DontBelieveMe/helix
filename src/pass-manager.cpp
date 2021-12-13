@@ -4,6 +4,7 @@
 #include "options.h"
 
 #include "lower.h"
+#include "regalloc.h"
 
 using namespace Helix;
 
@@ -11,6 +12,7 @@ PassManager::PassManager()
 {
 	AddPass<GenericLegalizer>();
     AddPass<GenericLowering>();
+	AddPass<RegisterAllocator>();
 }
 
 void PassManager::Execute(Module* mod)
@@ -23,6 +25,18 @@ void PassManager::Execute(Module* mod)
             Helix::DebugDump(*mod);
         }
     }
+}
+
+void BasicBlockPass::Execute(Module* mod)
+{
+	for (auto it = mod->functions_begin(); it != mod->functions_end(); ++it) {
+		Function* fn = *it;
+
+        for (auto bbit = fn->begin(); bbit != fn->end(); ++bbit) {
+            BasicBlock& bb = *bbit;
+            this->Execute(&bb);
+        }
+	}
 }
 
 void FunctionPass::Execute(Module* mod)

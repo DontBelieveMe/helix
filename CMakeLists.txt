@@ -39,6 +39,8 @@ add_library(LibHelix
 	src/lower.h
 	src/lower.cpp
 	src/profile.h
+	src/regalloc.h
+	src/regalloc.cpp
 
 	src/options.def
 	src/insns.def

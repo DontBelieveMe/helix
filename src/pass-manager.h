@@ -14,6 +14,7 @@ namespace Helix
 {
 	class Module;
 	class Function;
+	class BasicBlock;
 
 	class Pass
 	{
@@ -28,6 +29,13 @@ namespace Helix
 	public:
 		virtual void Execute(Module* mod) override final;
 		virtual void Execute(Function* fn) = 0;
+	};
+
+	class BasicBlockPass : public Pass
+	{
+	public:
+		virtual void Execute(Module* mod) override final;
+		virtual void Execute(BasicBlock* bb) = 0;
 	};
 
 	template <typename T>

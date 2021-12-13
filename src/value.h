@@ -60,6 +60,7 @@ namespace Helix
 		kValue_ConstantArray,
 		kValue_ConstantByteArray,
 		kValue_ConstantStruct,
+		kValue_PhysicalRegisterName
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,6 +189,23 @@ namespace Helix
 
 	private:
 		const char* m_DebugName = nullptr;
+	};
+
+	class PhysicalRegisterName : public Value
+	{
+	public:
+		PhysicalRegisterName(const Type* ty, unsigned id)
+			: Value(kValue_PhysicalRegisterName, ty), ID(id)
+		{ }
+
+		PhysicalRegisterName()
+			: Value(kValue_PhysicalRegisterName, nullptr), ID(-1) /* max */
+		{ }
+
+		unsigned GetID() const { return ID; }
+
+	private:
+		unsigned ID;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -347,6 +365,7 @@ namespace Helix
 	IMPLEMENT_VALUE_TRAITS(ConstantArray, kValue_ConstantArray);
 	IMPLEMENT_VALUE_TRAITS(ConstantStruct, kValue_ConstantStruct);
 	IMPLEMENT_VALUE_TRAITS(ConstantByteArray, kValue_ConstantByteArray);
+	IMPLEMENT_VALUE_TRAITS(PhysicalRegisterName, kValue_PhysicalRegisterName);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

@@ -2,6 +2,7 @@
 #include "types.h"
 #include "options.h"
 #include "system.h"
+#include "target-info-armv7.h"
 
 #include <Windows.h>
 
@@ -18,6 +19,7 @@ void Helix::Initialise()
 	_CrtSetReportHook (YourReportHook);
 
 	BuiltinTypes::Init();
+	PhysicalRegisters::Init();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
