@@ -11,8 +11,8 @@ void RegisterAllocator::Execute(BasicBlock* bb)
 			Value* op = insn.GetOperand(opIndex);
 
 			if (value_isa<VirtualRegisterName>(op)) {
-				PhysicalRegisterName* r4 = PhysicalRegisters::GetRegister(PhysicalRegisters::R4);
-				insn.SetOperand(opIndex, r4);
+				//PhysicalRegisterName* r4 = PhysicalRegisters::GetRegister(PhysicalRegisters::R4);
+				//insn.SetOperand(opIndex, r4);
 			}
 		}
 	}
