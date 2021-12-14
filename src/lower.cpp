@@ -2,6 +2,9 @@
 #include "system.h"
 #include "function.h"
 #include "instructions.h"
+#include "target-info-armv7.h"
+
+#include "arm-md.h"
 
 #include <vector>
 #include <numeric>
@@ -10,7 +13,7 @@
 
 using namespace Helix;
 
-namespace ARMv7
+namespace Helix::ARMv7
 {
 	const Type* PointerType()
 	{
@@ -234,4 +237,40 @@ void GenericLegalizer::Execute(Function* fn)
 
 		dirty = !illegalStores.empty();
 	} while (dirty);
+}
+
+static void GetValueIntoRegister(BasicBlock& bb, BasicBlock::iterator where, PhysicalRegisterName* reg, Value* v)
+{
+
+}
+
+void CConv::Execute(Function* fn)
+{
+	struct Ret { RetInsn& insn; BasicBlock& bb; };
+
+	std::vector<Ret> rets;
+
+	for (BasicBlock& bb : fn->blocks()) {
+		for (Instruction& insn : bb.insns()) {
+			if (insn.GetOpcode() == kInsn_Return) {
+				rets.push_back({ static_cast<RetInsn&>(insn), bb });
+			}
+		}
+	}
+
+	PhysicalRegisterName* r0 = PhysicalRegisters::GetRegister(PhysicalRegisters::R0);
+
+	for (Ret& workload : rets) {
+		RetInsn& ret = workload.insn;
+
+		if (ret.HasReturnValue()) {
+			Value* returnValue = ret.GetReturnValue();
+			ConstantInt* zero = ConstantInt::Create(returnValue->GetType(), 0);
+
+			BasicBlock::iterator where = workload.bb.Where(&ret);
+			where = workload.bb.InsertBefore(where, Helix::CreateBinOp(kInsn_Or, zero, returnValue, r0));
+
+			ret.MakeVoid();
+		}
+	}
 }

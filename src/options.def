@@ -7,5 +7,7 @@ ARGUMENT(bool, false, DisableColours, "no-colours", "Disable the use of ASCII co
 ARGUMENT(bool, false, DebugAnnotateIR, "annotate-ir", "Toggles the display of debug comments (if specified) alongside IR")
 ARGUMENT(bool, true, DisableLogging, "no-logging", "Disable the output of debug logs")
 ARGUMENT(std::string, "", EmitIRPostPass, "emit-ir-post", "")
+ARGUMENT(std::string, "", OutputAssemblyFile, "o", "Output assembly file")
+ARGUMENT(bool, false, EmitOnlyAssembly, "S", "Emit only assembly to the given output file & not IR or compiled a binary")
 
 #undef ARGUMENT

@@ -26,6 +26,13 @@ namespace Helix
 		void Lower_Lfa(BasicBlock& bb, LoadFieldAddressInsn& insn);
 	};
 
+	class CConv : public FunctionPass
+	{
+	public:
+		void Execute(Function* fn);
+	};
+
+	REGISTER_PASS(CConv, "cconv", "");
 	REGISTER_PASS(GenericLegalizer, "genlegal", "");
 	REGISTER_PASS(GenericLowering,  "genlower", "");
 }

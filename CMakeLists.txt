@@ -11,6 +11,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 add_library(LibHelix
 	src/basic-block.h
 	src/basic-block.cpp
@@ -39,6 +41,8 @@ add_library(LibHelix
 	src/lower.h
 	src/lower.cpp
 	src/profile.h
+	src/match.cpp
+	src/match.h
 	src/regalloc.h
 	src/regalloc.cpp
 

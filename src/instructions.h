@@ -7,6 +7,7 @@
 
 #include "intrusive-list.h"
 #include "value.h"
+#include "target-info-armv7.h"
 
 #include <vector>
 #include <string>
@@ -181,6 +182,10 @@ namespace Helix
 	public:
 		RetInsn(Value* value);
 		RetInsn();
+
+		Value* GetReturnValue() const;
+		void MakeVoid();
+		bool HasReturnValue() const;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
