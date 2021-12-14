@@ -306,4 +306,33 @@ namespace Helix
 	CastInsn* CreateIntToPtr(const Type* srcIntType, Value* inputInt, Value* outputPtr);
 
 	void DestroyInstruction(Instruction* insn);
+
+	inline std::string stringify_operand(Value* v)
+	{
+		if (ConstantInt* ci = value_cast<ConstantInt>(v)) {
+			return std::to_string(ci->GetIntegralValue());
+		}
+
+		if (PhysicalRegisterName* preg = value_cast<PhysicalRegisterName>(v)) {
+			return PhysicalRegisters::GetRegisterString((PhysicalRegisters::ArmV7RegisterID) preg->GetID());
+		}
+	}
+
+	inline bool is_const_int_with_value(Value* v, Integer i)
+	{
+		ConstantInt* ci = value_cast<ConstantInt>(v);
+		if (!ci)
+			return false;
+		return ci->GetIntegralValue() == i;
+	}
+
+	inline bool is_int(Value* v)
+	{
+		return value_isa<ConstantInt>(v);
+	}
+
+	inline bool is_register(Value* v)
+	{
+		return value_isa<PhysicalRegisterName>(v);
+	}
 }

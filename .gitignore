@@ -10,6 +10,11 @@ tools/Testify/obj
 tools/Testify/.vs
 tools/Testify/Properties/launchSettings.json
 
+tools/MachineDescription/bin
+tools/MachineDescription/obj
+tools/MachineDescription/.vs
+tools/MachineDescription/Properties/launchSettings.json
+
 .vscode/
 
 docs/generated/

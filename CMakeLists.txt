@@ -47,6 +47,9 @@ add_library(LibHelix
 
 	src/intrusive-list.h
 	src/iterator-range.h
+
+	${CMAKE_CURRENT_BINARY_DIR}/arm-md.h
+	${CMAKE_CURRENT_BINARY_DIR}/arm-md.cpp
 )
 
 target_link_libraries(LibHelix PUBLIC spdlog::spdlog Tracy::TracyClient)
