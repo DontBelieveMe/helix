@@ -51,8 +51,8 @@ void RegisterAllocator::Execute(BasicBlock* bb)
 		freqs[i].spill = false;
 		freqs[i].physical_id = allowed_registers[i];
 		allocated_regs[freqs[i].reg] = freqs[i];
-		size_t slot = slotTracker.GetValueSlot(freqs[i].reg);
 
+		// size_t slot = slotTracker.GetValueSlot(freqs[i].reg);
 		// printf("allocating %%%zu -> %s (freq=%zu)\n", slot, PhysicalRegisters::GetRegisterString(freqs[i].physical_id), freqs[i].freq);
 	}
 
@@ -62,6 +62,8 @@ void RegisterAllocator::Execute(BasicBlock* bb)
 
 			if (value_isa<VirtualRegisterName>(op)) {
 				const Reg& allocation = allocated_regs[(VirtualRegisterName*) op];
+
+				helix_assert(!allocation.spill, "Spilling of register -> memory not supported");
 
 				if (!allocation.spill) {
 					insn.SetOperand(opIndex, PhysicalRegisters::GetRegister(allocation.physical_id));

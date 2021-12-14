@@ -199,7 +199,7 @@ namespace Helix
 		{ }
 
 		PhysicalRegisterName()
-			: Value(kValue_PhysicalRegisterName, nullptr), ID(-1) /* max */
+			: Value(kValue_PhysicalRegisterName, nullptr), ID(UINT_MAX)
 		{ }
 
 		unsigned GetID() const { return ID; }

@@ -8,6 +8,7 @@
 #include "intrusive-list.h"
 #include "value.h"
 #include "target-info-armv7.h"
+#include "system.h"
 
 #include <vector>
 #include <string>
@@ -321,6 +322,9 @@ namespace Helix
 		if (PhysicalRegisterName* preg = value_cast<PhysicalRegisterName>(v)) {
 			return PhysicalRegisters::GetRegisterString((PhysicalRegisters::ArmV7RegisterID) preg->GetID());
 		}
+
+		helix_unimplemented("stringify_operand, unknown value type");
+		return {};
 	}
 
 	inline bool is_const_int_with_value(Value* v, Integer i)

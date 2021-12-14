@@ -243,13 +243,15 @@ private:
 
 Helix::Value* CodeGenerator::DoStringLiteral(clang::StringLiteral* stringLiteral)
 {
+	helix_assert(stringLiteral->getKind() == clang::StringLiteral::Ascii, "only ascii string literals are supported");
 	helix_assert(stringLiteral->getCharByteWidth() == 1, "only 'char*' strings are supported");
 
 	std::vector<uint8_t> characters;
 	characters.reserve(stringLiteral->getByteLength() + 1);
 
-	for (size_t i = 0; i < stringLiteral->getByteLength(); ++i)
-		characters.push_back(stringLiteral->getCodeUnit(i));
+	for (size_t i = 0; i < stringLiteral->getByteLength(); ++i) {
+		characters.push_back((char) stringLiteral->getCodeUnit(i));
+	}
 
 	characters.push_back('\0');
 
@@ -298,6 +300,7 @@ Helix::Value* CodeGenerator::DoInitListExpr(clang::InitListExpr* initListExpr)
 	}
 
 	frontend_unimplemented_at("unknown init list expr", initListExpr->getExprLoc());
+	return nullptr;
 }
 
 Helix::Value* CodeGenerator::DoCharacterLiteral(clang::CharacterLiteral* characterLiteral)

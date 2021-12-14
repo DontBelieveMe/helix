@@ -40,7 +40,7 @@ namespace Helix::ARMv7
 			return std::accumulate(
 				st->fields_begin(),
 				st->fields_end(),
-				0,
+				size_t(0),
 				[](size_t v, const Type* field) -> size_t {
 					return v + ARMv7::TypeSize(field);
 				}
@@ -49,7 +49,10 @@ namespace Helix::ARMv7
 
 		default:
 			helix_unimplemented("TypeSize not implemented for type category");
+			break;
 		}
+
+		return 0;
 	}
 }
 
@@ -186,7 +189,7 @@ void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
 		if (ConstantStruct* constantStruct = value_cast<ConstantStruct>(src)) {
 			BasicBlock::iterator where = bb.Where(&store);
 
-			for (size_t i = 0; i < constantStruct->GetCountValues(); ++i) {
+			for (unsigned i = 0; i < (unsigned) constantStruct->GetCountValues(); ++i) {
 				Value* initValue = constantStruct->GetValue(i);
 				VirtualRegisterName* ptr = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
 				
@@ -237,11 +240,6 @@ void GenericLegalizer::Execute(Function* fn)
 
 		dirty = !illegalStores.empty();
 	} while (dirty);
-}
-
-static void GetValueIntoRegister(BasicBlock& bb, BasicBlock::iterator where, PhysicalRegisterName* reg, Value* v)
-{
-
 }
 
 void CConv::Execute(Function* fn)
