@@ -1,5 +1,14 @@
 find_package(Threads REQUIRED)
 
+if (EXISTS "${CMAKE_SOURCE_DIR}/extras/tracy/")
+    set (HAS_TRACY TRUE)
+else()
+    set (HAS_TRACY FALSE)
+    add_library(TracyClient INTERFACE)
+    add_library(Tracy::TracyClient ALIAS TracyClient)
+    return()
+endif()
+
 add_library(TracyClient ${CMAKE_SOURCE_DIR}/extras/tracy/TracyClient.cpp)
 
 target_compile_features(TracyClient PUBLIC cxx_std_11)
@@ -20,6 +29,8 @@ macro(set_option option help value)
         message(STATUS "${option}: OFF")
     endif()
 endmacro()
+
+target_compile_definitions(TracyClient PUBLIC -DHAS_TRACY)
 
 add_library(Tracy::TracyClient ALIAS TracyClient)
 
