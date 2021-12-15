@@ -12,6 +12,9 @@ using namespace Helix;
 
 void RegisterAllocator::Execute(BasicBlock* bb)
 {
+	if (!Options::GetEnableExperimentalRegisterAllocator())
+		return;
+
 	struct Reg { VirtualRegisterName* reg; size_t freq; PhysicalRegisters::ArmV7RegisterID physical_id; bool spill=true; };
 	std::unordered_map<VirtualRegisterName*, size_t> frequencyMap;
 

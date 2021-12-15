@@ -9,5 +9,6 @@ ARGUMENT(bool, true, DisableLogging, "no-logging", "Disable the output of debug 
 ARGUMENT(std::string, "", EmitIRPostPass, "emit-ir-post", "")
 ARGUMENT(std::string, "", OutputAssemblyFile, "o", "Output assembly file")
 ARGUMENT(bool, false, EmitOnlyAssembly, "S", "Emit only assembly to the given output file & not IR or compiled a binary")
+ARGUMENT(bool, false, EnableExperimentalRegisterAllocator, "experimental-regalloc", "Enable the register allocator")
 
 #undef ARGUMENT
