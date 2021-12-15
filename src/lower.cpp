@@ -13,6 +13,8 @@
 
 using namespace Helix;
 
+HELIX_DEFINE_LOG_CHANNEL(genlower);
+
 namespace Helix::ARMv7
 {
 	const Type* PointerType()
@@ -72,7 +74,7 @@ namespace IR
 	}
 }
 
-void GenericLowering::Lower_Lea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
+void GenericLowering::LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
 {
 	VirtualRegisterName* ptrint     = VirtualRegisterName::Create(ARMv7::PointerType());
 	VirtualRegisterName* offset     = VirtualRegisterName::Create(ARMv7::PointerType());
@@ -93,7 +95,7 @@ void GenericLowering::Lower_Lea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
 	bb.Delete(bb.Where(&insn));
 }
 
-void GenericLowering::Lower_Lfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
+void GenericLowering::LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 {
 	VirtualRegisterName* inputInteger = VirtualRegisterName::Create(ARMv7::PointerType());
 	VirtualRegisterName* newAddress = VirtualRegisterName::Create(ARMv7::PointerType());
@@ -141,14 +143,16 @@ void GenericLowering::Execute(Function* fn)
 		}
 	}
 
+	helix_info(logs::genlower, "Found {0} instructions that require lowering", worklist.size());
+
 	for (const WorkPair& workload : worklist) {
 		switch (workload.insn->GetOpcode()) {
 		case kInsn_LoadElementAddress:
-			this->Lower_Lea(*workload.bb, *static_cast<LoadEffectiveAddressInsn*>(workload.insn));
+			this->LowerLea(*workload.bb, *static_cast<LoadEffectiveAddressInsn*>(workload.insn));
 			break;
 
 		case kInsn_LoadFieldAddress:
-			this->Lower_Lfa(*workload.bb, *static_cast<LoadFieldAddressInsn*>(workload.insn));
+			this->LowerLfa(*workload.bb, *static_cast<LoadFieldAddressInsn*>(workload.insn));
 			break;
 
 		default:

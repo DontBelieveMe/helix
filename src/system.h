@@ -16,6 +16,7 @@
 #pragma once
 
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include "profile.h"
 
@@ -40,9 +41,22 @@
 		HELIX_DEBUG_BREAK; \
 	} while(0)
 
-#define helix_trace(...) SPDLOG_TRACE(__VA_ARGS__)
-#define helix_info(...) SPDLOG_INFO(__VA_ARGS__)
-#define helix_warn(...) SPDLOG_WARN(__VA_ARGS__)
+#define HELIX_LOG_CHANNEL_NAME(name) s_logChannel_##name
+
+#define HELIX_DEFINE_LOG_CHANNEL(name) \
+	namespace logs { \
+		static spdlog::logger name(#name); \
+		namespace defs { \
+			static std::shared_ptr<spdlog::logger> ptr##name { std::shared_ptr<spdlog::logger>{}, &logs::name }; \
+			static Helix::LogRegister reg##name(#name, ptr##name); \
+		} \
+	}
+
+#define HELIX_EXTERN_LOG_CHANNEL(name) namespace logs { extern spdlog::logger name; }
+
+#define helix_trace(channel, ...) channel##.trace(__VA_ARGS__)
+#define helix_info(channel, ...) channel##.info(__VA_ARGS__)
+#define helix_warn(channel, ...) channel##.warn(__VA_ARGS__)
 
 /// Delete the copy constructor, move constructor, copy assignment operator
 /// and move assignment operator for the class 'ClassName'. Use inside the
@@ -61,6 +75,35 @@
 
 namespace Helix
 {
+	// #FIXME(bwilks): Move most of this to the implementation file.
+	struct LogRegister
+	{
+		const char*     name;
+		std::shared_ptr<spdlog::logger> plogger;
+
+		LogRegister(const char* name, const std::shared_ptr<spdlog::logger>& plogger)
+			: name(name), plogger(plogger)
+			{
+				LogRegister::s_loggers.push_back(this);
+			}
+
+		static void init_all()
+		{
+			spdlog::sink_ptr stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+
+			for (LogRegister* logger : s_loggers) {
+				logger->plogger->sinks().push_back(stdout_sink);
+				logger->plogger->set_level(spdlog::level::trace);
+				logger->plogger->flush_on(spdlog::level::trace);
+
+				spdlog::register_logger(logger->plogger);
+			}
+		}
+
+	private:
+		static std::vector<LogRegister*> s_loggers;
+	};
+
 	bool ShouldDebugBreak();
 
 	/// Disable any debug logging from this point onwards (e.g. logs made with helix_[trace,info,warn] etc...)

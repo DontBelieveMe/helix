@@ -33,6 +33,7 @@ int CRTReportCallback( int reportType, char *message, int *returnValue )
 
 void Helix::Initialise()
 {
+	Helix::LogRegister::init_all();
 	if (Helix::Options::GetDisableLogging()) {
 		Helix::DisableDebugLogging();
 	}

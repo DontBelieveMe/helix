@@ -22,8 +22,8 @@ namespace Helix
 		void Execute(Function* fn);
 
 	private:
-		void Lower_Lea(BasicBlock& bb, LoadEffectiveAddressInsn& insn);
-		void Lower_Lfa(BasicBlock& bb, LoadFieldAddressInsn& insn);
+		void LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn);
+		void LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn);
 	};
 
 	class CConv : public FunctionPass
