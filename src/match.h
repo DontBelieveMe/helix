@@ -13,4 +13,4 @@ namespace Helix
 	};
 }
 
-REGISTER_PASS(FinalMatcher, match, "Final pass, matches the IR to assembly and emits it to file");
+REGISTER_PASS(FinalMatcher, match, "[ARM] Matches the IR to it's machine instructions and emits it as assembly to a file");

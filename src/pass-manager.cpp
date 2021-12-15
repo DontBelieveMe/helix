@@ -11,6 +11,8 @@
 
 using namespace Helix;
 
+HELIX_DEFINE_LOG_CHANNEL(pass_manager);
+
 PassManager::PassManager()
 {
 	AddPass<GenericLegalizer>();
@@ -22,13 +24,18 @@ PassManager::PassManager()
 
 void PassManager::Execute(Module* mod)
 {
+	size_t runIndex = 1;
 	for (const PassData& passData : m_Passes) {
 		std::unique_ptr<Pass> pass = passData.create_action();
+
+		helix_debug(logs::pass_manager, "({}) Running pass '{}'...", runIndex, passData.name);
 		pass->Execute(mod);
 
 		if (Options::GetEmitIRPostPass() == passData.name) {
 			Helix::DebugDump(*mod);
 		}
+
+		runIndex++;
 	}
 }
 	

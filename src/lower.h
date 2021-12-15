@@ -33,6 +33,6 @@ namespace Helix
 	};
 }
 
-REGISTER_PASS(CConv, cconv, "");
-REGISTER_PASS(GenericLegalizer, genlegal, "");
-REGISTER_PASS(GenericLowering, genlower, "");
+REGISTER_PASS(CConv, cconv, "[ARM] Lower IR to be compatible with the platform calling convention");
+REGISTER_PASS(GenericLegalizer, genlegal, "[Generic] Legalise illegal constructs IR to a legal equivilant");
+REGISTER_PASS(GenericLowering, genlower, "[Generic] Lower high level IR constructs");

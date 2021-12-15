@@ -19,6 +19,8 @@
 	}; } \
 	DEFINE_PASS_LOGGER(PassName)
 
+HELIX_EXTERN_LOG_CHANNEL(pass_manager);
+
 namespace Helix
 {
 	class Module;
@@ -77,6 +79,8 @@ namespace Helix
 				PassTraits<T>::Name,
 				PassTraits<T>::Desc
 			});
+
+			helix_trace(logs::pass_manager, "Registered pass ({}) '{}' - {}", m_Passes.size(), PassTraits<T>::Name, PassTraits<T>::Desc);
 		}
 
 		std::vector<PassData> m_Passes;

@@ -14,4 +14,4 @@ namespace Helix
 
 }
 
-REGISTER_PASS(RegisterAllocator, regalloc, "Register allocation");
+REGISTER_PASS(RegisterAllocator, regalloc, "[ARM] Register allocation");

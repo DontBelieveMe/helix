@@ -16,7 +16,7 @@ ARGUMENT(std::string, "",    OutputAssemblyFile,                  "o",          
 ARGUMENT(bool,        false, EmitOnlyAssembly,                    "S",                     "Emit only assembly to the given output file & not IR or compiled a binary")
 ARGUMENT(bool,        false, EnableExperimentalRegisterAllocator, "experimental-regalloc", "Enable the register allocator"                                            )
 
-ARGUMENT_LIST(std::string, EnabledLog, "log", "")
+ARGUMENT_LIST(std::string, EnabledLog, "log", "Print all logs for the given channel to stdout")
 
 #undef ARGUMENT
 #undef ARGUMENT_LIST

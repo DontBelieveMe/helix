@@ -44,7 +44,7 @@
 
 static llvm::cl::OptionCategory Category("helx options");
 static llvm::cl::extrahelp      CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage);
-static llvm::cl::extrahelp      MoreHelp("\nHelix C/C++ Compiler...\n");
+static llvm::cl::extrahelp      MoreHelp("\nHelix C Compiler...\n");
 
 #define ARGUMENT(type,def,varName,cliName,descstr) \
 	static llvm::cl::opt<type> s_Opt##varName(cliName, llvm::cl::desc(descstr), llvm::cl::cat(Category), llvm::cl::init(def)); \
