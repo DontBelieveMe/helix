@@ -1,0 +1,21 @@
+ * Iterating over "argument lists" (specified by ARGUMENT_LIST in options.def) is done using
+   GetCountXXXX() and GetXXXX(size_t index) functions, which is a bit of a headache. It would be
+   nice to have some way of using iterators to do this, enabling range-for loops?
+   e.g. 
+
+       // instead of this
+
+       for (size_t i = 0; i < Options::GetCountXXXX(); ++i) {
+           const std::string& opt = Options::GetXXXX(i);
+           ....
+       }
+
+       // this instead
+
+       for (const std::string& opt : Options::GetXXXXs()) {
+           ...
+       }
+
+
+
+

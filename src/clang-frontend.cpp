@@ -50,6 +50,11 @@ static llvm::cl::extrahelp      MoreHelp("\nHelix C/C++ Compiler...\n");
 	static llvm::cl::opt<type> s_Opt##varName(cliName, llvm::cl::desc(descstr), llvm::cl::cat(Category), llvm::cl::init(def)); \
 	type Helix::Options::Get##varName() { return s_Opt##varName.getValue(); }
 
+#define ARGUMENT_LIST(type,varName,cliName,descstr) \
+	static llvm::cl::list<type> s_Opt##varName(cliName, llvm::cl::desc(descstr), llvm::cl::cat(Category)); \
+	type Helix::Options::Get##varName(size_t index) { return s_Opt##varName[index]; } \
+	size_t Helix::Options::GetCount##varName##s() { return s_Opt##varName.size(); } \
+
 	#include "options.def"
 
 static clang::ASTContext* g_GlobalASTContext;

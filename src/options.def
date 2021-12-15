@@ -2,6 +2,11 @@
 	#define ARGUMENT(type, default, varName, cliName, desc)
 #endif
 
+#ifndef ARGUMENT_LIST
+	#define ARGUMENT_LIST(type, varName, cliName, desc)
+#endif
+
+
 ARGUMENT(bool,        false, EmitIR,                              "emit-ir-1",             "Print module IR immediately after codegen to stdout and exit"             )
 ARGUMENT(bool,        false, DisableColours,                      "no-colours",            "Disable the use of ASCII colour codes in std[out|err] output"             )
 ARGUMENT(bool,        false, DebugAnnotateIR,                     "annotate-ir",           "Toggles the display of debug comments (if specified) alongside IR"        )
@@ -11,4 +16,7 @@ ARGUMENT(std::string, "",    OutputAssemblyFile,                  "o",          
 ARGUMENT(bool,        false, EmitOnlyAssembly,                    "S",                     "Emit only assembly to the given output file & not IR or compiled a binary")
 ARGUMENT(bool,        false, EnableExperimentalRegisterAllocator, "experimental-regalloc", "Enable the register allocator"                                            )
 
+ARGUMENT_LIST(std::string, EnabledLog, "log", "")
+
 #undef ARGUMENT
+#undef ARGUMENT_LIST
