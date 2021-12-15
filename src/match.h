@@ -11,6 +11,6 @@ namespace Helix
 
 	private:
 	};
-
-	REGISTER_PASS(FinalMatcher, "final", "Final pass, matches the IR to assembly and emits it to file");
 }
+
+REGISTER_PASS(FinalMatcher, match, "Final pass, matches the IR to assembly and emits it to file");

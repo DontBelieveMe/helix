@@ -1,14 +1,23 @@
 #pragma once
 
+#include "system.h"
+
 #include <vector>
 #include <memory>
 
+#if defined(DECLARE_PASS_IMPL)
+	#define DEFINE_PASS_LOGGER(PassName) HELIX_DEFINE_LOG_CHANNEL(PassName)
+#else
+	#define DEFINE_PASS_LOGGER(PassName) HELIX_EXTERN_LOG_CHANNEL(PassName)
+#endif
+
 #define REGISTER_PASS(ClassName, PassName, PassDesc) \
-	template <> \
+	namespace Helix { template <> \
 	struct PassTraits<ClassName> { \
-		static constexpr const char* Name = PassName; \
+		static constexpr const char* Name = #PassName; \
 		static constexpr const char* Desc = PassDesc; \
-	}
+	}; } \
+	DEFINE_PASS_LOGGER(PassName)
 
 namespace Helix
 {

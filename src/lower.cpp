@@ -13,8 +13,6 @@
 
 using namespace Helix;
 
-HELIX_DEFINE_LOG_CHANNEL(genlower);
-
 namespace Helix::ARMv7
 {
 	const Type* PointerType()
@@ -143,7 +141,7 @@ void GenericLowering::Execute(Function* fn)
 		}
 	}
 
-	helix_info(logs::genlower, "Found {0} instructions that require lowering", worklist.size());
+	helix_debug(logs::genlower, "Found {0} instructions that require lowering", worklist.size());
 
 	for (const WorkPair& workload : worklist) {
 		switch (workload.insn->GetOpcode()) {

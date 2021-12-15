@@ -1,3 +1,5 @@
+#define DECLARE_PASS_IMPL
+
 #include "pass-manager.h"
 #include "module.h"
 #include "print.h"

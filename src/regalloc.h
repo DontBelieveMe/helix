@@ -12,5 +12,6 @@ namespace Helix
 		virtual void Execute(BasicBlock* bb) override;
 	};
 
-	REGISTER_PASS(RegisterAllocator, "regalloc", "Register allocation");
 }
+
+REGISTER_PASS(RegisterAllocator, regalloc, "Register allocation");

@@ -41,13 +41,11 @@
 		HELIX_DEBUG_BREAK; \
 	} while(0)
 
-#define HELIX_LOG_CHANNEL_NAME(name) s_logChannel_##name
-
 #define HELIX_DEFINE_LOG_CHANNEL(name) \
 	namespace logs { \
-		static spdlog::logger name(#name); \
+		spdlog::logger name(#name); \
 		namespace defs { \
-			static std::shared_ptr<spdlog::logger> ptr##name { std::shared_ptr<spdlog::logger>{}, &logs::name }; \
+			static std::shared_ptr<spdlog::logger> ptr##name { std::shared_ptr<spdlog::logger>{}, &::logs::name }; \
 			static Helix::LogRegister reg##name(#name, ptr##name); \
 		} \
 	}
@@ -57,6 +55,7 @@
 #define helix_trace(channel, ...) channel##.trace(__VA_ARGS__)
 #define helix_info(channel, ...) channel##.info(__VA_ARGS__)
 #define helix_warn(channel, ...) channel##.warn(__VA_ARGS__)
+#define helix_debug(channel, ...) channel##.debug(__VA_ARGS__)
 
 /// Delete the copy constructor, move constructor, copy assignment operator
 /// and move assignment operator for the class 'ClassName'. Use inside the
@@ -93,10 +92,23 @@ namespace Helix
 
 			for (LogRegister* logger : s_loggers) {
 				logger->plogger->sinks().push_back(stdout_sink);
-				logger->plogger->set_level(spdlog::level::trace);
+				logger->plogger->set_level(spdlog::level::critical);
 				logger->plogger->flush_on(spdlog::level::trace);
 
 				spdlog::register_logger(logger->plogger);
+			}
+		}
+
+		static void set_all_log_levels(spdlog::level::level_enum level) {
+			spdlog::set_level(level);
+		}
+
+		static void set_log_level(const char* name, spdlog::level::level_enum level)
+		{
+			auto logger = spdlog::get(name);
+
+			if (logger) {
+				logger->set_level(level);
 			}
 		}
 

@@ -31,8 +31,8 @@ namespace Helix
 	public:
 		void Execute(Function* fn);
 	};
-
-	REGISTER_PASS(CConv, "cconv", "");
-	REGISTER_PASS(GenericLegalizer, "genlegal", "");
-	REGISTER_PASS(GenericLowering,  "genlower", "");
 }
+
+REGISTER_PASS(CConv, cconv, "");
+REGISTER_PASS(GenericLegalizer, genlegal, "");
+REGISTER_PASS(GenericLowering, genlower, "");

@@ -1691,6 +1691,18 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 			optionsParser.getSourcePathList()
 		);
 
+		for (size_t i = 0; i < Options::GetCountEnabledLogs(); ++i) {
+			const std::string& opt = Options::GetEnabledLog(i);
+
+			if (opt == "all") {
+				LogRegister::set_all_log_levels(spdlog::level::trace);
+				break;
+			}
+			else {
+				LogRegister::set_log_level(opt.c_str(), spdlog::level::trace);
+			}
+		}
+
 		const int status = tool.run(clang::tooling::newFrontendActionFactory<ParserAction>().get());
 
 		if (status > 0)
