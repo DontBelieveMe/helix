@@ -239,12 +239,29 @@ namespace MachineDescription
             return c;
         }
 
+        private char SkipToEndOfLine()
+        {
+            char c = GetCurrentCharacter();
+
+            while (c != '\0' && c != '\n')
+                c = NextChar();
+
+            return c;
+        }
+
         public Token GetNext()
         {
             char current = SkipWhitespace();
 
+            if (current == ';')
+            {
+                SkipToEndOfLine();
+                current = SkipWhitespace();
+            }
+
             switch (current)
             {
+                case '\0': return new Token(TokenType.EndOfFile, null);
                 case '(': { NextChar(); return new Token(TokenType.LParen, "(");   }
                 case ')': { NextChar(); return new Token(TokenType.RParen, ")");   }
                 case '[': { NextChar(); return new Token(TokenType.LBracket, "["); }
@@ -298,7 +315,7 @@ namespace MachineDescription
                             return new Token(TokenType.Number, value);
                         }
 
-                        return new Token(TokenType.EndOfFile, null);
+                        throw new SyntaxException("unknown character '" + current + "'");
                     }
             }
         }
