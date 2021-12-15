@@ -1,4 +1,3 @@
-; Hello World
 (define-prologue
 	"push {r11, lr}"
 	"mov r11, sp")
@@ -6,10 +5,6 @@
 (define-epilogue
 	"mov sp, r11"
 	"pop {r11,lr}")
-
-
-; Instructions
-
 
 (define-insn "ret"
 	[(kInsn_Return)]

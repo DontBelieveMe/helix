@@ -746,8 +746,8 @@ namespace MachineDescription
             Console.WriteLine(" > Writing header to '{0}'", outputHeaderFilepath);
             Console.WriteLine(" > Writing source to '{0}'", outputSourceFilepath);
 
-            Console.WriteLine(header.ToString());
-            Console.WriteLine(source.ToString());
+            //Console.WriteLine(header.ToString());
+            //Console.WriteLine(source.ToString());
 
             File.WriteAllText(outputHeaderFilepath, header.ToString());
             File.WriteAllText(outputSourceFilepath, source.ToString());

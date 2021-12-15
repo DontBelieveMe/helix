@@ -58,6 +58,15 @@ add_library(LibHelix
 
 target_link_libraries(LibHelix PUBLIC spdlog::spdlog Tracy::TracyClient)
 
+set(MachineDescriptionTool ${CMAKE_CURRENT_LIST_DIR}/tools/MachineDescription/bin/Release/net5.0/MachineDescription.exe)
+
+add_custom_command(
+	COMMAND ${MachineDescriptionTool} ${CMAKE_CURRENT_LIST_DIR}/src/arm.md -output=${CMAKE_CURRENT_BINARY_DIR}
+	DEPENDS src/arm.md
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/arm-md.cpp ${CMAKE_CURRENT_BINARY_DIR}/arm-md.h
+	COMMENT "Generating ARM machine description" 
+)
+
 add_executable(Helix
 	src/main.cpp
 	src/clang-frontend.cpp
