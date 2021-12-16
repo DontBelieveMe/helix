@@ -16,6 +16,7 @@ HELIX_DEFINE_LOG_CHANNEL(pass_manager);
 PassManager::PassManager()
 {
 	AddPass<GenericLegalizer>();
+	AddPass<ReturnCombine>();
 	AddPass<GenericLowering>();
 	AddPass<CConv>();
 	AddPass<RegisterAllocator>();

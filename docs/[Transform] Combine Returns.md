@@ -9,11 +9,13 @@ This makes it easier for later passes to inject code that always needs
 to be executed on function exit (such as stack cleanup) - it wouldn't
 need to be duplicated for each instance of the return.
 
-This would occur during the `genlower` pass.
+This occurs during a new `retcomb` (Return Combine) pass. If too much time is spent doing this
+pass alone it could be merged into tho `genlower` pass, or even try to get the frontend
+to emit this code in the first place.
 
 ## Algorithm
 
-An extra stack variable (`V`) is allocated to store tbe return value.  
+An extra stack variable (`V`) is allocated to store the return value.  
 A new "tail" basic block is created and inserted at the end of the 
 function (`.tail`).
 

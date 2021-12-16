@@ -31,8 +31,15 @@ namespace Helix
 	public:
 		void Execute(Function* fn);
 	};
+
+	class ReturnCombine : public FunctionPass
+	{
+	public:
+		void Execute(Function* fn);
+	};
 }
 
+REGISTER_PASS(ReturnCombine, retcomb, "[Generic] Combine multiple returns into a singular exit point");
 REGISTER_PASS(CConv, cconv, "[ARM] Lower IR to be compatible with the platform calling convention");
 REGISTER_PASS(GenericLegalizer, genlegal, "[Generic] Legalise illegal constructs IR to a legal equivilant");
 REGISTER_PASS(GenericLowering, genlower, "[Generic] Lower high level IR constructs");

@@ -70,6 +70,25 @@ namespace IR
 			use.ReplaceWith(newValue);
 		}
 	}
+
+	template <typename T>
+	struct ParentedInsn
+	{
+		T& insn;
+		BasicBlock& parent;
+	};
+
+	template <typename T>
+	static void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, unsigned opcode)
+	{
+		for (BasicBlock& bb : fn->blocks()) {
+			for (Instruction& insn : bb.insns()) {
+				if (insn.GetOpcode() == opcode) {
+					insns.push_back({ static_cast<T&>(insn), bb });
+				}
+			}
+		}
+	}
 }
 
 void GenericLowering::LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
@@ -242,6 +261,66 @@ void GenericLegalizer::Execute(Function* fn)
 
 		dirty = !illegalStores.empty();
 	} while (dirty);
+}
+
+void ReturnCombine::Execute(Function* fn)
+{
+	helix_assert(fn->GetCountBlocks() >= 1, "Function must have at least one basic block");
+
+	// Build this list before so it doesn't get interfered with by
+	// the transforms we have do do first.
+	std::vector<IR::ParentedInsn<RetInsn>> returns;
+	IR::BuildWorklist(returns, fn, kInsn_Return);
+
+	// First always create a tail block - even if there is only
+	// one BB in the function (therefore only one ret) it is still useful
+	// for later passes to be able to assume the existence of a tail/epilogue
+	// block.
+	// Unnessesary BBs can be combined by later passes if nessesary (#FIXME)
+
+	BasicBlock* tailBlock = BasicBlock::Create();
+	fn->InsertBefore(fn->end(), tailBlock);
+
+	// For non void return functions, allocate space on the stack to store the return value
+	VirtualRegisterName* returnValueAddress = nullptr;
+	const Type* returnType = fn->GetReturnType();
+
+	if (!fn->IsVoidReturn()) {
+		BasicBlock& headBlock  = *fn->begin();
+
+		returnValueAddress = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+		headBlock.InsertBefore(headBlock.begin(), Helix::CreateStackAlloc(returnValueAddress, returnType));
+
+		// For non void functions we want to inject code into the tail block
+		// to load the value from `returnValueAddres` and return it...
+
+		VirtualRegisterName* returnValue = VirtualRegisterName::Create(returnType);
+
+		tailBlock->InsertBefore(tailBlock->begin(), Helix::CreateLoad(returnValueAddress, returnValue));
+		tailBlock->InsertAfter(tailBlock->begin(), Helix::CreateRet(returnValue));
+	} else {
+		// ... for void functions just return, no value to load.
+		tailBlock->InsertBefore(tailBlock->begin(), Helix::CreateRet());
+	}
+
+	// Finally, now that the tail block has been created and is returning the value
+	// in `returnValueAddress`, go though and replace each instance of ret
+	// with a store to `returnValueAddress` and a branch to the tail block.
+
+	for (IR::ParentedInsn<RetInsn>& insn : returns) {
+		BasicBlock& bb = insn.parent;
+		RetInsn& ret   = insn.insn;
+
+		BasicBlock::iterator where = bb.Where(&ret);
+
+		if (ret.HasReturnValue()) {
+			where = bb.InsertAfter(where, Helix::CreateStore(ret.GetReturnValue(), returnValueAddress));
+		}
+
+		where = bb.InsertAfter(where, Helix::CreateUnconditionalBranch(tailBlock));
+
+		bb.Delete(bb.Where(&ret));
+	}
 }
 
 void CConv::Execute(Function* fn)
