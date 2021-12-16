@@ -79,7 +79,7 @@ namespace IR
 	};
 
 	template <typename T>
-	static void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, unsigned opcode)
+	static void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, Opcode opcode)
 	{
 		for (BasicBlock& bb : fn->blocks()) {
 			for (Instruction& insn : bb.insns()) {
@@ -325,29 +325,23 @@ void ReturnCombine::Execute(Function* fn)
 
 void CConv::Execute(Function* fn)
 {
-	struct Ret { RetInsn& insn; BasicBlock& bb; };
+	// #FIXME: Maybe this can be simplified by assuming there is only one return?
+	//         (as per the ReturnCombine pass)
 
-	std::vector<Ret> rets;
-
-	for (BasicBlock& bb : fn->blocks()) {
-		for (Instruction& insn : bb.insns()) {
-			if (insn.GetOpcode() == kInsn_Return) {
-				rets.push_back({ static_cast<RetInsn&>(insn), bb });
-			}
-		}
-	}
+	std::vector<IR::ParentedInsn<RetInsn>> rets;
+	IR::BuildWorklist(rets, fn, kInsn_Return);
 
 	PhysicalRegisterName* r0 = PhysicalRegisters::GetRegister(PhysicalRegisters::R0);
 
-	for (Ret& workload : rets) {
+	for (IR::ParentedInsn<RetInsn>& workload : rets) {
 		RetInsn& ret = workload.insn;
 
 		if (ret.HasReturnValue()) {
 			Value* returnValue = ret.GetReturnValue();
 			ConstantInt* zero = ConstantInt::Create(returnValue->GetType(), 0);
 
-			BasicBlock::iterator where = workload.bb.Where(&ret);
-			where = workload.bb.InsertBefore(where, Helix::CreateBinOp(kInsn_Or, zero, returnValue, r0));
+			BasicBlock::iterator where = workload.parent.Where(&ret);
+			where = workload.parent.InsertBefore(where, Helix::CreateBinOp(kInsn_Or, zero, returnValue, r0));
 
 			ret.MakeVoid();
 		}
