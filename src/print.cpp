@@ -80,7 +80,7 @@ const char* Helix::GetTypeName(const Helix::Type* type)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value& value)
+void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Value& value)
 {
 	bool suppressTypeInfo = false;
 
@@ -126,7 +126,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 		out.Write("{ ");
 		for (auto it = ca->begin(); it != ca->end(); ++it) {
 			const Value* v = *it;
-			InternalPrint(slots, out, *v);
+			Print(slots, out, *v);
 
 			if (it < ca->end() - 1) {
 				out.Write(", ");
@@ -138,7 +138,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 		out.Write("{ ");
 		for (auto it = cs->begin(); it != cs->end(); ++it) {
 			const Value* v = *it;
-			InternalPrint(slots, out, *v);
+			Print(slots, out, *v);
 
 			if (it < cs->end() - 1) {
 				out.Write(", ");
@@ -196,7 +196,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Value
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instruction& insn)
+void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Instruction& insn)
 {
 	const char* opcodeName = Helix::GetOpcodeName(insn.GetOpcode());
 
@@ -256,7 +256,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instr
 		Value* pValue = insn.GetOperand(i);
 
 		if (pValue) {
-			InternalPrint(slots, out, *pValue);
+			Print(slots, out, *pValue);
 		}
 		else {
 			out.Write("?");
@@ -277,7 +277,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Instr
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const BasicBlock& bb)
+void Helix::Print(SlotTracker& slots, TextOutputStream& out, const BasicBlock& bb)
 {
 	const char* name = bb.GetName();
 
@@ -300,14 +300,14 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Basic
 
 	for (const Instruction& insn : bb) {
 		out.Write("\t");
-		InternalPrint(slots, out, insn);
+		Print(slots, out, insn);
 		out.Write("\n");
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Function& fn)
+void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Function& fn)
 {
 	// Need to write out the word 'function' separately in order to be able to
 	// highlight/colourise it properly.
@@ -321,7 +321,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Funct
 	out.Write("%s(", name.c_str());
 
 	for (auto it = fn.params_begin(); it != fn.params_end(); ++it) {
-		InternalPrint(slots, out, **it);
+		Print(slots, out, **it);
 
 		if (it < fn.params_end() - 1) {
 			out.Write(", ");
@@ -331,7 +331,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Funct
 	out.Write("): %s {\n", GetTypeName(returnType));
 
 	for (const BasicBlock& bb : fn) {
-		InternalPrint(slots, out, bb);
+		Print(slots, out, bb);
 	}
 
 	out.Write("}\n");
@@ -339,7 +339,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Funct
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Module& mod)
+void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Module& mod)
 {
 	for (const StructType* ty : mod.structs()) {
 		out.Write("%s = ", ty->GetName());
@@ -367,7 +367,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Modul
 
 			if (gvar->HasInit()) {
 				out.Write(" ");
-				InternalPrint(slots, out, *gvar->GetInit());
+				Print(slots, out, *gvar->GetInit());
 			}
 
 			out.Write("\n");
@@ -378,7 +378,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Modul
 
 	for (const Function* fn : mod.functions()) {
 		slots.Reset();
-		InternalPrint(slots, out, *fn);
+		Print(slots, out, *fn);
 	}
 }
 
@@ -387,7 +387,7 @@ static void InternalPrint(SlotTracker& slots, TextOutputStream& out, const Modul
 void Helix::Print(TextOutputStream& out, const Value& value)
 {
 	SlotTracker slots;
-	InternalPrint(slots, out, value);
+	Print(slots, out, value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -395,7 +395,7 @@ void Helix::Print(TextOutputStream& out, const Value& value)
 void Helix::Print(TextOutputStream& out, const Instruction& value)
 {
 	SlotTracker slots;
-	InternalPrint(slots, out, value);
+	Print(slots, out, value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -403,7 +403,7 @@ void Helix::Print(TextOutputStream& out, const Instruction& value)
 void Helix::Print(TextOutputStream& out, const BasicBlock& value)
 {
 	SlotTracker slots;
-	InternalPrint(slots, out, value);
+	Print(slots, out, value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -411,7 +411,7 @@ void Helix::Print(TextOutputStream& out, const BasicBlock& value)
 void Helix::Print(TextOutputStream& out, const Function& value)
 {
 	SlotTracker slots;
-	InternalPrint(slots, out, value);
+	Print(slots, out, value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -419,7 +419,7 @@ void Helix::Print(TextOutputStream& out, const Function& value)
 void Helix::Print(TextOutputStream& out, const Module& value)
 {
 	SlotTracker slots;
-	InternalPrint(slots, out, value);
+	Print(slots, out, value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

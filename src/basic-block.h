@@ -81,6 +81,8 @@ namespace Helix
 		bool HasComment()    const { return Comment.length() > 0; }
 		bool IsEmpty()       const { return Instructions.empty(); }
 
+		const Instruction* GetTerminator() const;
+
 		std::string        GetComment()      const { return Comment;                     }
 		size_t             GetCountUses()    const { return BranchTarget.GetCountUses(); }
 		const char*        GetName()         const { return Name;                        }

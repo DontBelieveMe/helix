@@ -158,6 +158,9 @@ namespace Helix
 	{
 	public:
 		ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* falseBB, Value* cond);
+
+		BasicBlock* GetTrueBB() const { return  value_cast<BlockBranchTarget>(this->GetOperand(0))->GetParent(); }
+		BasicBlock* GetFalseBB() const { return value_cast<BlockBranchTarget>(this->GetOperand(1))->GetParent(); }
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -166,6 +169,8 @@ namespace Helix
 	{
 	public:
 		UnconditionalBranchInsn(BasicBlock* bb);
+
+		BasicBlock* GetBB() const { return value_cast<BlockBranchTarget>(this->GetOperand(0))->GetParent(); }
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

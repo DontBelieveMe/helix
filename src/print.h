@@ -136,6 +136,12 @@ namespace Helix
 	void Print(TextOutputStream& out, const Function& fn);
 	void Print(TextOutputStream& out, const Module& module);
 
+	void Print(SlotTracker& slots, TextOutputStream& out, const Instruction& insn);
+	void Print(SlotTracker& slots, TextOutputStream& out, const Value& value);
+	void Print(SlotTracker& slots, TextOutputStream& out, const BasicBlock& bb);
+	void Print(SlotTracker& slots, TextOutputStream& out, const Function& fn);
+	void Print(SlotTracker& slots, TextOutputStream& out, const Module& module);
+
 	/// Utility function for printing any 'Print(...)' overloaded type to stdout
 	template <typename T>
 	inline void DebugDump(const T& value)

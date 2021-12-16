@@ -36,6 +36,7 @@ add_library(LibHelix
 	src/target-info-armv7.h
 	src/target-info-armv7.cpp
 	src/module.h
+	src/module.cpp
 	src/pass-manager.h
 	src/pass-manager.cpp
 	src/lower.h

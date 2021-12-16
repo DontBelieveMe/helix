@@ -35,6 +35,10 @@ void PassManager::Execute(Module* mod)
 			Helix::DebugDump(*mod);
 		}
 
+		if (Options::GetDumpCFGPost() == passData.name) {
+			mod->DumpControlFlowGraphToFile(fmt::format("cfg-{}.dot", passData.name));
+		}
+
 		runIndex++;
 	}
 }

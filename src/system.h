@@ -57,6 +57,8 @@
 #define helix_warn(channel, ...) channel##.warn(__VA_ARGS__)
 #define helix_debug(channel, ...) channel##.debug(__VA_ARGS__)
 
+HELIX_EXTERN_LOG_CHANNEL(general);
+
 /// Delete the copy constructor, move constructor, copy assignment operator
 /// and move assignment operator for the class 'ClassName'. Use inside the
 /// given class, for example:

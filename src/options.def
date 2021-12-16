@@ -12,6 +12,7 @@ ARGUMENT(bool,        false, DisableColours,                      "no-colours", 
 ARGUMENT(bool,        false, DebugAnnotateIR,                     "annotate-ir",           "Toggles the display of debug comments (if specified) alongside IR"        )
 ARGUMENT(bool,        true,  DisableLogging,                      "no-logging",            "Disable the output of debug logs"                                         )
 ARGUMENT(std::string, "",    EmitIRPostPass,                      "emit-ir-post",          "Emit IR after the given pass, but continue processing as normal"          )
+ARGUMENT(std::string, "",    DumpCFGPost   ,                      "dump-cfg-post",         "Dump the module CFG to a graphiz compatible dot file after the given pass")
 ARGUMENT(std::string, "",    OutputAssemblyFile,                  "o",                     "Output assembly file"                                                     )
 ARGUMENT(bool,        false, EmitOnlyAssembly,                    "S",                     "Emit only assembly to the given output file & not IR or compiled a binary")
 ARGUMENT(bool,        false, EnableExperimentalRegisterAllocator, "experimental-regalloc", "Enable the register allocator"                                            )
