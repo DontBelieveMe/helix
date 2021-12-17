@@ -1581,6 +1581,8 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 
 	this->DoStmt(functionDecl->getBody());
 
+	bool tryInjectRet = false;
+
 	if (m_CurrentFunction->GetCountBlocks() > 1) {
 		// If we have more than one basic block in a function
 		// and the last one is empty & not used we can delete it.
@@ -1596,8 +1598,22 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 
 			m_BasicBlockIterator.invalidate();
 		}
-	} else {
-		frontend_assert(m_CurrentFunction->GetCountBlocks() == 1, "Function does not contain any blocks");
+		else {
+			// If we can't delete the BB (because it might have outstanding references,
+			// such as being jumped to) then try inject a ret.
+			// This might happen, for void functions where a branching statement like an
+			// 'if' has created a tail block, but nothing occurs after the if statement
+			// so its just left empty, but used as a jump target to escape the ret.
+			if (m_BasicBlockIterator->IsEmpty())
+				tryInjectRet = true;
+		}
+	}
+	else {
+		tryInjectRet = true;
+	}
+	
+	if (tryInjectRet) {
+		frontend_assert(m_CurrentFunction->GetCountBlocks() > 0, "Function does not contain any blocks");
 
 		// Otherwise (we have one block) so check if its empty, or doesn't
 		// contain a ret.

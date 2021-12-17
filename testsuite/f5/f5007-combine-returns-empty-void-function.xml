@@ -1,0 +1,16 @@
+<Test>
+	<Flags>--emit-ir-post=retcomb</Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function a(): void {
+.0:
+	br .1
+.1:
+	ret
+}
+	</ExpectedOutput>
+</Test>

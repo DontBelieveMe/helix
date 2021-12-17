@@ -1,0 +1,1 @@
+char a() { return 2; }

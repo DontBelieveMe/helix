@@ -1,0 +1,25 @@
+<Test>
+	<Flags>--emit-ir-post=retcomb</Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function a(): void {
+.0:
+	icmp_gt 0:i32, 3:i32, %0:i32
+	cbr .1, .2, %0:i32
+.1:
+	stack_alloc [i32 x 1], %1:ptr
+	br .3
+.2:
+	stack_alloc [i32 x 1], %2:ptr
+	br .3
+.3:
+	br .4
+.4:
+	ret
+}
+	</ExpectedOutput>
+</Test>
