@@ -17,5 +17,7 @@
        }
 
 
- * 
+ * Debug support to output control flow graphics (via graphiz) after any
+   stage (similar to the --emit-ir-post=xxxx command)
+   
 
