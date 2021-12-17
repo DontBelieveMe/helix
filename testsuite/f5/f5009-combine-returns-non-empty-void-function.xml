@@ -8,13 +8,13 @@
 	<ExpectedOutput>
 function a(): void {
 .0:
-	icmp_gt 0:i32, 3:i32, %0:i32
-	cbr .1, .2, %0:i32
-.1:
+	stack_alloc [i32 x 1], %0:ptr
 	stack_alloc [i32 x 1], %1:ptr
+	icmp_gt 0:i32, 3:i32, %2:i32
+	cbr .1, .2, %2:i32
+.1:
 	br .3
 .2:
-	stack_alloc [i32 x 1], %2:ptr
 	br .3
 .3:
 	br .4

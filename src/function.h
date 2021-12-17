@@ -57,6 +57,9 @@ namespace Helix
 
 		size_t GetCountBlocks() const { return m_Blocks.size(); }
 
+		iterator Where(BasicBlock* bb) { return iterator(bb); }
+		const_iterator Where(BasicBlock* bb) const { return const_iterator(bb); }
+
 		iterator_range<block_iterator> blocks() { return iterator_range(begin(), end()); }
 
 	private:

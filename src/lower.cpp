@@ -229,12 +229,16 @@ void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
 
 void GenericLegalizer::Execute(Function* fn)
 {
+	helix_assert(fn->GetCountBlocks() > 0, "function must have at least one basic block");
+
 	struct Store { StoreInsn& insn; BasicBlock& bb; };
+	struct StackAlloc { StackAllocInsn& insn; BasicBlock& bb; };
 
 	bool dirty = true;
 
 	do {
 		std::vector<Store> illegalStores;
+		std::vector<StackAlloc> illegalStackAllocs;
 
 		for (BasicBlock& bb : fn->blocks()) {
 			for (Instruction& insn : bb.insns()) {
@@ -248,6 +252,17 @@ void GenericLegalizer::Execute(Function* fn)
 
 					break;
 				}
+				case kInsn_StackAlloc: {
+					// Don't want to move stack_allocs that are already in the
+					// first basic block of the function 
+					if (fn->Where(&bb) == fn->begin()) {
+						break;
+					}
+
+					StackAllocInsn& stack_alloc = static_cast<StackAllocInsn&>(insn);
+					illegalStackAllocs.push_back({stack_alloc, bb});
+					break;
+				}
 
 				default:
 					break;
@@ -257,6 +272,15 @@ void GenericLegalizer::Execute(Function* fn)
 
 		for (Store& store : illegalStores) {
 			LegaliseStore(store.bb, store.insn);
+		}
+
+		BasicBlock& head = *fn->begin();
+
+		for (StackAlloc& stack_alloc : illegalStackAllocs) {
+			BasicBlock& bb = stack_alloc.bb;
+
+			bb.Remove(bb.Where(&stack_alloc.insn));
+			head.InsertBefore(head.begin(), &stack_alloc.insn);
 		}
 
 		dirty = !illegalStores.empty();
