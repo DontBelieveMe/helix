@@ -159,6 +159,16 @@ namespace Helix
 		ParametersList::const_iterator params_begin() const { return m_Parameters.begin(); }
 		ParametersList::const_iterator params_end() const { return m_Parameters.end(); }
 
+		/**
+		 * Create a new FunctionType with the same parameters as this one, but just
+		 * with a new (and hopefully different return type).
+		 * 
+		 * @param newReturnType The new return type that the FunctionType returned should have.
+		 * @return const FunctionType* A new distint FunctionType, with the given return type & same parameters
+		 *                             as this.
+		 */
+		const FunctionType* CopyWithDifferentReturnType(const Type* newReturnType) const;
+
 	private:
 		const Type*    m_ReturnType;
 		ParametersList m_Parameters;

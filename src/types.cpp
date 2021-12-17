@@ -113,3 +113,8 @@ const StructType* StructType::Create(const FieldList& fields)
 
 	return Create(name, fields);
 }
+
+const FunctionType* FunctionType::CopyWithDifferentReturnType(const Type* newReturnType) const
+{
+	return FunctionType::Create(newReturnType, m_Parameters);
+}

@@ -8,6 +8,7 @@
 #include "lower.h"
 #include "regalloc.h"
 #include "match.h"
+#include "validate.h"
 
 using namespace Helix;
 
@@ -25,6 +26,20 @@ PassManager::PassManager()
 
 void PassManager::Execute(Module* mod)
 {
+	ValidationPass validationPass;
+
+	// Manually run a validation pass to check the IR emitted by the frontend.
+	// Other validation passes will happen, but the pass manager can schedule them
+	// automatically between passes.
+	validationPass.Execute(mod);
+
+	// Do this here since we want to run a validation pass first, but
+	// don't actually want to run any other pass, just dump the frontend IR
+	// and exit out.
+	if (Options::GetEmitIR1()) {
+		Helix::DebugDump(*mod);
+	}
+
 	size_t runIndex = 1;
 	for (const PassData& passData : m_Passes) {
 		std::unique_ptr<Pass> pass = passData.create_action();
@@ -39,6 +54,12 @@ void PassManager::Execute(Module* mod)
 		if (Options::GetDumpCFGPost() == passData.name) {
 			mod->DumpControlFlowGraphToFile(fmt::format("cfg-{}.dot", passData.name));
 		}
+
+		// Automatically run a validation check after every pass. This is useful to ensure correctness
+		// during development, but will definately slow things down in the long run (esp with bigger
+		// source files). Maybe hide this behind a flag (--always-validate or something?)
+		// #FIXME
+		validationPass.Execute(mod);
 
 		runIndex++;
 	}

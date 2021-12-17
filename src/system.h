@@ -55,6 +55,7 @@
 #define helix_trace(channel, ...) channel##.trace(__VA_ARGS__)
 #define helix_info(channel, ...) channel##.info(__VA_ARGS__)
 #define helix_warn(channel, ...) channel##.warn(__VA_ARGS__)
+#define helix_error(channel, ...) channel##.error(__VA_ARGS__)
 #define helix_debug(channel, ...) channel##.debug(__VA_ARGS__)
 
 HELIX_EXTERN_LOG_CHANNEL(general);

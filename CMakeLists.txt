@@ -46,6 +46,8 @@ add_library(LibHelix
 	src/match.h
 	src/regalloc.h
 	src/regalloc.cpp
+	src/validate.h
+	src/validate.cpp
 
 	src/options.def
 	src/insns.def

@@ -370,4 +370,14 @@ void CConv::Execute(Function* fn)
 			ret.MakeVoid();
 		}
 	}
+
+	// Set the type of this function to be void (now we've replaced all value returns)
+	// *technically* this function still has a return type & is not void, but
+	// at this point in the pipeline we need to lower past higher level details like that.
+
+	const FunctionType* existingFunctionType = type_cast<FunctionType>(fn->GetType());
+	helix_assert(existingFunctionType, "function type should be a FunctionType instance");
+
+	const FunctionType* voidFunctionType = existingFunctionType->CopyWithDifferentReturnType(BuiltinTypes::GetVoidType());
+	fn->SetType(voidFunctionType);	
 }

@@ -137,6 +137,9 @@ namespace Helix
 	{
 	public:
 		LoadInsn(Value* src, Value* dst);
+
+		Value* GetSrc() const { return this->GetOperand(0); }
+		Value* GetDst() const { return this->GetOperand(1); }
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,6 +150,9 @@ namespace Helix
 		StackAllocInsn(Value* dst, const Type* type);
 
 		const Type* GetType() const { return m_Type; }
+
+		Value* GetOutputPtr() const { return this->GetOperand(0); }
+		const Type* GetAllocatedType() const { return m_Type; }
 
 	private:
 		const Type* m_Type;
@@ -161,6 +167,7 @@ namespace Helix
 
 		BasicBlock* GetTrueBB() const { return  value_cast<BlockBranchTarget>(this->GetOperand(0))->GetParent(); }
 		BasicBlock* GetFalseBB() const { return value_cast<BlockBranchTarget>(this->GetOperand(1))->GetParent(); }
+		Value*      GetCond() const { return this->GetOperand(2); }
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

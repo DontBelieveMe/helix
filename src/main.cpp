@@ -16,17 +16,8 @@ int main(int argc, const char** argv)
 		return 1;
 	}
 
-	if (Options::GetEmitIR()) {
-		Helix::DebugDump(*tu);
-		Shutdown();
-		return 0;
-	}
-
 	PassManager passManager;
 	passManager.Execute(tu);
-
-	if (Options::GetEmitIRPostPass().empty() && !Options::GetEmitOnlyAssembly())
-		Helix::DebugDump(*tu);
 
 	Shutdown();
 	HELIX_PROFILE_END
