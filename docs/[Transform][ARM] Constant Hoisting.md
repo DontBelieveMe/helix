@@ -15,9 +15,9 @@ register:
    `ldr`. 
 
 As an initial implementation, I think implementing loading immediates as always
-loading from memory makes sense - the approach is simpler is consistent for
+loading from memory makes sense - the approach is simpler and consistent for
 all immediate values, wheras choosing how to split the load into multiple
-instructions takes a bit more work.
+mov/or instructions takes a bit more work.
 
 This can always be improved on later by taking a bit more of a heuristic
 approach to deciding which to do (something that can probably be

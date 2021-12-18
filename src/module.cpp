@@ -12,6 +12,7 @@ using namespace Helix;
 
 void Module::RegisterFunction(Function* fn)
 {
+	fn->SetParent(this);
 	m_Functions.push_back(fn);
 }
 

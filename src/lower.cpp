@@ -3,6 +3,7 @@
 #include "function.h"
 #include "instructions.h"
 #include "target-info-armv7.h"
+#include "module.h"
 
 #include "arm-md.h"
 
@@ -380,4 +381,60 @@ void CConv::Execute(Function* fn)
 
 	const FunctionType* voidFunctionType = existingFunctionType->CopyWithDifferentReturnType(BuiltinTypes::GetVoidType());
 	fn->SetType(voidFunctionType);	
+}
+
+GlobalVariable* ConstantHoisting::CreateOrGetGlobal(Module* mod, ConstantInt* cint) {
+	auto it = GlobalMap.find(cint);
+
+	if (it == GlobalMap.end()) {
+		static size_t index = 0;
+		const std::string name = "ci" + std::to_string(index);
+		index++;
+
+		GlobalVariable* gvar = GlobalVariable::Create(name, cint->GetType(), cint);
+		mod->RegisterGlobalVariable(gvar);
+
+		GlobalMap.insert({cint, gvar});
+	
+		return gvar;
+	}
+
+	return it->second;
+}
+
+void ConstantHoisting::Execute(BasicBlock* bb)
+{
+	helix_assert(bb, "ConstantHoisting: NULl basic block");
+
+	struct ConstantRef { Instruction& insn; };
+
+	std::vector<ConstantRef> constantReferences;
+
+	for (Instruction& insn : *bb) {
+		for (size_t operandIndex = 0; operandIndex < insn.GetCountOperands(); ++operandIndex) {
+			Value* pOperand = insn.GetOperand(operandIndex);
+
+			if (pOperand->IsA<ConstantInt>()) {
+				constantReferences.push_back({insn});
+				break;
+			}
+		}
+	}
+
+	for (const ConstantRef& constantRef : constantReferences) {
+		Instruction& insn = constantRef.insn;
+
+		for (size_t operandIndex = 0; operandIndex < insn.GetCountOperands(); ++operandIndex) {
+			Value* pOperand = insn.GetOperand(operandIndex);
+
+			if (ConstantInt* cint = value_cast<ConstantInt>(pOperand)) {
+				VirtualRegisterName* v = VirtualRegisterName::Create(pOperand->GetType());
+				GlobalVariable* g = this->CreateOrGetGlobal(bb->GetParent()->GetParent(), cint);
+
+				bb->InsertBefore(bb->Where(&insn), Helix::CreateLoad(g, v));
+
+				insn.SetOperand(operandIndex, v);
+			}
+		}
+	}
 }

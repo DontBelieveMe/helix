@@ -8,6 +8,8 @@
 
 namespace Helix
 {
+	class Module;
+
 	class Function : public Value
 	{
 	public:
@@ -62,10 +64,15 @@ namespace Helix
 
 		iterator_range<block_iterator> blocks() { return iterator_range(begin(), end()); }
 
+		void SetParent(Module* parent) { Parent = parent; }
+		Module* GetParent() const { return Parent; }
+
 	private:
 		BlockList    m_Blocks;
 		ParamList    m_Parameters;
 		std::string  m_Name;
+
+		Module*      Parent = nullptr;
 	};
 
 	IMPLEMENT_VALUE_TRAITS(Function, kValue_Function);

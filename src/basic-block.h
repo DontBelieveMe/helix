@@ -44,6 +44,8 @@
 
 namespace Helix
 {
+	class Function;
+
 	class BasicBlock : public intrusive_list_node
 	{
 	private:
@@ -109,10 +111,14 @@ namespace Helix
 			Helix::DestroyInstruction(&(*insn));
 		}
 
+		Function* GetParent() const { return Parent; }
+		void SetParent(Function* fn) { Parent = fn; }
+
 	private:
 		InstructionList   Instructions;
 		const char*       Name;
 		BlockBranchTarget BranchTarget;
 		std::string       Comment;
+		Function*         Parent = nullptr;
 	};
 }
