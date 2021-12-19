@@ -10,7 +10,7 @@
 #include <vector>
 #include <numeric>
 
-#pragma optimize("", off)
+// #pragma optimize("", off)
 
 using namespace Helix;
 
