@@ -1714,7 +1714,12 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 		tool.appendArgumentsAdjuster(clang::tooling::getInsertArgumentAdjuster(
 			{
 				"--target=armv7-pc-linux-eabi",
-				"-nostdlib"
+				"-nostdlib",
+
+				// This might not be nessesary as it doesn't seem to be finding
+				// std headers anyway without it, but it matches -nostdlib
+				// and it can't hurt to make sure
+				"-nostdinc" 
 			},
 			clang::tooling::ArgumentInsertPosition::BEGIN
 		));
