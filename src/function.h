@@ -53,6 +53,8 @@ namespace Helix
 
 		void Remove(iterator where);
 
+		BasicBlock* GetTailBlock();
+
 		bool               IsVoidReturn()  const { return GetReturnType() == BuiltinTypes::GetVoidType();     }
 		const Type*        GetReturnType() const { return ((const FunctionType*) GetType())->GetReturnType(); }
 		inline std::string GetName()       const { return m_Name;                                             }
