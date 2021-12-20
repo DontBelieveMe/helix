@@ -1,27 +1,29 @@
-unsigned long long size_int() {
+typedef unsigned long size_t;
+
+size_t size_int() {
 	return sizeof(int);
 }
 
-unsigned long long size_uchar() {
+size_t size_uchar() {
 	return sizeof(unsigned char);
 }
 
-unsigned long long size_schar() {
+size_t size_schar() {
 	return sizeof(signed char);
 }
 
-unsigned long long size_short() {
+size_t size_short() {
 	return sizeof(short);
 }
 
-unsigned long long size_long_long() {
+size_t size_long_long() {
 	return sizeof(long long);
 }
 
-unsigned long long size_char_ptr() {
+size_t size_char_ptr() {
 	return sizeof(char*);
 }
 
-unsigned long long array_type() {
+size_t array_type() {
 	return sizeof(int[10]);
 }

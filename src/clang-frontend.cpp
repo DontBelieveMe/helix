@@ -113,7 +113,9 @@ public:
 		using namespace Helix;
 
 		const TargetInfo::IntType ty = m_TargetInfo->GetSizeType();
-		m_SizeType = IntegerType::Create(m_TargetInfo->GetIntBitWidth(ty));
+
+		helix_assert(m_TargetInfo->GetIntBitWidth(ty) == 32, "unexpected size type");
+		m_SizeType = BuiltinTypes::GetInt32();  // IntegerType::Create(m_TargetInfo->GetIntBitWidth(ty));
 
 		m_Module = Helix::CreateModule();
 	}
@@ -724,6 +726,8 @@ Helix::Function* CodeGenerator::LookupFunction(clang::FunctionDecl* decl)
 
 const Helix::Type* CodeGenerator::ConvertBuiltinType(const clang::BuiltinType* builtinType)
 {
+	// #FIXME: Convert this to use the target info system
+
 	switch (builtinType->getKind()) {
 	case clang::BuiltinType::Char_S:
 	case clang::BuiltinType::Char_U:
@@ -737,10 +741,10 @@ const Helix::Type* CodeGenerator::ConvertBuiltinType(const clang::BuiltinType* b
 
 	case clang::BuiltinType::Int:
 	case clang::BuiltinType::UInt:
-		return Helix::BuiltinTypes::GetInt32();
-
 	case clang::BuiltinType::Long:
 	case clang::BuiltinType::ULong:
+		return Helix::BuiltinTypes::GetInt32();
+
 	case clang::BuiltinType::ULongLong:
 	case clang::BuiltinType::LongLong:
 		return Helix::BuiltinTypes::GetInt64();
@@ -807,10 +811,10 @@ const Helix::Type* CodeGenerator::ConvertType(const clang::Type* type)
 
 Helix::Value* CodeGenerator::DoSizeOf(clang::QualType type)
 {
-	const Helix::Type* SizeType = Helix::BuiltinTypes::GetInt64();
+	const Helix::Type* sizeType = this->GetSizeType();
 
 	const size_t TypeWidth = this->GetTypeInfo(type).Width;
-	return Helix::ConstantInt::Create(SizeType, TypeWidth);
+	return Helix::ConstantInt::Create(sizeType, TypeWidth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1706,6 +1710,14 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 			optionsParser.getCompilations(),
 			optionsParser.getSourcePathList()
 		);
+
+		tool.appendArgumentsAdjuster(clang::tooling::getInsertArgumentAdjuster(
+			{
+				"--target=armv7-pc-linux-eabi",
+				"-nostdlib"
+			},
+			clang::tooling::ArgumentInsertPosition::BEGIN
+		));
 
 		for (size_t i = 0; i < Options::GetCountEnabledLogs(); ++i) {
 			const std::string& opt = Options::GetEnabledLog(i);
