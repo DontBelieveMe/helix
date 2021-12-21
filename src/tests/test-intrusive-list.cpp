@@ -193,4 +193,175 @@ TEST_CASE("insert_after end() on empty list", "[intrusive_list]")
 	REQUIRE(ints.begin()->value == 123);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*********************************************************************************************************************/
+
+TEST_CASE("back() in single item list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+	MyInteger* i = alloc.Parent(new MyInteger(541));
+
+	Helix::intrusive_list<MyInteger> list;
+	list.push_back(i);
+
+	REQUIRE(&list.back() == i);
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("front() in single item list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+	MyInteger* i = alloc.Parent(new MyInteger(541));
+
+	Helix::intrusive_list<MyInteger> list;
+	list.push_back(i);
+
+	REQUIRE(&list.front() == i);
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("back() is the same as front() in single item list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+	MyInteger* i = alloc.Parent(new MyInteger(541));
+
+	Helix::intrusive_list<MyInteger> list;
+	list.push_back(i);
+
+	REQUIRE(&list.back() == &list.front());
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("back() in a multiple item list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+	MyInteger* a = alloc.Parent(new MyInteger(1));
+	MyInteger* b = alloc.Parent(new MyInteger(2));
+	MyInteger* c = alloc.Parent(new MyInteger(3));
+
+	Helix::intrusive_list<MyInteger> list;
+
+	list.push_back(a);
+	list.push_back(b);
+	list.push_back(c);
+
+	REQUIRE(&list.back() == c);
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("front() in a multiple item list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+	MyInteger* a = alloc.Parent(new MyInteger(1));
+	MyInteger* b = alloc.Parent(new MyInteger(2));
+	MyInteger* c = alloc.Parent(new MyInteger(3));
+
+	Helix::intrusive_list<MyInteger> list;
+
+	list.push_back(a);
+	list.push_back(b);
+	list.push_back(c);
+
+	REQUIRE(&list.front() == a);
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("remove first item in a list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+
+	MyInteger* a = alloc.Parent(new MyInteger(512));
+	MyInteger* b = alloc.Parent(new MyInteger(1));
+	MyInteger* c = alloc.Parent(new MyInteger(6543));
+
+
+	Helix::intrusive_list<MyInteger> list;
+	list.push_back(a);
+	list.push_back(b);
+	list.push_back(c);
+
+	Helix::intrusive_list<MyInteger>::iterator it = list.begin();
+	list.remove(it);
+
+	REQUIRE(list.size() == 2);
+
+	REQUIRE(&list.front() == b);
+	REQUIRE(&list.back() == c);
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("remove last item in a list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+
+	MyInteger* a = alloc.Parent(new MyInteger(512));
+	MyInteger* b = alloc.Parent(new MyInteger(1));
+	MyInteger* c = alloc.Parent(new MyInteger(6543));
+
+	Helix::intrusive_list<MyInteger> list;
+	list.push_back(a);
+	list.push_back(b);
+	list.push_back(c);
+
+	Helix::intrusive_list<MyInteger>::iterator it(c);
+	list.remove(it);
+
+	REQUIRE(list.size() == 2);
+	REQUIRE(&list.front() == a);
+	REQUIRE(&list.back() == b);
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("remove middle item in a list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+
+	MyInteger* a = alloc.Parent(new MyInteger(512));
+	MyInteger* b = alloc.Parent(new MyInteger(1));
+	MyInteger* c = alloc.Parent(new MyInteger(6543));
+
+	Helix::intrusive_list<MyInteger> list;
+	list.push_back(a);
+	list.push_back(b);
+	list.push_back(c);
+
+	Helix::intrusive_list<MyInteger>::iterator it(b);
+	list.remove(it);
+
+	REQUIRE(list.size() == 2);
+	REQUIRE(&list.front() == a);
+	REQUIRE(&list.back() == c);
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("replace item in a list", "[intrusive_list]")
+{
+	ScopeAllocator<MyInteger> alloc;
+
+	MyInteger* a = alloc.Parent(new MyInteger(512));
+	MyInteger* b = alloc.Parent(new MyInteger(1));
+	MyInteger* c = alloc.Parent(new MyInteger(6543));
+
+	Helix::intrusive_list<MyInteger> list;
+	list.push_back(a);
+	list.push_back(b);
+
+	Helix::intrusive_list<MyInteger>::iterator it(b);
+
+	REQUIRE(&list.back() == b);
+
+	list.replace(b, c);
+
+	REQUIRE(&list.front() == a);
+	REQUIRE(&list.back() == c);
+}
+
+/*********************************************************************************************************************/
+

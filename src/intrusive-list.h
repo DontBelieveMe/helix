@@ -170,6 +170,9 @@ namespace Helix
 		T& back() { return *static_cast<T*>(m_sentinel.get_prev()); }
 		const T& back() const { return *static_cast<T*>(m_sentinel.get_prev()); }
 
+		T& front() { return *static_cast<T*>(m_sentinel.get_next()); }
+		const T& front() const { return *static_cast<T*>(m_sentinel.get_next()); }
+
 	private:
 		intrusive_list_node m_sentinel;
 		size_t m_size = 0 ;
