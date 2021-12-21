@@ -84,11 +84,11 @@ target_compile_options(Helix PRIVATE /wd26812 /W4 /Zi)
 target_compile_options(LibHelix PRIVATE /wd26812 /W4 /Zi)
 
 add_executable(LibHelixTests
-	src/tests/test_intrusive_list.cpp
-	src/tests/test_bytecode.cpp
-	src/tests/test_value.cpp
-	src/tests/test_print.cpp
-	src/tests/test_function.cpp
+	src/tests/test-intrusive-list.cpp
+	src/tests/test-bytecode.cpp
+	src/tests/test-value.cpp
+	src/tests/test-print.cpp
+	src/tests/test-function.cpp
 	src/tests/main.cpp
 	src/tests/catch.hpp
 )
