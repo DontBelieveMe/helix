@@ -1,7 +1,7 @@
 #include "catch.hpp"
-#include "..\value.h"
-#include "..\instructions.h"
-#include "..\types.h"
+#include "../value.h"
+#include "../instructions.h"
+#include "../types.h"
 
 using namespace Helix;
 

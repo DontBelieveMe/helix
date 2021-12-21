@@ -2,7 +2,9 @@
 
 #include <spdlog/spdlog.h>
 
-#include <Windows.h>
+#if defined(_WIN32)
+	#include <Windows.h>
+#endif
 
 HELIX_DEFINE_LOG_CHANNEL(general);
 
@@ -12,7 +14,11 @@ std::vector<Helix::LogRegister*> Helix::LogRegister::s_loggers;
 
 bool Helix::ShouldDebugBreak()
 {
+#if defined(_WIN32)
 	return IsDebuggerPresent();
+#else
+	return 0;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

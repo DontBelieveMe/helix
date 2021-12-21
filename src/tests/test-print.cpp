@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "..\print.h"
+#include "../print.h"
 
 using namespace Helix;
 

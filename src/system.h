@@ -20,7 +20,11 @@
 
 #include "profile.h"
 
-#define HELIX_DEBUG_BREAK (Helix::ShouldDebugBreak() ? __debugbreak() : exit(1))
+#if defined(_WIN32)
+	#define HELIX_DEBUG_BREAK (Helix::ShouldDebugBreak() ? __debugbreak() : exit(1))
+#else
+	#define HELIX_DEBUG_BREAK (exit(1))
+#endif
 
 #define helix_assert(cond, reason) \
 	do { \
@@ -52,11 +56,11 @@
 
 #define HELIX_EXTERN_LOG_CHANNEL(name) namespace logs { extern spdlog::logger name; }
 
-#define helix_trace(channel, ...) channel##.trace(__VA_ARGS__)
-#define helix_info(channel, ...) channel##.info(__VA_ARGS__)
-#define helix_warn(channel, ...) channel##.warn(__VA_ARGS__)
-#define helix_error(channel, ...) channel##.error(__VA_ARGS__)
-#define helix_debug(channel, ...) channel##.debug(__VA_ARGS__)
+#define helix_trace(channel, ...) channel .trace(__VA_ARGS__)
+#define helix_info(channel, ...) channel .info(__VA_ARGS__)
+#define helix_warn(channel, ...) channel .warn(__VA_ARGS__)
+#define helix_error(channel, ...) channel .error(__VA_ARGS__)
+#define helix_debug(channel, ...) channel .debug(__VA_ARGS__)
 
 HELIX_EXTERN_LOG_CHANNEL(general);
 
