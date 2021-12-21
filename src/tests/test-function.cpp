@@ -3,6 +3,8 @@
 
 using namespace Helix;
 
+/*********************************************************************************************************************/
+
 TEST_CASE("Creating a empty function", "[Function]")
 {
 	const FunctionType* type = FunctionType::Create(BuiltinTypes::GetVoidType(), {});
@@ -11,6 +13,8 @@ TEST_CASE("Creating a empty function", "[Function]")
 	REQUIRE(fn->GetName() == "main");
 	REQUIRE(fn->GetReturnType() == BuiltinTypes::GetVoidType());
 }
+
+/*********************************************************************************************************************/
 
 TEST_CASE("Creating a function, inserting one basic block at end", "[Function]")
 {
@@ -23,8 +27,9 @@ TEST_CASE("Creating a function, inserting one basic block at end", "[Function]")
 
 	REQUIRE(fn->GetReturnType() == BuiltinTypes::GetVoidType());
 
-	for (const BasicBlock& v : *fn)
-	{
+	for (const BasicBlock& v : *fn) {
 		REQUIRE(&v == bb);
 	}
 }
+
+/*********************************************************************************************************************/

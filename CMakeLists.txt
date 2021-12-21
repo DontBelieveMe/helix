@@ -89,6 +89,7 @@ add_executable(LibHelixTests
 	src/tests/test-value.cpp
 	src/tests/test-print.cpp
 	src/tests/test-function.cpp
+	src/tests/test-constant-int.cpp
 	src/tests/main.cpp
 	src/tests/catch.hpp
 )
