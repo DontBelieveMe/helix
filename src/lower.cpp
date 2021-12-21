@@ -10,7 +10,7 @@
 #include <vector>
 #include <numeric>
 
-#pragma optimize("", off)
+// #pragma optimize("", off)
 
 using namespace Helix;
 
@@ -89,6 +89,17 @@ namespace IR
 				}
 			}
 		}
+	}
+
+	template <typename T>
+	static T* FindFirstInstructionOfType(BasicBlock& bb, Opcode opcode) {
+		for (Instruction& insn : bb) {
+			if (insn.GetOpcode() == opcode) {
+				return static_cast<T*>(&insn);
+			}
+		}
+
+		return nullptr;
 	}
 }
 
@@ -353,34 +364,42 @@ void CConv::Execute(Function* fn)
 	// #FIXME: Maybe this can be simplified by assuming there is only one return?
 	//         (as per the ReturnCombine pass)
 
-	std::vector<IR::ParentedInsn<RetInsn>> rets;
-	IR::BuildWorklist(rets, fn, kInsn_Return);
+	BasicBlock* tailBlock = fn->GetTailBlock();
+	helix_assert(tailBlock, "function must have at least one block (and that should be its tail)");
+
+	if (!tailBlock)
+		return;
+
+	RetInsn* ret = IR::FindFirstInstructionOfType<RetInsn>(*tailBlock, kInsn_Return);
+	helix_assert(ret, "cannot find a return instruction in the tail block");
+
+	if (!ret)
+		return;
 
 	PhysicalRegisterName* r0 = PhysicalRegisters::GetRegister(PhysicalRegisters::R0);
+	const size_t r0Size = ARMv7::TypeSize(r0->GetType()); // always going to be 4, but meh
 
-	for (IR::ParentedInsn<RetInsn>& workload : rets) {
-		RetInsn& ret = workload.insn;
+	if (ret->HasReturnValue()) {
+		Value* returnValue = ret->GetReturnValue();
 
-		if (ret.HasReturnValue()) {
-			Value* returnValue = ret.GetReturnValue();
-			ConstantInt* zero = ConstantInt::Create(returnValue->GetType(), 0);
+		// #FIXME: Need to implement returning values by "output" parameter.
+		//         This is defined in AAPCS32
+		helix_assert(ARMv7::TypeSize(returnValue->GetType()) <= r0Size, "return value can't fit in output register");
 
-			BasicBlock::iterator where = workload.parent.Where(&ret);
-			where = workload.parent.InsertBefore(where, Helix::CreateBinOp(kInsn_Or, zero, returnValue, r0));
+		IR::ReplaceAllUsesWith(returnValue, r0);
 
-			ret.MakeVoid();
-		}
+		ret->MakeVoid();
+	
+		// Set the type of this function to be void (now we've replaced all value returns)
+		// *technically* this function still has a return type & is not void, but
+		// at this point in the pipeline we need to lower past higher level details like that.
+
+		const FunctionType* existingFunctionType = type_cast<FunctionType>(fn->GetType());
+		helix_assert(existingFunctionType, "function type should be a FunctionType instance");
+
+		const FunctionType* voidFunctionType = existingFunctionType->CopyWithDifferentReturnType(BuiltinTypes::GetVoidType());
+		fn->SetType(voidFunctionType);	
 	}
-
-	// Set the type of this function to be void (now we've replaced all value returns)
-	// *technically* this function still has a return type & is not void, but
-	// at this point in the pipeline we need to lower past higher level details like that.
-
-	const FunctionType* existingFunctionType = type_cast<FunctionType>(fn->GetType());
-	helix_assert(existingFunctionType, "function type should be a FunctionType instance");
-
-	const FunctionType* voidFunctionType = existingFunctionType->CopyWithDifferentReturnType(BuiltinTypes::GetVoidType());
-	fn->SetType(voidFunctionType);	
 }
 
 GlobalVariable* ConstantHoisting::CreateOrGetGlobal(Module* mod, ConstantInt* cint) {

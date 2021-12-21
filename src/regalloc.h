@@ -6,10 +6,10 @@ namespace Helix
 {
 	class BasicBlock;
 
-	class RegisterAllocator : public BasicBlockPass
+	class RegisterAllocator : public FunctionPass
 	{
 	public:
-		virtual void Execute(BasicBlock* bb) override;
+		virtual void Execute(Function* fn) override;
 	};
 
 }

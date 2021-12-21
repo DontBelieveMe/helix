@@ -29,17 +29,14 @@ void PassManager::Execute(Module* mod)
 {
 	ValidationPass validationPass;
 
+	if (Options::GetEmitIR1()) {
+		Helix::DebugDump(*mod);
+	}
+
 	// Manually run a validation pass to check the IR emitted by the frontend.
 	// Other validation passes will happen, but the pass manager can schedule them
 	// automatically between passes.
 	validationPass.Execute(mod);
-
-	// Do this here since we want to run a validation pass first, but
-	// don't actually want to run any other pass, just dump the frontend IR
-	// and exit out.
-	if (Options::GetEmitIR1()) {
-		Helix::DebugDump(*mod);
-	}
 
 	size_t runIndex = 1;
 	for (const PassData& passData : m_Passes) {

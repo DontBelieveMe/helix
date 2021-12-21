@@ -28,8 +28,16 @@ bool CheckRetInsn(Function* fn, BasicBlock&, RetInsn& insn) {
 	}
 
 	if (insn.HasReturnValue()) {
-		if (fn->GetReturnType() != insn.GetReturnValue()->GetType()) {
-			helix_error(logs::validate, "invalid return, mismatch between return value type and function return type");
+		const Type* functionReturnType = fn->GetReturnType();
+		const Type* returnValueType = insn.GetReturnValue()->GetType();
+
+		if (functionReturnType != returnValueType) {
+			helix_error(
+				logs::validate,
+				"invalid return, mismatch between return value type ({}/{}) and function return type ({}/{})",
+				(void*) functionReturnType, GetTypeName(functionReturnType),
+				(void*) returnValueType, GetTypeName(returnValueType)
+			);
 			return false;
 		}
 	}

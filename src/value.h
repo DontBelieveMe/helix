@@ -41,6 +41,8 @@ namespace Helix
 
 		void ReplaceWith(Value* newValue);
 
+		Instruction* GetInstruction() const { return m_User; }
+
 	private:
 		Instruction* m_User;
 		uint16_t     m_OperandIndex;

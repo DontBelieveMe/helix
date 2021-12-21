@@ -19,3 +19,12 @@ void Function::Remove(iterator where)
 	where->SetParent(nullptr);
 	m_Blocks.remove(where);
 }
+
+BasicBlock* Function::GetTailBlock()
+{
+	if (m_Blocks.empty()) {
+		return nullptr;
+	}
+
+	return &m_Blocks.back();
+}
