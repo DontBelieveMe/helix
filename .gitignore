@@ -4,6 +4,7 @@ lib/
 
 build/
 vs2019/
+linux/
 
 tools/Testify/bin
 tools/Testify/obj
