@@ -1,5 +1,7 @@
 #pragma once
 
+#include "system.h"
+
 #include <assert.h>
 
 namespace Helix
@@ -96,6 +98,12 @@ namespace Helix
 			m_sentinel.set_next(&m_sentinel);
 		}
 
+		/**
+		 * Return if the list is empty (that is `begin() == end()`)
+		 * 
+		 * @return true  The list has no elements.
+		 * @return false The list has at least one element.
+		 */
 		bool empty() const { return begin() == end(); }
 
 		iterator       begin() { return iterator(static_cast<T*>(m_sentinel.get_next())); }
@@ -104,7 +112,31 @@ namespace Helix
 		const_iterator begin() const { return const_iterator(static_cast<const T*>(m_sentinel.get_next())); }
 		const_iterator end()   const { return const_iterator(static_cast<const T*>(&m_sentinel)); }
 
+		/**
+		 * Return the number of nodes in this list.
+		 * 
+		 * This is a O(1) operation, since it is cached and kept up to date
+		 * internally by functions that modify the lists internal state.
+		 * 
+		 * This value may be incorrect if the structure of the list is modified
+		 * externally (e.g. by using set_prev/set_next on nodes outside this class).
+		 * In the case that external modification causes the size of the list to change,
+		 * call recompute_size() to update the cached size with the actual
+		 * size of the list.
+		 * 
+		 * @return size_t The number of nodes in this list
+		 */
 		size_t size() const { return m_size; }
+
+		/**
+		 * Do an O(N) walk over the list to calculate its size. This is only useful if
+		 * the structure of the list has been modified externally, and the cached size needs
+		 * to be updated.
+		 */
+		void recompute_size()
+		{
+			helix_unimplemented("intrusive_list::recompute_size() is not implemented");
+		}
 
 		iterator insert_before(const iterator& where, T* value)
 		{
@@ -153,6 +185,17 @@ namespace Helix
 			m_size--;
 		}
 
+		/**
+		 * Replace the given node in the list with another node.
+		 * After replacement the next & previous nodes on the original will be
+		 * null.
+		 * 
+		 * `original_value` must be a member of this list, and `new_value` cannot
+		 * already be a node in this list.
+		 * 
+		 * @param original_value The element that will be replaced.
+		 * @param new_value The element to replace with.
+		 */
 		void replace(T* original_value, T* new_value)
 		{
 			new_value->set_next(original_value->get_next());
@@ -165,9 +208,30 @@ namespace Helix
 			original_value->set_prev(nullptr);
 		}
 
+		/**
+		 * Append the given element to the end of the list.
+		 * Functionally equivilant of `insert_before(end(), value)`.
+		 * 
+		 * @param value Element to append to the back list. 
+		 */
 		void push_back(T* value) { this->insert_before(end(), value); }
 
+		/**
+		 * Return a reference to the last item in the list (that is the element
+		 * before end()).
+		 * Assertion will trigger if the last element is null.
+		 * 
+		 * @return T& Reference to last item in the list.
+		 */
 		T& back() { return *static_cast<T*>(m_sentinel.get_prev()); }
+
+		/**
+		 * Return a constant reference to the last item in the list (that is the element
+		 * before end()).
+		 * Assertion will trigger if the last element is null. 
+		 * 
+		 * @return const T& Constant reference to the last item in the list
+		 */
 		const T& back() const { return *static_cast<T*>(m_sentinel.get_prev()); }
 
 		T& front() { return *static_cast<T*>(m_sentinel.get_next()); }
