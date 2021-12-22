@@ -1,4 +1,4 @@
-typedef unsigned long size_t;
+#include <stddef.h>
 
 size_t size_int() {
 	return sizeof(int);

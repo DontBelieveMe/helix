@@ -12,8 +12,8 @@
 #include "frontend.h"
 #include "helix.h"
 #include "system.h"
-
 #include "target-info-armv7.h"
+#include "helix-config.h"
 
 #include <stack>
 
@@ -1719,7 +1719,11 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 				// This might not be nessesary as it doesn't seem to be finding
 				// std headers anyway without it, but it matches -nostdlib
 				// and it can't hurt to make sure
-				"-nostdinc" 
+				"-nostdinc",
+
+			#if defined(HELIX_LIBC_INCLUDE_DIRECTORY)
+				"-I" HELIX_LIBC_INCLUDE_DIRECTORY
+			#endif
 			},
 			clang::tooling::ArgumentInsertPosition::BEGIN
 		));

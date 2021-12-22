@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(Helix)
 
-set(EnableCoverage ON)
+set(EnableCoverage OFF)
 
 include(cmake/clang.cmake)
 include(cmake/tracy.cmake)
@@ -128,3 +128,9 @@ if (EnableCoverage)
 		DEPENDENCIES LibHelix LibHelixTests
 		BASE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/src")
 endif()
+
+add_subdirectory(src/libc)
+
+set (HELIX_LIBC_INCLUDE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/src/libc/include")
+
+configure_file(src/helix-config.in.h helix-config.h)

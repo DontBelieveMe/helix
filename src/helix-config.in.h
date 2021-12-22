@@ -1,0 +1,3 @@
+#pragma once
+
+#cmakedefine HELIX_LIBC_INCLUDE_DIRECTORY "${HELIX_LIBC_INCLUDE_DIRECTORY}"
