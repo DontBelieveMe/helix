@@ -472,73 +472,67 @@ unsigned Align(unsigned input, unsigned alignment)
 
 /*********************************************************************************************************************/
 
-void LowerStackAllocations::Execute(Function* fn)
+void LowerStackAllocations::ComputeStackFrame(StackFrame& frame, Function* fn)
 {
-	// At this point all stack allocations should be in the first block.
+	frame.size = 0;
+
+	// At this point all stack allocations should be in the first block
+	// so we don't need to scan any other blocks in the function.
 
 	BasicBlock* head = fn->GetHeadBlock();
-
-	helix_assert(head, "null head block in function");
-	if (!head)
-		return;
-
-	struct StackVariable
-	{
-		unsigned size;   // size in bytes
-		unsigned offset; // offset from SP
-		StackAllocInsn& alloca;
-	};
-
-	unsigned                   required_space = 0;
-	std::vector<StackVariable> variables;
 
 	for (Instruction& insn : head->insns()) {
 		if (insn.GetOpcode() == kInsn_StackAlloc) {
 			StackAllocInsn& stack_alloc = (StackAllocInsn&) insn;
 
-			const Type*  allocation_type = stack_alloc.GetAllocatedType();
-			const size_t allocation_size = ARMv7::TypeSize(allocation_type);
+			const Type*  allocated_type = stack_alloc.GetAllocatedType();
+			const size_t allocated_size = ARMv7::TypeSize(allocated_type);
 
-			const StackVariable var {
-				(unsigned) allocation_size,
-				required_space + allocation_size,
-				stack_alloc
+			frame.size += (unsigned) allocated_size;
+
+			const StackVariable stack_variable {
+				(unsigned) allocated_size,
+				frame.size,
+				&stack_alloc
 			};
 
-			required_space += allocation_size;
-			variables.push_back(var);
+			frame.variables.push_back(stack_variable);
 		}
 	}
 
-	required_space = Align(required_space, 8);
+	frame.size = Align(frame.size, 8);
+}
 
-	helix_trace(logs::allocalower, "stack size: {}", required_space);
+/*********************************************************************************************************************/
+
+void LowerStackAllocations::Execute(Function* fn)
+{
+	StackFrame stack_frame;
+	this->ComputeStackFrame(stack_frame, fn);
+
+	BasicBlock* head = fn->GetHeadBlock();
+	BasicBlock* tail = fn->GetTailBlock();
+
+	helix_assert(head && tail, "requires head & tail blocks");
 
 	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(PhysicalRegisters::SP);
 
-	for (const StackVariable& c : variables) {
-		unsigned o = required_space - c.offset;
+	for (const StackVariable& stack_var : stack_frame.variables) {
+		const unsigned offset = stack_frame.size - stack_var.offset;
 
-		helix_trace(logs::allocalower, "alloca {}, SP + {}", GetTypeName(c.alloca.GetAllocatedType()), o);
+		BasicBlock::iterator where = head->Where(stack_var.alloca_insn);
 
-		BasicBlock::iterator where = head->Where(&c.alloca);
+		ConstantInt*         offset_value = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
+		VirtualRegisterName* temp         = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+		Value*               output_ptr   = stack_var.alloca_insn->GetOutputPtr();
 
-		ConstantInt* offset = ConstantInt::Create(BuiltinTypes::GetInt32(), o);
-		VirtualRegisterName* temp = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
-		where = head->InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, sp, offset, temp));
-		where = head->InsertAfter(where, Helix::CreateIntToPtr(BuiltinTypes::GetInt32(), temp, c.alloca.GetOutputPtr()));
+		where = head->InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, sp, offset_value, temp));
+		where = head->InsertAfter(where, Helix::CreateIntToPtr(BuiltinTypes::GetInt32(), temp, output_ptr));
 
-		head->Remove(head->Where(&c.alloca));
+		head->Remove(head->Where(stack_var.alloca_insn));
 	}
 
-	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), required_space);
-
-
-	BasicBlock* tail = fn->GetTailBlock();
-
-	helix_assert(tail, "null tail block");
-	if (!tail)
-		return;
+	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), stack_frame.size);
 
 	head->InsertBefore(head->begin(), Helix::CreateBinOp(kInsn_ISub, sp, stack_size_constant, sp));
 	tail->InsertBefore(tail->begin(), Helix::CreateBinOp(kInsn_IAdd, sp, stack_size_constant, sp));
