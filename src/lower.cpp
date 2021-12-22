@@ -4,8 +4,9 @@
 #include "instructions.h"
 #include "target-info-armv7.h"
 #include "module.h"
+#include "print.h"
 
-#include "arm-md.h"
+#include "arm-md.h" /* generated */
 
 #include <vector>
 #include <numeric>
@@ -457,3 +458,90 @@ void ConstantHoisting::Execute(BasicBlock* bb)
 		}
 	}
 }
+
+/*********************************************************************************************************************/
+
+unsigned Align(unsigned input, unsigned alignment)
+{
+	if (input % alignment == 0) {
+		return input;
+	}
+
+	return input + (alignment - (input % alignment));
+}
+
+/*********************************************************************************************************************/
+
+void LowerStackAllocations::Execute(Function* fn)
+{
+	// At this point all stack allocations should be in the first block.
+
+	BasicBlock* head = fn->GetHeadBlock();
+
+	helix_assert(head, "null head block in function");
+	if (!head)
+		return;
+
+	struct StackVariable
+	{
+		unsigned size;   // size in bytes
+		unsigned offset; // offset from SP
+		StackAllocInsn& alloca;
+	};
+
+	unsigned                   required_space = 0;
+	std::vector<StackVariable> variables;
+
+	for (Instruction& insn : head->insns()) {
+		if (insn.GetOpcode() == kInsn_StackAlloc) {
+			StackAllocInsn& stack_alloc = (StackAllocInsn&) insn;
+
+			const Type*  allocation_type = stack_alloc.GetAllocatedType();
+			const size_t allocation_size = ARMv7::TypeSize(allocation_type);
+
+			const StackVariable var {
+				(unsigned) allocation_size,
+				required_space + allocation_size,
+				stack_alloc
+			};
+
+			required_space += allocation_size;
+			variables.push_back(var);
+		}
+	}
+
+	required_space = Align(required_space, 8);
+
+	helix_trace(logs::allocalower, "stack size: {}", required_space);
+
+	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(PhysicalRegisters::SP);
+
+	for (const StackVariable& c : variables) {
+		unsigned o = required_space - c.offset;
+
+		helix_trace(logs::allocalower, "alloca {}, SP + {}", GetTypeName(c.alloca.GetAllocatedType()), o);
+
+		BasicBlock::iterator where = head->Where(&c.alloca);
+
+		ConstantInt* offset = ConstantInt::Create(BuiltinTypes::GetInt32(), o);
+		VirtualRegisterName* temp = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+		where = head->InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, sp, offset, temp));
+		where = head->InsertAfter(where, Helix::CreateIntToPtr(BuiltinTypes::GetInt32(), temp, c.alloca.GetOutputPtr()));
+
+		head->Remove(head->Where(&c.alloca));
+	}
+
+	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), required_space);
+
+
+	BasicBlock* tail = fn->GetTailBlock();
+
+	helix_assert(tail, "null tail block");
+	if (!tail)
+		return;
+
+	head->InsertBefore(head->begin(), Helix::CreateBinOp(kInsn_ISub, sp, stack_size_constant, sp));
+	tail->InsertBefore(tail->begin(), Helix::CreateBinOp(kInsn_IAdd, sp, stack_size_constant, sp));
+}
+
+/*********************************************************************************************************************/

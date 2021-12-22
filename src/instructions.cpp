@@ -1,6 +1,7 @@
 #include "instructions.h"
 #include "basic-block.h"
 #include "function.h"
+#include "print.h"
 
 using namespace Helix;
 
@@ -257,3 +258,23 @@ void RetInsn::MakeVoid()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Helix::stringify_operand(Value* v, SlotTracker& slots)
+{
+	if (ConstantInt* ci = value_cast<ConstantInt>(v)) {
+		return std::to_string(ci->GetIntegralValue());
+	}
+	if (PhysicalRegisterName* preg = value_cast<PhysicalRegisterName>(v)) {
+		return PhysicalRegisters::GetRegisterString((PhysicalRegisters::ArmV7RegisterID) preg->GetID());
+	}
+	if (GlobalVariable* gvar = value_cast<GlobalVariable>(v)) {
+		return std::string(gvar->GetName());
+	}
+	if (BlockBranchTarget* bb = value_cast<BlockBranchTarget>(v)) {
+		const size_t slot = slots.GetBasicBlockSlot(bb->GetParent());
+		return fmt::format(".bb{}", slot);
+	}
+
+	helix_unimplemented("stringify_operand, unknown value type");
+	return {};
+}

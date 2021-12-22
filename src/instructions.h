@@ -17,6 +17,7 @@ namespace Helix
 {
 	class BasicBlock;
 	class Function;
+	class SlotTracker;
 
 	using ParameterList = std::vector<Value*>;
 
@@ -325,19 +326,7 @@ namespace Helix
 
 	void DestroyInstruction(Instruction* insn);
 
-	inline std::string stringify_operand(Value* v)
-	{
-		if (ConstantInt* ci = value_cast<ConstantInt>(v)) {
-			return std::to_string(ci->GetIntegralValue());
-		}
-
-		if (PhysicalRegisterName* preg = value_cast<PhysicalRegisterName>(v)) {
-			return PhysicalRegisters::GetRegisterString((PhysicalRegisters::ArmV7RegisterID) preg->GetID());
-		}
-
-		helix_unimplemented("stringify_operand, unknown value type");
-		return {};
-	}
+	std::string stringify_operand(Value* v, SlotTracker& slots);
 
 	inline bool is_const_int_with_value(Value* v, Integer i)
 	{
@@ -345,6 +334,11 @@ namespace Helix
 		if (!ci)
 			return false;
 		return ci->GetIntegralValue() == i;
+	}
+
+	inline bool is_global(Value* v)
+	{
+		return value_isa<GlobalVariable>(v);
 	}
 
 	inline bool is_int(Value* v)
@@ -355,5 +349,10 @@ namespace Helix
 	inline bool is_register(Value* v)
 	{
 		return value_isa<PhysicalRegisterName>(v);
+	}
+
+	inline bool is_basic_block(Value* v)
+	{
+		return value_isa<BlockBranchTarget>(v);
 	}
 }

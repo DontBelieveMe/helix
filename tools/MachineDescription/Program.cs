@@ -484,7 +484,9 @@ namespace MachineDescription
 
         private Dictionary<string, string> typeMap = new Dictionary<string, string>()
         {
-            { "i32", "BuiltinTypes::GetInt32" }
+            { "i32", "BuiltinTypes::GetInt32" },
+            { "ptr", "BuiltinTypes::GetPointer" },
+            { "lbl", "BuiltinTypes::GetLabelType" }
         };
 
         public void GenerateCodeToMatchTemplate(PrintingContext ctx)
@@ -540,7 +542,7 @@ namespace MachineDescription
                         {
                             MatchOperand mo = (MatchOperand)Operands[i];
 
-                            ctx.PrintIndentedLine(string.Format("const std::string& a{0} = stringify_operand(insn.GetOperand({1}));", mo.OutputOperandIndex, i));
+                            ctx.PrintIndentedLine(string.Format("const std::string& a{0} = stringify_operand(insn.GetOperand({1}), slots);", mo.OutputOperandIndex, i));
                             formatArgs.Add("a" + mo.OutputOperandIndex);
                         }
                     }
@@ -670,7 +672,7 @@ namespace MachineDescription
             headerFile.AppendLine("");
             headerFile.AppendLine("#include <stdio.h>");
 
-            headerFile.AppendLine("namespace Helix { class Instruction; }");
+            headerFile.AppendLine("namespace Helix { class Instruction; class SlotTracker; }");
 
             // Namespace
             {
@@ -693,7 +695,7 @@ namespace MachineDescription
 
                 // Function prototypes
                 {
-                    ctx.PrintIndentedLine("void Emit(FILE*, Instruction&);");
+                    ctx.PrintIndentedLine("void Emit(FILE*, Instruction&, SlotTracker&);");
                 }
 
                 ctx.DecreaseIndent(1);
@@ -710,10 +712,11 @@ namespace MachineDescription
             ctx.PrintIndentedLine("#include \"arm-md.h\"");
             ctx.PrintIndentedLine("#include \"../src/instructions.h\"");
             ctx.PrintIndentedLine("#include \"../src/system.h\"");
+            ctx.PrintIndentedLine("#include \"../src/print.h\"");
 
             // Emit(FILE*,Instruction&)
             {
-                ctx.PrintIndentedLine("void Helix::ARMv7::Emit(FILE* file, Instruction& insn)\n{");
+                ctx.PrintIndentedLine("void Helix::ARMv7::Emit(FILE* file, Instruction& insn, SlotTracker& slots)\n{");
                 ctx.IncreaseIndent(1);
 
                 foreach(Instruction insn in _desc.Instructions)

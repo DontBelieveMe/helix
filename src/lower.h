@@ -52,8 +52,15 @@ namespace Helix
 	private:
 		std::unordered_map<ConstantInt*, GlobalVariable*> GlobalMap;
 	};
+
+	class LowerStackAllocations : public FunctionPass
+	{
+	public:
+		void Execute(Function* fn);
+	};
 }
 
+REGISTER_PASS(LowerStackAllocations, allocalower, "[ARM] Lower stack_alloc instructions into the lower level arithmetic");
 REGISTER_PASS(ConstantHoisting, consthoist, "[ARM] Split and hoist constants to a form compatible with the ARM");
 REGISTER_PASS(ReturnCombine, retcomb, "[Generic] Combine multiple returns into a singular exit point");
 REGISTER_PASS(CConv, cconv, "[ARM] Lower IR to be compatible with the platform calling convention");

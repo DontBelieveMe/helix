@@ -1,9 +1,7 @@
+int b = 20;
+int c = 100;
 
-int a = 123;
-
-int main()
-{
-    a = 20;
-    int* b = &a;
-    return 0;
+int main() {
+	int d = 2;
+	return b + c + 5;
 }

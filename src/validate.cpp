@@ -55,27 +55,42 @@ bool CheckBinOpInsn(Function*, BasicBlock&, BinOpInsn& insn) {
 }
 
 bool CheckStackAllocInsn(Function*, BasicBlock&, StackAllocInsn& insn) {
-	if (!insn.GetOutputPtr()->GetType()->IsPointer()) {
-		helix_error(logs::validate, "invalid stack_alloc, output value should have pointer type");
-		return false;
+	Value* output_ptr = insn.GetOutputPtr();
+
+	if (!output_ptr->GetType()->IsPointer()) {
+		
+		// If we're dealing with physical registers now, the distinction between pointers
+		// and regular integers doesn't matter
+		if (!value_isa<PhysicalRegisterName>(output_ptr)) {
+			helix_error(logs::validate, "invalid stack_alloc, output value should have pointer type");
+			return false;
+		}
 	}
 
 	return true;
 }
 
 bool CheckStoreInsn(Function*, BasicBlock&, StoreInsn& store) {
-	if (!store.GetDst()->GetType()->IsPointer()) {
-        helix_error(logs::validate, "invalid store, destination value should have pointer type (store value -> memory)");
-		return false;
+	Value* dst_ptr = store.GetDst();
+
+	if (!dst_ptr->GetType()->IsPointer()) {
+		if (!value_isa<PhysicalRegisterName>(dst_ptr)) {
+	        helix_error(logs::validate, "invalid store, destination value should have pointer type (store value -> memory)");
+			return false;
+		}
     }
 
 	return true;
 }
 
 bool CheckLoadInsn(Function*, BasicBlock&, LoadInsn& load) {
-    if (!load.GetSrc()->GetType()->IsPointer()) {
-        helix_error(logs::validate, "invalid load, source value should have pointer type (load from memory -> value)");
-        return false;
+	Value* src_ptr = load.GetSrc();
+
+    if (!src_ptr->GetType()->IsPointer()) {
+		if (!value_isa<PhysicalRegisterName>(src_ptr)) {
+        	helix_error(logs::validate, "invalid load, source value should have pointer type (load from memory -> value)");
+        	return false;
+		}
     }
 
     return true;
