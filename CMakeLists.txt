@@ -74,7 +74,7 @@ set(MachineDescriptionTool ${CMAKE_CURRENT_LIST_DIR}/tools/MachineDescription/bi
 if (WIN32)
 	add_custom_command(
 		COMMAND ${MachineDescriptionTool} ${CMAKE_CURRENT_LIST_DIR}/src/arm.md -output=${CMAKE_CURRENT_BINARY_DIR}
-		DEPENDS src/arm.md
+		DEPENDS src/arm.md ${MachineDescriptionTool}
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/arm-md.cpp ${CMAKE_CURRENT_BINARY_DIR}/arm-md.h
 		COMMENT "Generating ARM machine description" 
 	)
