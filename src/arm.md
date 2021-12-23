@@ -1,3 +1,5 @@
+; -*- Clojure -*-
+;
 ; @file arm.md
 ; @author Barney Wilks
 ;
