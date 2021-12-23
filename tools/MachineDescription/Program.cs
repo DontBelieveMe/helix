@@ -253,7 +253,7 @@ namespace MachineDescription
         {
             char current = SkipWhitespace();
 
-            if (current == ';')
+            while (current == ';')
             {
                 SkipToEndOfLine();
                 current = SkipWhitespace();
@@ -528,8 +528,11 @@ namespace MachineDescription
             {
                 string outputString = _parent.OutputFormat;
 
-                if (!outputString.Contains("{"))
+                if (!outputString.Contains("{") || outputString.StartsWith("@"))
                 {
+                    if (outputString.StartsWith("@"))
+                        outputString = outputString.Substring(1);
+
                     ctx.PrintIndentedLine("fprintf(file, \"\\t" + outputString + "\\n\");");
                 }
                 else
