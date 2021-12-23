@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Testify
 {
-    class ProgramOutput
+    public class ProgramOutput
     {
         public string Stdout;
         public string Stderr;

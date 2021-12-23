@@ -62,6 +62,8 @@ void FinalMatcher::Execute(Module* mod)
 		}
 	}();
 
+	helix_assert(file, "failed to open output assembly file");
+
 	SlotTracker slots;
 
 	// First go through and print all the global variables at the top of the file...

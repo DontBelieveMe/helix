@@ -13,6 +13,19 @@ namespace Testify
             return Directory.GetFiles("testsuite", "*.xml", SearchOption.AllDirectories);
         }
 
+        private string _baseDirectory;
+
+        public HelixTestsuite()
+        {
+            string runSubdir = Path.GetRandomFileName();
+            _baseDirectory = ".testify/obj/helix/" + runSubdir;
+
+            if (!Directory.Exists(_baseDirectory))
+            {
+                Directory.CreateDirectory(_baseDirectory);
+            }
+        }
+
         private bool TextMatches(string expected, string actual, TextCompareMode mode)
         {
             if (mode == TextCompareMode.PlainText)
@@ -34,7 +47,7 @@ namespace Testify
 
             string[] flags = { "--no-colours", testDefinition.CompilationFlags };
 
-            CompilationResult result = HelixCompiler.CompileSingleFile(sourcefilePath, string.Join(" ", flags));
+            CompilationResult result = HelixCompiler.CompileSingleFile(_baseDirectory, sourcefilePath, string.Join(" ", flags));
 
             string expectedStdout = testDefinition.ExpectedOutput.Trim().Replace("\r\n", "\n");
             string actualStdout = result.CompilerStdout.Trim().Replace("\r\n", "\n");
@@ -44,14 +57,19 @@ namespace Testify
                 return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
             }
 
-            if (TextMatches(expectedStdout, actualStdout, testDefinition.ExpectedOutputComparisonMode))
-            {
-                return new TestRun(TestStatus.Pass, result, expectedStdout);
-            }
-            else
+            if (!TextMatches(expectedStdout, actualStdout, testDefinition.ExpectedOutputComparisonMode))
             {
                 return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
             }
+
+            ProgramOutput execOutput = CommonTestsuiteActions.RunCompiledFile(result);
+
+            if (execOutput.ExitCode != 0)
+            {
+                return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
+            }
+
+            return new TestRun(TestStatus.Pass, result, expectedStdout, execOutput);
         }
     }
 }

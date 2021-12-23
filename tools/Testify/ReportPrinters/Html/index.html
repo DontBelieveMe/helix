@@ -105,21 +105,74 @@
                   </tr>
                   <tr>
                     <td class="hiddenRow" colspan="4">
-                      <div id="item_@Model.HtmlId(item)" class="collapse">
+                      <div id="item_@Model.HtmlId(item)" class="collapse" style="padding: 5px">
+                        <h4>Compilation Flags</h4>
+                        <pre>
+                          <code>
+                            @foreach (var cli in item.Compilation.CompilationCommands)
+                            {
+                              @cli<br/>
+                            }
+                          </code>
+                        </pre>
+                        <h4>Soure Code</h4>
+                        <pre>
+                          <code>@Model.GetSourceCode(item)</code>
+                        </pre>
+                        <h4>STDOUT</h4>
                         <table style="width: 100%">
                           <thead>
-                            <th style="padding: 15px">Source</th>
-                            <th style="padding: 15px">Actual (stdout)</th>
-                            <th style="padding: 15px">Expected (stdout)</th>
+                            <th style="padding: 15px">Actual</th>
+                            <th style="padding: 15px">Expected</th>
                           </thead>
                           <tbody>
                             <tr>
-                              <td style="padding: 15px" valign="top"><pre><code>@Model.GetSourceCode(item)</code></pre></td>
                               <td style="padding: 15px" valign="top"><pre>@item.Compilation.CompilerStdout</pre></td>
                               <td style="padding: 15px" valign="top"><pre>@item.ExpectedStdout</pre></td>
                             </tr>
                           </tbody>
                         </table>
+                        <h4>STDERR</h4>
+                        <table style="width: 100%">
+                          <thead>
+                            <th style="padding: 15px">Actual</th>
+                            <th style="padding: 15px">Expected</th>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td style="padding: 15px" valign="top"><pre>@item.Compilation.CompilerStderr</pre></td>
+                              <td style="padding: 15px" valign="top"><pre></pre></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <h4>VM Execution Results</h4>
+                        @if (item.ExecutionResult != null)
+                        {
+                          <table style="width: 100%">
+                            <tbody>
+                              <tr>
+                                <td style="padding: 15px" valign="top">Exit Code</td>
+                                <td style="padding: 15px" valign="top">@item.ExecutionResult.ExitCode</td>
+                              </tr>
+                              <tr>
+                                <td style="padding: 15px" valign="top">Execution Time</td>
+                                <td style="padding: 15px" valign="top">@item.ExecutionResult.Time (ms)</td>
+                              </tr>
+                              <tr>
+                                <td style="padding: 15px" valign="top">STDOUT</td>
+                                <td style="padding: 15px" valign="top"><pre>@item.ExecutionResult.Stdout</pre></td>
+                              </tr>
+                              <tr>
+                                <td style="padding: 15px" valign="top">STDERR</td>
+                                <td style="padding: 15px" valign="top"><pre>@item.ExecutionResult.Stderr</pre></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        }
+                        else
+                        {
+                          <h5>N/A</h5>
+                        }
                       </div>
                     </td>
                   </tr>

@@ -16,6 +16,19 @@ namespace Testify
             return Directory.GetFiles("extras/c-testsuite/tests/single-exec", "*.c", SearchOption.AllDirectories);
         }
 
+        private string _baseDirectory;
+
+        public CTestsuite()
+        {
+            string runSubdir = Path.GetRandomFileName();
+            _baseDirectory = ".testify/obj/ctestsuite/" + runSubdir;
+
+            if (!Directory.Exists(_baseDirectory))
+            {
+                Directory.CreateDirectory(_baseDirectory);
+            }
+        }
+
         public TestRun RunTest(string filepath)
         {
             string tagsFilepath = filepath + ".tags";
@@ -28,17 +41,18 @@ namespace Testify
 
             if (skip)
             {
-                return new TestRun(TestStatus.Skipped, new CompilationResult("", "", 0, 0, filepath), "");
+                return new TestRun(TestStatus.Skipped, new CompilationResult("", "", 0, 0, filepath, "", ""), "", null);
             }
 
             string[] flags = { "--no-colours" };
 
-            CompilationResult result = HelixCompiler.CompileSingleFile(filepath, string.Join(" ", flags));
+
+            CompilationResult result = HelixCompiler.CompileSingleFile(_baseDirectory, filepath, string.Join(" ", flags));
 
             if (result.CompilerExitCode == 0)
-                return new TestRun(TestStatus.Pass, result, "");
+                return new TestRun(TestStatus.Pass, result, "", null);
             else
-                return new TestRun(TestStatus.Fail, result, "");
+                return new TestRun(TestStatus.Fail, result, "", null);
         }
     }
 }

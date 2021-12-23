@@ -62,6 +62,14 @@ namespace Testify
                 Console.ResetColor();
                 Console.WriteLine("]");
 
+                if (ProgramOptions.Verbose)
+                {
+                    foreach (string cli in testInfo.Compilation.CompilationCommands)
+                    {
+                        Console.WriteLine("> {0}", cli);
+                    }
+                }
+
                 if (ProgramOptions.FailFast && testInfo.Status == TestStatus.Fail)
                 {
                     report.AbortedEarly = true;

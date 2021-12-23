@@ -34,6 +34,11 @@ namespace Testify
             return File.ReadAllText(run.Compilation.SourceFile);
         }
 
+        public string GetAssemblyCode(TestRun run)
+        {
+            return run.Compilation.AssemblyOutput;
+        }
+
         public string HtmlId(TestRun testrun)
         {
             return Math.Abs(testrun.Compilation.SourceFile.GetHashCode()).ToString();

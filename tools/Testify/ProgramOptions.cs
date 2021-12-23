@@ -12,6 +12,8 @@ namespace Testify
         public static bool FailFast { get; private set; } = false;
         public static bool DumpDiffs { get; private set; } = false;
 
+        public static bool Verbose { get; private set; } = false;
+
         public static void Parse(string[] args)
         {
             List<string> testsuites = new List<string>();
@@ -34,6 +36,10 @@ namespace Testify
                 else if (arg == "-fail-fast")
                 {
                     FailFast = true;
+                }
+                else if (arg == "-verbose")
+                {
+                    Verbose = true;
                 }
             }
 
