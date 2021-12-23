@@ -8,7 +8,7 @@
 ;                             Binary Operations
 ; *****************************************************************************
 
-; 32 bit Register/Immediate Subtraction
+; 32 bit Register/Immediate Addition
 ;
 ; #FIXME: This presumes that the immediate integral value
 ;         can fit/is suitible to use as an immediate operand to
