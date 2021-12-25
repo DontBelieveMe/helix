@@ -21,3 +21,91 @@
    stage (similar to the --emit-ir-post=xxxx command)
    
 
+--------------------------------
+Required Lowering Support
+--------------------------------
+
+Given this simple IR
+
+ >    @ci0:ptr = global i32 10:i32
+ >    @ci1:ptr = global i32 40:i32
+ >
+ >    function main(): void {
+ >    .0:
+ >            stack_alloc [i32 x 1], %0:ptr
+ >            load @ci0:ptr, %1:i32
+ >            load @ci1:ptr, %2:i32
+ >            iadd %1:i32, %2:i32, %3:i32
+ >            store %3:i32, %0:ptr
+ >            br .1
+ >    .1:
+ >            load %0:ptr, r0:i32
+ >            ret
+ >    }
+
+    * lower `stack_alloc` to the appropriate stack manipulation
+        * allocate the required space in prologue
+        * replace references to the value returned by stack_alloc with
+          the code that calculates the nessesary address of that variable
+          on the stack (relative to SP)
+        * free the used space in the prologue
+
+    * Legalise all remaining types
+        * ptr        -> i32 (?)
+        * i8/i16/i32 -> i32
+        * i64        -> split into arithmetic insns
+
+ >    @ci0:ptr = global i32 10:i32
+ >    @ci1:ptr = global i32 40:i32
+ >
+ >    function main(): void {
+ >    .0:
+ >            sub sp:i32, 4, sp:i32
+ >            add sp:i32, 0, %0:ptr
+ >            load @ci0:ptr, %1:i32
+ >            load @ci1:ptr, %2:i32
+ >            iadd %1:i32, %2:i32, %3:i32
+ >            store %3:i32, %0:ptr
+ >            br .1
+ >    .1:
+ >            add sp:i32, 4, sp:i32
+ >            load %0:ptr, r0:i32
+ >            ret
+ >    }
+
+>    @ci0:ptr = global i32 10:i32
+ >    @ci1:ptr = global i32 40:i32
+ >
+ >    function main(): void {
+ >    .0:
+ >            sub sp:i32, 4, sp:i32
+ >            add sp:i32, 0, r0:i32
+ >            load @ci0:ptr, r1:i32
+ >            load @ci1:ptr, r2:i32
+ >            iadd r1:i32, r2:i32, r3:i32
+ >            store r3:i32, r0:ptr
+ >            br .1
+ >    .1:
+ >            add sp:i32, 4, sp:i32
+ >            load r0:ptr, r0:i32
+ >            ret
+ >    }
+
+
+.ci0: .long 10
+.ci0: .long 40
+
+main:
+    sub sp, sp, #4
+    add r0, sp, #0
+    ldr r1, .ci0
+    ldr r2, .ci1
+    add r3, r1, r2
+    str r3, [r0]
+    b .b0
+
+.b0:
+    add sp, sp, #4
+    ldr r0, [r0]
+    bx lr
+ 
