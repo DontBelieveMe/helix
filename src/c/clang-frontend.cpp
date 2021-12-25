@@ -10,10 +10,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "frontend.h"
-#include "helix.h"
-#include "system.h"
-#include "target-info-armv7.h"
-#include "helix-config.h"
+#include "../helix.h"
+#include "../system.h"
+#include "../target-info-armv7.h"
+#include "../helix-config.h"
 
 #include <stack>
 
@@ -55,7 +55,7 @@ static llvm::cl::extrahelp      MoreHelp("\nHelix C Compiler...\n");
 	type Helix::Options::Get##varName(size_t index) { return s_Opt##varName[index]; } \
 	size_t Helix::Options::GetCount##varName##s() { return s_Opt##varName.size(); } \
 
-	#include "options.def"
+	#include "../options.def"
 
 static clang::ASTContext* g_GlobalASTContext;
 static Helix::Module*     g_TranslationUnit = nullptr;
@@ -1683,7 +1683,6 @@ std::unique_ptr<clang::ASTConsumer> ParserAction::CreateASTConsumer(clang::Compi
 
 void Helix::Frontend::Initialise()
 {
-	HELIX_PROFILE_ZONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1753,7 +1752,6 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 
 void Helix::Frontend::Shutdown()
 {
-	HELIX_PROFILE_ZONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
