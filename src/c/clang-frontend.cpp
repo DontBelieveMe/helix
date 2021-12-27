@@ -32,6 +32,7 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/Tooling.h>
+#include <clang/Basic/Version.h>
 
 #include <clang/Tooling/CommonOptionsParser.h>
 
@@ -42,16 +43,19 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static llvm::cl::OptionCategory Category("helx options");
-static llvm::cl::extrahelp      CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage);
-static llvm::cl::extrahelp      MoreHelp("\nHelix C Compiler...\n");
+static llvm::cl::OptionCategory HelixGeneralOptionsCategory("General Options");
 
 #define ARGUMENT(type,def,varName,cliName,descstr) \
-	static llvm::cl::opt<type> s_Opt##varName(cliName, llvm::cl::desc(descstr), llvm::cl::cat(Category), llvm::cl::init(def)); \
+	static llvm::cl::opt<type> s_Opt##varName(cliName, llvm::cl::desc(descstr), llvm::cl::cat(HelixGeneralOptionsCategory), llvm::cl::init(def)); \
 	type Helix::Options::Get##varName() { return s_Opt##varName.getValue(); }
 
 #define ARGUMENT_LIST(type,varName,cliName,descstr) \
-	static llvm::cl::list<type> s_Opt##varName(cliName, llvm::cl::desc(descstr), llvm::cl::cat(Category)); \
+	static llvm::cl::list<type> s_Opt##varName(cliName, llvm::cl::desc(descstr), llvm::cl::cat(HelixGeneralOptionsCategory)); \
+	type Helix::Options::Get##varName(size_t index) { return s_Opt##varName[index]; } \
+	size_t Helix::Options::GetCount##varName##s() { return s_Opt##varName.size(); } \
+
+#define ARGUMENTS_POSITIONAL(type, varName, descstr) \
+	static llvm::cl::list<type> s_Opt##varName(llvm::cl::Positional, llvm::cl::desc(descstr), llvm::cl::cat(HelixGeneralOptionsCategory), llvm::cl::Required); \
 	type Helix::Options::Get##varName(size_t index) { return s_Opt##varName[index]; } \
 	size_t Helix::Options::GetCount##varName##s() { return s_Opt##varName.size(); } \
 
@@ -1703,27 +1707,37 @@ void Helix::Frontend::Initialise()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static void PrintVersion(llvm::raw_ostream& output_stream)
+{
+	output_stream << HELIX_APP_NAME " version " HELIX_VERSION "\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 {
 	HELIX_PROFILE_ZONE;
 
-	auto expectedOptionsParser = clang::tooling::CommonOptionsParser::create(
-		argc, argv, Category
-	);
+	llvm::cl::SetVersionPrinter(PrintVersion);
+	llvm::cl::HideUnrelatedOptions(HelixGeneralOptionsCategory);
 
-	if (!expectedOptionsParser) {
-		llvm::errs() << expectedOptionsParser.takeError();
-		return nullptr;
-	}
+	llvm::cl::ParseCommandLineOptions(argc, argv);
 
 	{
 		HELIX_PROFILE_ZONE;
 		
-		clang::tooling::CommonOptionsParser& optionsParser = expectedOptionsParser.get();
+		clang::tooling::FixedCompilationDatabase compilationDatabase(".", std::vector<std::string>());
+
+		std::vector<std::string> sourceFiles;
+		sourceFiles.reserve(Options::GetCountSourceFiles());
+
+		for (size_t i = 0; i < Options::GetCountSourceFiles(); ++i) {
+			sourceFiles.push_back(Options::GetSourceFile(i));
+		}
 
 		clang::tooling::ClangTool tool(
-			optionsParser.getCompilations(),
-			optionsParser.getSourcePathList()
+			compilationDatabase,
+			sourceFiles
 		);
 
 		tool.appendArgumentsAdjuster(clang::tooling::getInsertArgumentAdjuster(

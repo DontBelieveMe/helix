@@ -6,6 +6,9 @@
 	#define ARGUMENT_LIST(type, varName, cliName, desc)
 #endif
 
+#ifndef ARGUMENTS_POSITIONAL
+	#define ARGUMENTS_POSITIONAL(type, varName, desc)
+#endif
 
 ARGUMENT(bool,        false, EmitIR1,                             "emit-ir-1",             "Print IR as produced by the frontend before running any passes"                  )
 ARGUMENT(bool,        false, DisableColours,                      "no-colours",            "Disable the use of ASCII colour codes in std[out|err] output"                    )
@@ -20,5 +23,8 @@ ARGUMENT(bool,        false, CompileOnly,                         "c",          
 
 ARGUMENT_LIST(std::string, EnabledLog, "log", "Print all logs for the given channel to stdout")
 
+ARGUMENTS_POSITIONAL(std::string, SourceFile, "file...");
+
 #undef ARGUMENT
 #undef ARGUMENT_LIST
+#undef ARGUMENTS_POSITIONAL
