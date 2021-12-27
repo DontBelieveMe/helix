@@ -55,7 +55,75 @@ void Helix::Shutdown()
 	BuiltinTypes::Destroy();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*********************************************************************************************************************/
+
+static std::string NormalisePath(const std::string& Path)
+{
+	std::string Result = Path;
+
+	for (char& Char : Result)
+	{
+		if (Char == '\\')
+		{
+			Char = '/';
+		}
+	}
+
+	return Result;
+}
+
+/*********************************************************************************************************************/
+
+static std::string GetFilenameWithoutExtension(const std::string& path)
+{
+	if (path.empty()) {
+		return {};
+	}
+
+	const std::string NormalisedPath = NormalisePath(path);
+
+	int LastSeperatorIndex = -1;
+	int LastDotIndex = -1;
+
+	for (size_t Index = 0; Index < NormalisedPath.length(); ++Index)
+	{
+		if (NormalisedPath[Index] == '/')
+		{
+			LastSeperatorIndex = (int) Index;
+		}
+
+		if (NormalisedPath[Index] == '.')
+		{
+			LastDotIndex = (int) Index;
+		}
+	}
+
+	// Move the seperator index so it points at the character after the '/' and not the '/' itself.
+	//
+	// Always doing this also ensures that for filepaths without any seperators that the index
+	// will point to the start of the string (since for paths without any seperators then we presume
+	// the whole string is a filename), since LastSeperatorIndex will leave the above loop as -1
+	// and -1 + 1 = 0.
+	LastSeperatorIndex++;
+
+	if (LastSeperatorIndex >= (int) NormalisedPath.length())
+	{
+		return {};
+	}
+
+	// '/' after '.' means that the '.' wasn't an extension dot but part of a filepath
+	if (LastDotIndex < 0 || LastSeperatorIndex > LastDotIndex)
+	{
+		return NormalisedPath.substr(LastSeperatorIndex);
+	}
+
+	const int filenameLength = LastDotIndex - LastSeperatorIndex;
+
+	return NormalisedPath.substr(LastSeperatorIndex, filenameLength);
+}
+
+
+/*********************************************************************************************************************/
 
 std::string Helix::GetOutputFilePath(Module* module, const char* suffix)
 {
@@ -64,5 +132,7 @@ std::string Helix::GetOutputFilePath(Module* module, const char* suffix)
 	if (!userDefinedOutputFile.empty())
 		return userDefinedOutputFile;
 
-	return {};
+	const std::string fileName = GetFilenameWithoutExtension(module->GetInputSourceFile());
+
+	return fmt::format("{}{}", fileName, suffix);
 }

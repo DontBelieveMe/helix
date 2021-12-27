@@ -225,6 +225,20 @@ static void FinaliseExecutable(Helix::Module* translationUnit)
 	helix_trace(logs::driver, "End assemble & link - OK :-)");
 }
 
+static void DeleteTempFile(const std::string& filepath)
+{
+	helix_info(logs::driver, "Deleting temporary file '{}'", filepath);
+	DeleteFileA(filepath.c_str());
+}
+
+static void CleanupTemporaryFiles(Helix::Module* translationUnit)
+{
+	if (!Helix::Options::GetOnlyDumpAssembly()) {
+		const std::string assemblyFileName = Helix::GetOutputFilePath(translationUnit, ".s");
+		DeleteTempFile(assemblyFileName);
+	}
+}
+
 int main(int argc, const char** argv)
 {
 	int exitCode = 0;
@@ -246,8 +260,16 @@ int main(int argc, const char** argv)
 	// assembly.
 	CompileTranslationUnit(translationUnit);
 
+	if (Helix::Options::GetOnlyDumpAssembly()) {
+		exitCode = 0;
+		helix_info(logs::driver, "Skipping compilation, '-S' specified (dumping ASM to outptut file & exiting)");
+		goto end;
+	}
+
 	// Assemble (and if nessesary link) the assembly produced by the back end.
 	FinaliseExecutable(translationUnit);
+
+	CleanupTemporaryFiles(translationUnit);
 
 end:
 	Helix::Shutdown();

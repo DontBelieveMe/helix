@@ -50,16 +50,15 @@ void FinalMatcher::Execute(Module* mod)
 	const std::string& assemblyFileName = Helix::GetOutputFilePath(mod, ".s");
 
 	FILE* file = [&assemblyFileName]() -> FILE* {
-		// If -S is given, and -o is either not specified or equals "-" (a GCC convention)
-		// then print to stdout.
-		// Otherwise we want to create a new file and print to that.
-
-		if (assemblyFileName.empty() || assemblyFileName == "-") {
+		// "-o -" is a useful way to output to stdout (nice for debugging)
+		if (assemblyFileName == "-") {
 			return stdout;
 		} else {
 			return fopen(assemblyFileName.c_str(), "w");
 		}
 	}();
+
+	helix_info(logs::match, "Ouputting assembly to '{}'", assemblyFileName);
 
 	helix_assert(file, "failed to open output assembly file");
 
