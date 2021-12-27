@@ -148,7 +148,7 @@ static void FinaliseExecutable(Helix::Module* translationUnit)
 	helix_trace(logs::driver, "Begin assemble & link");
 	helix_assert(translationUnit, "cannot finalise null module (did other errors occur?)");
 
-	const std::string assemblyFileName = Helix::Options::GetOutputAssemblyFile();
+	const std::string assemblyFileName = Helix::GetOutputFilePath(translationUnit, ".s");
 
 	helix_info(logs::driver, "Output assembly file: {}", assemblyFileName);
 
@@ -174,7 +174,7 @@ static void FinaliseExecutable(Helix::Module* translationUnit)
 
 	helix_info(logs::driver, "Using GCC at '{}'", gccFilepath);
 
-	const std::vector<std::string> gccParameters
+	std::vector<std::string> gccParameters
 	{
 		assemblyFileName, // First the name of the file we want to assemble
 
@@ -184,6 +184,10 @@ static void FinaliseExecutable(Helix::Module* translationUnit)
 		"-static"         // Statically link the LibC that comes with GCC
 		                  // #FIXME: Eventually add -nostdlib here as well when we define our own standard library
 	};
+
+	if (Helix::Options::GetCompileOnly()) {
+		gccParameters.push_back("-c");
+	}
 
 	ProcessOutput processOutput;
 

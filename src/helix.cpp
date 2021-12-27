@@ -56,3 +56,13 @@ void Helix::Shutdown()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Helix::GetOutputFilePath(Module* module, const char* suffix)
+{
+	const std::string& userDefinedOutputFile = Options::GetOutputFile();
+
+	if (!userDefinedOutputFile.empty())
+		return userDefinedOutputFile;
+
+	return {};
+}

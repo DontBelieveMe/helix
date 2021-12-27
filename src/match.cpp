@@ -35,8 +35,11 @@
 #include "options.h"
 #include "module.h"
 #include "print.h"
+#include "helix.h"
 
 #include "arm-md.h" /* generated */
+
+#pragma optimize("", off)
 
 using namespace Helix;
 
@@ -44,11 +47,7 @@ using namespace Helix;
 
 void FinalMatcher::Execute(Module* mod)
 {
-	if (!Options::GetEmitOnlyAssembly()) {
-		return;
-	}
-
-	const std::string& assemblyFileName = Options::GetOutputAssemblyFile();
+	const std::string& assemblyFileName = Helix::GetOutputFilePath(mod, ".s");
 
 	FILE* file = [&assemblyFileName]() -> FILE* {
 		// If -S is given, and -o is either not specified or equals "-" (a GCC convention)

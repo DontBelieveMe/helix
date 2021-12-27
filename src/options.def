@@ -7,15 +7,16 @@
 #endif
 
 
-ARGUMENT(bool,        false, EmitIR1,                             "emit-ir-1",             "Print IR as produced by the frontend before running any passes"           )
-ARGUMENT(bool,        false, DisableColours,                      "no-colours",            "Disable the use of ASCII colour codes in std[out|err] output"             )
-ARGUMENT(bool,        false, DebugAnnotateIR,                     "annotate-ir",           "Toggles the display of debug comments (if specified) alongside IR"        )
-ARGUMENT(bool,        true,  DisableLogging,                      "no-logging",            "Disable the output of debug logs"                                         )
-ARGUMENT(std::string, "",    EmitIRPostPass,                      "emit-ir-post",          "Emit IR after the given pass, but continue processing as normal"          )
-ARGUMENT(std::string, "",    DumpCFGPost   ,                      "dump-cfg-post",         "Dump the module CFG to a graphiz compatible dot file after the given pass")
-ARGUMENT(std::string, "",    OutputAssemblyFile,                  "o",                     "Output assembly file"                                                     )
-ARGUMENT(bool,        false, EmitOnlyAssembly,                    "S",                     "Emit only assembly to the given output file & not IR or compiled a binary")
-ARGUMENT(bool,        false, EnableExperimentalRegisterAllocator, "experimental-regalloc", "Enable the register allocator"                                            )
+ARGUMENT(bool,        false, EmitIR1,                             "emit-ir-1",             "Print IR as produced by the frontend before running any passes"                  )
+ARGUMENT(bool,        false, DisableColours,                      "no-colours",            "Disable the use of ASCII colour codes in std[out|err] output"                    )
+ARGUMENT(bool,        false, DebugAnnotateIR,                     "annotate-ir",           "Toggles the display of debug comments (if specified) alongside IR"               )
+ARGUMENT(bool,        true,  DisableLogging,                      "no-logging",            "Disable the output of debug logs"                                                )
+ARGUMENT(std::string, "",    EmitIRPostPass,                      "emit-ir-post",          "Emit IR after the given pass, but continue processing as normal"                 )
+ARGUMENT(std::string, "",    DumpCFGPost   ,                      "dump-cfg-post",         "Dump the module CFG to a graphiz compatible dot file after the given pass"       )
+ARGUMENT(std::string, "",    OutputFile,                          "o",                     "Output file (for assembly if -S is given, else the executable)"                  )
+ARGUMENT(bool,        false, OnlyDumpAssembly,                    "S",                     "Compile to assembly, dump that to the output file and exit (don't assemble/link)")
+ARGUMENT(bool,        false, EnableExperimentalRegisterAllocator, "experimental-regalloc", "Enable the register allocator"                                                   )
+ARGUMENT(bool,        false, CompileOnly,                         "c",                     "Don't link, only compile input source to an object file"                         )
 
 ARGUMENT_LIST(std::string, EnabledLog, "log", "Print all logs for the given channel to stdout")
 

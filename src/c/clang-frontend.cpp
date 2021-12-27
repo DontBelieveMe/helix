@@ -109,6 +109,9 @@ class CodeGenerator
 public:
 	CodeGenerator()
 		: m_TargetInfo(std::make_unique<Helix::TargetInfo_ArmV7>())
+	{ }
+
+	void Initialise()
 	{
 		using namespace Helix;
 
@@ -117,7 +120,15 @@ public:
 		helix_assert(m_TargetInfo->GetIntBitWidth(ty) == 32, "unexpected size type");
 		m_SizeType = BuiltinTypes::GetInt32();  // IntegerType::Create(m_TargetInfo->GetIntBitWidth(ty));
 
-		m_Module = Helix::CreateModule();
+		clang::SourceManager& sm = g_GlobalASTContext->getSourceManager();
+
+		const llvm::StringRef filenameRef = sm.getFileEntryForID(sm.getMainFileID())->getName();
+		const std::string filename = filenameRef.str();
+
+		helix_info(logs::general, "Creating module from '{}'", filename);
+
+		m_Module = Helix::CreateModule(filename);
+
 	}
 
 	void CodeGenTranslationUnit(clang::TranslationUnitDecl* tuDecl)
@@ -1653,6 +1664,11 @@ void CodeGenerator_ASTConsumer::HandleTranslationUnit(clang::ASTContext& ctx)
 	HELIX_PROFILE_ZONE;
 
 	g_GlobalASTContext = &ctx;
+
+	// #FIXME: Kind of a hack (instead of handling all initialisation in the CodeGenerator
+	//         constructor) so that it can use the g_GlobalASTContext, which is only valid now...
+	m_CodeGen.Initialise();
+
 	m_CodeGen.CodeGenTranslationUnit(ctx.getTranslationUnitDecl());
 	g_GlobalASTContext = nullptr;
 

@@ -15,6 +15,10 @@ namespace Helix
 		using GlobalsList = std::vector<GlobalVariable*>;
 
 	public:
+		Module(const std::string& inputSourceFile)
+			: m_InputSourceFile(inputSourceFile)
+		{ }
+
 		using function_iterator = FunctionList::iterator;
 		using const_function_iterator = FunctionList::const_iterator;
 		using struct_iterator = StructList::iterator;
@@ -55,14 +59,18 @@ namespace Helix
 		iterator_range<globals_iterator>        globals()   { return iterator_range(m_GlobalVariables.begin(), m_GlobalVariables.end()); }
 		iterator_range<struct_iterator>         structs()   { return iterator_range(m_Structs.begin(), m_Structs.end()); }
 
+		std::string GetInputSourceFile() const { return m_InputSourceFile; }
+
 	private:
 		FunctionList m_Functions;
 		StructList   m_Structs;
 		GlobalsList  m_GlobalVariables;
+
+		std::string m_InputSourceFile;
 	};
 
-	inline Module* CreateModule()
+	inline Module* CreateModule(const std::string& inputSourceFile)
 	{
-		return new Module();
+		return new Module(inputSourceFile);
 	}
 }
