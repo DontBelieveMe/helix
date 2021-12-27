@@ -77,7 +77,7 @@ static bool ExecuteProcess(const std::string& name, const std::vector<std::strin
 			helix_error(logs::driver, "Unspecified error waiting on process (GetLastError() = 0x{0:x})", dwLastError);
 		}
 		
-	    // Error, but still make to close the process & thread handles
+		// Error, but still make to close the process & thread handles
 		// Logging error specifics is handles 
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
