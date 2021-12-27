@@ -31,8 +31,8 @@ static bool ExecuteProcess(const std::string& name, const std::vector<std::strin
 
 	helix_info(logs::driver, "Executing process with command line '{}'", commandLine);
 
-    STARTUPINFOA         si = {0};
-    PROCESS_INFORMATION  pi = {0};
+	STARTUPINFOA         si = {0};
+	PROCESS_INFORMATION  pi = {0};
 
 	si.cb = sizeof(si);
 
