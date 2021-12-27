@@ -58,9 +58,7 @@ add_library(HelixCore
 
 target_link_libraries(HelixCore PUBLIC spdlog::spdlog Tracy::TracyClient)
 
-
 # Code Generation for the *.md files (machine descriptions)
-
 if (WIN32)
 	set(MachineDescriptionTool ${CMAKE_SOURCE_DIR}/tools/MachineDescription/bin/Release/net5.0/MachineDescription.exe)
 	
@@ -72,10 +70,9 @@ if (WIN32)
 	)
 endif()
 
-
 # Compile Time Configuration
 
-set (HELIX_LIBC_INCLUDE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libc/include")
+set (CONFIG_LIBC_INCLUDE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libc/include")
 configure_file(helix-config.in.h helix-config.h)
 
 if (MSVC)

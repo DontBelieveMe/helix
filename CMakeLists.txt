@@ -24,7 +24,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # The magic
 add_subdirectory(src)
 
-
 # Setup code to allow doing code coverage testing (only works under linux
 # currently)
 set(EnableCodeCoverage OFF)

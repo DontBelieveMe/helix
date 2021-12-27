@@ -1720,8 +1720,8 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 				// and it can't hurt to make sure
 				"-nostdinc",
 
-			#if defined(HELIX_LIBC_INCLUDE_DIRECTORY)
-				"-I" HELIX_LIBC_INCLUDE_DIRECTORY
+			#if defined(CONFIG_LIBC_INCLUDE_DIRECTORY)
+				"-I" CONFIG_LIBC_INCLUDE_DIRECTORY
 			#endif
 			},
 			clang::tooling::ArgumentInsertPosition::BEGIN
