@@ -136,3 +136,13 @@ std::string Helix::GetOutputFilePath(Module* module, const char* suffix)
 
 	return fmt::format("{}{}", fileName, suffix);
 }
+
+std::string Helix::GetAssemblyOutputFilePath(Module* module)
+{
+	if (Options::GetOnlyDumpAssembly()) {
+		return Helix::GetOutputFilePath(module, ".s");
+	}
+
+	const std::string fileName = GetFilenameWithoutExtension(module->GetInputSourceFile());
+	return fmt::format("{}.s", fileName);
+}

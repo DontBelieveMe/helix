@@ -19,6 +19,7 @@ namespace Helix
 	void Shutdown();
 
 	std::string GetOutputFilePath(Module* module, const char* suffix);
+	std::string GetAssemblyOutputFilePath(Module* module);
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

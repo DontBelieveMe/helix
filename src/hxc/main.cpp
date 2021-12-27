@@ -156,7 +156,7 @@ static void FinaliseExecutable(Helix::Module* translationUnit)
 	helix_trace(logs::driver, "Begin assemble & link");
 	helix_assert(translationUnit, "cannot finalise null module (did other errors occur?)");
 
-	const std::string assemblyFileName = Helix::GetOutputFilePath(translationUnit, ".s");
+	const std::string assemblyFileName = Helix::GetAssemblyOutputFilePath(translationUnit);
 
 	helix_info(logs::driver, "Output assembly file: {}", assemblyFileName);
 
@@ -192,6 +192,12 @@ static void FinaliseExecutable(Helix::Module* translationUnit)
 		"-static"         // Statically link the LibC that comes with GCC
 		                  // #FIXME: Eventually add -nostdlib here as well when we define our own standard library
 	};
+
+	// #FIXME: This lets GCC choose its own defaults if -o isn't specified at all, but it probably makes sense
+	//         to inject our own defaults (just for consistency i guess)
+	if (!Helix::Options::GetOutputFile().empty()) {
+		gccParameters.push_back("-o " + Helix::GetOutputFilePath(translationUnit, ""));
+	}
 
 	if (Helix::Options::GetCompileOnly()) {
 		gccParameters.push_back("-c");
@@ -234,7 +240,7 @@ static void DeleteTempFile(const std::string& filepath)
 static void CleanupTemporaryFiles(Helix::Module* translationUnit)
 {
 	if (!Helix::Options::GetOnlyDumpAssembly()) {
-		const std::string assemblyFileName = Helix::GetOutputFilePath(translationUnit, ".s");
+		const std::string assemblyFileName = Helix::GetAssemblyOutputFilePath(translationUnit);
 		DeleteTempFile(assemblyFileName);
 	}
 }

@@ -47,7 +47,7 @@ using namespace Helix;
 
 void FinalMatcher::Execute(Module* mod)
 {
-	const std::string& assemblyFileName = Helix::GetOutputFilePath(mod, ".s");
+	const std::string& assemblyFileName = Helix::GetAssemblyOutputFilePath(mod);
 
 	FILE* file = [&assemblyFileName]() -> FILE* {
 		// "-o -" is a useful way to output to stdout (nice for debugging)
