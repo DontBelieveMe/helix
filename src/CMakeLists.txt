@@ -73,6 +73,21 @@ endif()
 # Compile Time Configuration
 
 set (CONFIG_LIBC_INCLUDE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/libc/include")
+
+if (NOT DEFINED CONFIG_GNU_TOOLS_ROOT)
+	message(FATAL_ERROR "CONFIG_GNU_TOOLS_ROOT not defined, for now please set it to the directory containing gcc.exe")
+else()
+	if (EXISTS ${CONFIG_GNU_TOOLS_ROOT}/arm-none-linux-gnueabihf-gcc.exe)
+		set(CONFIG_GNU_TOOLS_GCC_EXE "${CONFIG_GNU_TOOLS_ROOT}/arm-none-linux-gnueabihf-gcc.exe")
+	else()
+		message(FATAL_ERROR "CONFIG_GNU_TOOLS_ROOT does not contain a recognised gcc executable")
+	endif()
+endif()
+
+message("-- CONFIG_LIBC_INCLUDE_DIRECTORY: ${CONFIG_LIBC_INCLUDE_DIRECTORY}")
+message("-- CONFIG_GNU_TOOLS_ROOT: ${CONFIG_GNU_TOOLS_ROOT}")
+message("-- CONFIG_GNU_TOOLS_GCC_EXE: ${CONFIG_GNU_TOOLS_GCC_EXE}")
+
 configure_file(helix-config.in.h helix-config.h)
 
 if (MSVC)
