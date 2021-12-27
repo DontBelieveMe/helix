@@ -17,6 +17,8 @@ struct ProcessOutput
 
 static bool ExecuteProcess(const std::string& name, const std::vector<std::string>& arguments, ProcessOutput* outProcessInfo)
 {
+	HELIX_PROFILE_ZONE;
+	
 	std::string argumentsString = "";
 
 	for (size_t i = 0; i < arguments.size(); ++i) {
@@ -109,6 +111,8 @@ static bool ExecuteProcess(const std::string& name, const std::vector<std::strin
  */
 static Helix::Module* ParseTranslationUnit(int argc, const char** argv)
 {
+	HELIX_PROFILE_ZONE;
+	
 	helix_trace(logs::driver, "Begin frontend compilation");
 
 	Helix::Frontend::Initialise();
@@ -127,6 +131,8 @@ static Helix::Module* ParseTranslationUnit(int argc, const char** argv)
  */
 static void CompileTranslationUnit(Helix::Module* translationUnit)
 {
+	HELIX_PROFILE_ZONE;
+
 	helix_trace(logs::driver, "Begin middle & backend compilation");
 
 	helix_assert(translationUnit, "cannot compile null module (did frontend errors occur?)");
@@ -145,6 +151,8 @@ static void CompileTranslationUnit(Helix::Module* translationUnit)
  */
 static void FinaliseExecutable(Helix::Module* translationUnit)
 {
+	HELIX_PROFILE_ZONE;
+
 	helix_trace(logs::driver, "Begin assemble & link");
 	helix_assert(translationUnit, "cannot finalise null module (did other errors occur?)");
 
@@ -221,6 +229,8 @@ int main(int argc, const char** argv)
 {
 	int exitCode = 0;
 	Helix::Initialise();
+
+	HELIX_PROFILE_ZONE;
 
 	// Convert the input C to IR.
 	Helix::Module* translationUnit = ParseTranslationUnit(argc, argv);

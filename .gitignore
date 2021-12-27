@@ -5,6 +5,7 @@ lib/
 build/
 vs2019/
 vs2022/
+vs2022-profile/
 linux/
 
 tools/Testify/bin

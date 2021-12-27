@@ -34,6 +34,11 @@ target_compile_definitions(TracyClient PUBLIC -DHAS_TRACY)
 
 add_library(Tracy::TracyClient ALIAS TracyClient)
 
+if (ENABLE_PROFILING)
+    set(TRACY_ENABLE ON)
+    set(TRACY_NO_EXIT ON)
+endif()
+
 set_option(TRACY_ENABLE "Enable profiling" OFF)
 set_option(TRACY_ON_DEMAND "On-demand profiling" OFF)
 set_option(TRACY_CALLSTACK "Collect call stacks" OFF)
