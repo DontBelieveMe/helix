@@ -26,8 +26,35 @@ PassManager::PassManager()
 	AddPass<FinalMatcher>();
 }
 
+void PassManager::ValidateModule(ValidationPass& validationPass, Module* module)
+{
+	HELIX_PROFILE_ZONE;
+	
+	validationPass.Execute(module);
+}
+
+void PassManager::RunPass(const PassData& passData, Module* module)
+{
+	HELIX_PROFILE_ZONE;
+	HELIX_PROFILE_ZONE_TEXT(passData.name, strlen(passData.name));
+
+	std::unique_ptr<Pass> pass = passData.create_action();
+
+	pass->Execute(module);
+
+	if (Options::GetEmitIRPostPass() == passData.name) {
+		Helix::DebugDump(*module);
+	}
+
+	if (Options::GetDumpCFGPost() == passData.name) {
+		module->DumpControlFlowGraphToFile(fmt::format("cfg-{}.dot", passData.name));
+	}
+}
+
 void PassManager::Execute(Module* mod)
 {
+	HELIX_PROFILE_ZONE;
+
 	ValidationPass validationPass;
 
 	if (Options::GetEmitIR1()) {
@@ -37,30 +64,16 @@ void PassManager::Execute(Module* mod)
 	// Manually run a validation pass to check the IR emitted by the frontend.
 	// Other validation passes will happen, but the pass manager can schedule them
 	// automatically between passes.
-	validationPass.Execute(mod);
+	this->ValidateModule(validationPass, mod);
 
-	size_t runIndex = 1;
 	for (const PassData& passData : m_Passes) {
-		std::unique_ptr<Pass> pass = passData.create_action();
-
-		helix_debug(logs::pass_manager, "({}) Running pass '{}'...", runIndex, passData.name);
-		pass->Execute(mod);
-
-		if (Options::GetEmitIRPostPass() == passData.name) {
-			Helix::DebugDump(*mod);
-		}
-
-		if (Options::GetDumpCFGPost() == passData.name) {
-			mod->DumpControlFlowGraphToFile(fmt::format("cfg-{}.dot", passData.name));
-		}
+		this->RunPass(passData, mod);
 
 		// Automatically run a validation check after every pass. This is useful to ensure correctness
 		// during development, but will definately slow things down in the long run (esp with bigger
 		// source files). Maybe hide this behind a flag (--always-validate or something?)
 		// #FIXME
-		validationPass.Execute(mod);
-
-		runIndex++;
+		this->ValidateModule(validationPass, mod);
 	}
 }
 	

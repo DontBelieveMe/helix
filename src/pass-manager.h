@@ -26,6 +26,7 @@ namespace Helix
 	class Module;
 	class Function;
 	class BasicBlock;
+	class ValidationPass;
 
 	class Pass
 	{
@@ -54,10 +55,16 @@ namespace Helix
 
 	class PassManager
 	{
+		struct PassData;
+
 	public:
 		PassManager();
 
 		void Execute(Module* module);
+
+	private:
+		void ValidateModule(ValidationPass& validationPass, Module* module);
+		void RunPass(const PassData& passData, Module* module);
 
 	private:
 		using CreatePassFunctor = std::unique_ptr<Pass>(*)();
