@@ -1,2 +1,7 @@
 c=$(qemu-arm $1)$?
-echo Process exited with exit code ${c}
+
+if [ "$2" != "-quiet" ]; then
+	echo Process exited with exit code ${c}
+fi
+
+exit ${c}
