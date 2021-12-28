@@ -10,6 +10,10 @@
 ;                             Binary Operations
 ; *****************************************************************************
 
+; ******************************
+;      Register/Immediate
+; ******************************
+
 ; 32 bit Register/Immediate Addition
 ;
 ; #FIXME: This presumes that the immediate integral value
@@ -22,6 +26,22 @@
 		(match_operand:i32 1 "int")
 		(match_operand:i32 2 "register"))]
 	"add {2}, {0}, #{1}")
+
+; 32 bit Register/Immediate Subtraction
+;
+; #FIXME: Same problem with assuming that the constant int is suitable
+;         to use as an immediate here. See comment on "add_r32i32" for
+;         more details.
+(define-insn "sub_r32i32"
+	[(kInsn_ISub
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "int")
+		(match_operand:i32 2 "register"))]
+	"sub {2}, {0}, #{1}")
+
+; ******************************
+;      Register/Register
+; ******************************
 
 ; 32 bit Register/Register Addition
 (define-insn "add_r32r32"
@@ -39,17 +59,22 @@
 		(match_operand:i32 2 "register"))]
 	"sdiv {2}, {0}, {1}")
 
-; 32 bit Register/Immediate Subtraction
-;
-; #FIXME: Same problem with assuming that the constant int is suitable
-;         to use as an immediate here. See comment on "add_r32i32" for
-;         more details.
-(define-insn "sub_r32i32"
+; 32 bit Register/Register Subtraction
+(define-insn "sub_r32r32"
 	[(kInsn_ISub
 		(match_operand:i32 0 "register")
-		(match_operand:i32 1 "int")
+		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"sub {2}, {0}, #{1}")
+	"sub {2}, {0}, {1}")
+
+; 32 bit Register/Register Multiplication
+(define-insn "mul_r32r32"
+	[(kInsn_IMul
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"mul {2}, {0}, {1}")
+
 
 ; *****************************************************************************
 ;                             Memory Operations
