@@ -189,8 +189,13 @@ static void FinaliseExecutable(Helix::Module* translationUnit)
 		"-nostdinc",      // Probably wont make that much of a difference, since the assembly we created
 		                  // should not include any files, but it never hurts to make sure
 		
-		"-static"         // Statically link the LibC that comes with GCC
+		"-static",        // Statically link the LibC that comes with GCC
 		                  // #FIXME: Eventually add -nostdlib here as well when we define our own standard library
+
+		"-march=armv8-a+crc", // Platform configuration options for the Raspberry Pi 4
+		"-mfloat-abi=hard",   // 
+		"-mfpu=vfp",          // #FIXME: These will need to change in the event of targeting something
+		"-mcpu=cortex-a72"    //         that is not the Pi4 (such as the STM chip)
 	};
 
 	// #FIXME: This lets GCC choose its own defaults if -o isn't specified at all, but it probably makes sense
