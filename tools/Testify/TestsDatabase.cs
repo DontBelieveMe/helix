@@ -21,6 +21,13 @@ namespace Testify
         public static void Update(Report report)
         {
             Console.WriteLine();
+
+            if (report.AbortedEarly)
+            {
+                Console.WriteLine("Not updating JSON test data due to early abort");
+                return;
+            }
+
             Console.WriteLine("Updating JSON data...");
 
             if (!Directory.Exists(".testify/" + report.Name))
