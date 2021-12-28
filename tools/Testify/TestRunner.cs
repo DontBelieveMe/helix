@@ -67,6 +67,15 @@ namespace Testify
                     Console.WriteLine("> {0}", testInfo.Compilation.CompilerCommandLine);
                 }
 
+                if (ProgramOptions.DumpDiffs)
+                {
+                    Console.WriteLine("************************** ACTUAL STDOUT ****************************");
+                    Console.WriteLine(testInfo.Compilation.CompilerStdout);
+                    Console.WriteLine("************************** EXPECTED STDOUT **************************");
+                    Console.WriteLine(testInfo.ExpectedStdout);
+                    Console.WriteLine("*********************************************************************");
+                }
+
                 if (ProgramOptions.FailFast && testInfo.Status == TestStatus.Fail)
                 {
                     report.AbortedEarly = true;
