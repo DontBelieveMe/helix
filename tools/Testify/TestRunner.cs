@@ -67,7 +67,7 @@ namespace Testify
                     Console.WriteLine("> {0}", testInfo.Compilation.CompilerCommandLine);
                 }
 
-                if (ProgramOptions.DumpDiffs)
+                if (testInfo.Status == TestStatus.Fail && ProgramOptions.DumpDiffs)
                 {
                     Console.WriteLine("************************** ACTUAL STDOUT ****************************");
                     Console.WriteLine(testInfo.Compilation.CompilerStdout);
