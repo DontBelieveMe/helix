@@ -6,6 +6,7 @@
 
 #include <limits.h>
 
+#include "iterator-range.h"
 #include "types.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +98,8 @@ namespace Helix
 
 		use_iterator uses_begin() { return m_Users.begin(); }
 		use_iterator uses_end()   { return m_Users.end();   }
+
+		iterator_range<use_iterator> uses() { return iterator_range(uses_begin(), uses_end()); }
 
 		const_use_iterator uses_begin() const { return m_Users.begin(); }
 		const_use_iterator uses_end()   const { return m_Users.begin(); }
