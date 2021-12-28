@@ -68,11 +68,17 @@ namespace Testify
                 return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
             }
 
-            ProgramOutput execOutput = CommonTestsuiteActions.RunCompiledFile(result);
+            ProgramOutput execOutput = null;
 
-            if (execOutput.ExitCode != 0)
+            if (!testDefinition.CompilationFlags.Contains("-c") &&
+                !testDefinition.CompilationFlags.Contains("-S"))
             {
-                return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
+                execOutput = CommonTestsuiteActions.RunCompiledFile(result);
+
+                if (execOutput.ExitCode != 0)
+                {
+                    return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
+                }
             }
 
             return new TestRun(TestStatus.Pass, result, expectedStdout, execOutput);
