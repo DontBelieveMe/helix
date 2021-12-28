@@ -104,6 +104,31 @@ namespace IR
 	}
 }
 
+void GenericLowering::LowerIRem(BasicBlock& bb, BinOpInsn& insn)
+{
+	// #FIXME: This is really an ARM specific optimisation? Can take advantage of a `mls`
+	//         instruction there. Move out of genlower into a different armlower pass.
+
+	// a % b = a - ((a / b) * b)
+
+	Value* lhs = insn.GetLHS();
+	Value* rhs = insn.GetRHS();
+	Value* dst = insn.GetResult();
+
+	const Type* operandType = insn.GetLHS()->GetType();
+
+	VirtualRegisterName* t0 = VirtualRegisterName::Create(operandType);
+	VirtualRegisterName* t1 = VirtualRegisterName::Create(operandType);
+
+	BasicBlock::iterator where = bb.Where(&insn);
+
+	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IDiv, lhs, rhs, t0));
+	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IMul, t0, rhs, t1));
+	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_ISub, lhs, t1, dst));
+
+	bb.Delete(bb.Where(&insn));
+}
+
 void GenericLowering::LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
 {
 	VirtualRegisterName* ptrint     = VirtualRegisterName::Create(ARMv7::PointerType());
@@ -164,6 +189,7 @@ void GenericLowering::Execute(Function* fn)
 			switch (insn.GetOpcode()) {
 			case kInsn_LoadElementAddress:
 			case kInsn_LoadFieldAddress:
+			case kInsn_IRem:
 				worklist.push_back({&insn, &bb});
 				break;
 
@@ -183,6 +209,10 @@ void GenericLowering::Execute(Function* fn)
 
 		case kInsn_LoadFieldAddress:
 			this->LowerLfa(*workload.bb, *static_cast<LoadFieldAddressInsn*>(workload.insn));
+			break;
+
+		case kInsn_IRem:
+			this->LowerIRem(*workload.bb, *static_cast<BinOpInsn*>(workload.insn));
 			break;
 
 		default:

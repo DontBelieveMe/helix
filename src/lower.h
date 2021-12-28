@@ -16,6 +16,7 @@ namespace Helix
 	class Module;
 	class ConstantInt;
 	class StackAllocInsn;
+	class BinOpInsn;
 
 	/*********************************************************************************************************************/
 
@@ -38,6 +39,7 @@ namespace Helix
 	private:
 		void LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn);
 		void LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn);
+		void LowerIRem(BasicBlock& bb, BinOpInsn& insn);
 	};
 
 	/*********************************************************************************************************************/
