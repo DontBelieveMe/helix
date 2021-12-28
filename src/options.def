@@ -20,6 +20,8 @@ ARGUMENT(std::string, "",    OutputFile,                          "o",          
 ARGUMENT(bool,        false, OnlyDumpAssembly,                    "S",                     "Compile to assembly, dump that to the output file and exit (don't assemble/link)")
 ARGUMENT(bool,        false, EnableExperimentalRegisterAllocator, "experimental-regalloc", "Enable the register allocator"                                                   )
 ARGUMENT(bool,        false, CompileOnly,                         "c",                     "Don't link, only compile input source to an object file"                         )
+ARGUMENT(std::string, "",    DumpBase,                            "dumpbase",              "Base directory in which to dump intermediate output files"                       )
+ARGUMENT(bool,        false, SaveTemps,                           "save-temps",            "Save temporary files & don't delete them at the end of compilation"              )
 
 ARGUMENT_LIST(std::string, EnabledLog, "log", "Print all logs for the given channel to stdout")
 

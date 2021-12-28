@@ -143,6 +143,21 @@ std::string Helix::GetAssemblyOutputFilePath(Module* module)
 		return Helix::GetOutputFilePath(module, ".s");
 	}
 
+	const std::string dumpBase = []() -> std::string {
+		const std::string base = Options::GetDumpBase();
+
+		if (base.empty()) {
+			return {};
+		}
+
+		if (base.back() != '/') {
+			return base + "/";
+		}
+
+		return base;
+	}();
+	
+
 	const std::string fileName = GetFilenameWithoutExtension(module->GetInputSourceFile());
-	return fmt::format("{}.s", fileName);
+	return fmt::format("{}{}.s", dumpBase, fileName);
 }

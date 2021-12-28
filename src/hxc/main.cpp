@@ -275,7 +275,12 @@ int main(int argc, const char** argv)
 	// Assemble (and if nessesary link) the assembly produced by the back end.
 	FinaliseExecutable(translationUnit);
 
-	CleanupTemporaryFiles(translationUnit);
+	if (!Helix::Options::GetSaveTemps()) {
+		helix_info(logs::driver, "Cleaning up temporary files");
+		CleanupTemporaryFiles(translationUnit);
+	} else {
+		helix_info(logs::driver, "Not cleaning up temporary files, (--save-temps?)");
+	}
 
 end:
 	Helix::Shutdown();
