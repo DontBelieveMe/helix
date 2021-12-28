@@ -9,54 +9,10 @@
 #include "arm-md.h" /* generated */
 
 #include <vector>
-#include <numeric>
 
 // #pragma optimize("", off)
 
 using namespace Helix;
-
-namespace Helix::ARMv7
-{
-	const Type* PointerType()
-	{
-		return BuiltinTypes::GetInt32();
-	}
-
-	size_t TypeSize(const Type* ty)
-	{
-		switch (ty->GetTypeID()) {
-		case kType_Integer:
-			return type_cast<IntegerType>(ty)->GetBitWidth() / 8;
-
-		case kType_Array: {
-			const ArrayType* arr = type_cast<ArrayType>(ty);
-			return arr->GetCountElements() * ARMv7::TypeSize(arr->GetBaseType());
-		}
-
-		case kType_Pointer: {
-			return 4;
-		}
-
-		case kType_Struct: {
-			const StructType* st = type_cast<StructType>(ty);
-			return std::accumulate(
-				st->fields_begin(),
-				st->fields_end(),
-				size_t(0),
-				[](size_t v, const Type* field) -> size_t {
-					return v + ARMv7::TypeSize(field);
-				}
-			);
-		}
-
-		default:
-			helix_unimplemented("TypeSize not implemented for type category");
-			break;
-		}
-
-		return 0;
-	}
-}
 
 namespace IR
 {
@@ -487,85 +443,6 @@ void ConstantHoisting::Execute(BasicBlock* bb)
 			}
 		}
 	}
-}
-
-/*********************************************************************************************************************/
-
-unsigned Align(unsigned input, unsigned alignment)
-{
-	if (input % alignment == 0) {
-		return input;
-	}
-
-	return input + (alignment - (input % alignment));
-}
-
-/*********************************************************************************************************************/
-
-void LowerStackAllocations::ComputeStackFrame(StackFrame& frame, Function* fn)
-{
-	frame.size = 0;
-
-	// At this point all stack allocations should be in the first block
-	// so we don't need to scan any other blocks in the function.
-
-	BasicBlock* head = fn->GetHeadBlock();
-
-	for (Instruction& insn : head->insns()) {
-		if (insn.GetOpcode() == kInsn_StackAlloc) {
-			StackAllocInsn& stack_alloc = (StackAllocInsn&) insn;
-
-			const Type*  allocated_type = stack_alloc.GetAllocatedType();
-			const size_t allocated_size = ARMv7::TypeSize(allocated_type);
-
-			frame.size += (unsigned) allocated_size;
-
-			const StackVariable stack_variable {
-				(unsigned) allocated_size,
-				frame.size,
-				&stack_alloc
-			};
-
-			frame.variables.push_back(stack_variable);
-		}
-	}
-
-	frame.size = Align(frame.size, 8);
-}
-
-/*********************************************************************************************************************/
-
-void LowerStackAllocations::Execute(Function* fn)
-{
-	StackFrame stack_frame;
-	this->ComputeStackFrame(stack_frame, fn);
-
-	BasicBlock* head = fn->GetHeadBlock();
-	BasicBlock* tail = fn->GetTailBlock();
-
-	helix_assert(head && tail, "requires head & tail blocks");
-
-	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(PhysicalRegisters::SP);
-
-	for (const StackVariable& stack_var : stack_frame.variables) {
-		const unsigned offset = stack_frame.size - stack_var.offset;
-
-		BasicBlock::iterator where = head->Where(stack_var.alloca_insn);
-
-		ConstantInt*         offset_value = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
-		VirtualRegisterName* temp         = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
-		Value*               output_ptr   = stack_var.alloca_insn->GetOutputPtr();
-
-		where = head->InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, sp, offset_value, temp));
-		where = head->InsertAfter(where, Helix::CreateIntToPtr(BuiltinTypes::GetInt32(), temp, output_ptr));
-
-		head->Remove(head->Where(stack_var.alloca_insn));
-	}
-
-	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), stack_frame.size);
-
-	head->InsertBefore(head->begin(), Helix::CreateBinOp(kInsn_ISub, sp, stack_size_constant, sp));
-	tail->InsertBefore(tail->begin(), Helix::CreateBinOp(kInsn_IAdd, sp, stack_size_constant, sp));
 }
 
 /*********************************************************************************************************************/

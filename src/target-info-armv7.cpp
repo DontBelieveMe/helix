@@ -3,6 +3,7 @@
 #include "value.h"
 
 #include <array>
+#include <numeric>
 
 using namespace Helix;
 
@@ -44,6 +45,41 @@ const char* PhysicalRegisters::GetRegisterString(ArmV7RegisterID id)
 	return s_Registers[id].str;
 }
 
+const Type* ARMv7::PointerType()
+{
+	return BuiltinTypes::GetInt32();
+}
+
+size_t ARMv7::TypeSize(const Type* ty)
+{
+	switch (ty->GetTypeID()) {
+	case kType_Integer:
+		return type_cast<IntegerType>(ty)->GetBitWidth() / 8;
+	case kType_Array: {
+		const ArrayType* arr = type_cast<ArrayType>(ty);
+		return arr->GetCountElements() * ARMv7::TypeSize(arr->GetBaseType());
+	}
+	case kType_Pointer: {
+		return 4;
+	}
+	case kType_Struct: {
+		const StructType* st = type_cast<StructType>(ty);
+		return std::accumulate(
+			st->fields_begin(),
+			st->fields_end(),
+			size_t(0),
+			[](size_t v, const Type* field) -> size_t {
+				return v + ARMv7::TypeSize(field);
+			}
+		);
+	}
+	default:
+		helix_unimplemented("TypeSize not implemented for type category");
+		break;
+	}
+
+	return 0;
+}
 
 TargetInfo::IntType TargetInfo_ArmV7::GetSizeType() const
 {

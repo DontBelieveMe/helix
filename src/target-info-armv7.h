@@ -5,6 +5,12 @@
 namespace Helix
 {
 	class PhysicalRegisterName;
+	class Type;
+	namespace ARMv7
+	{
+		const Type* PointerType();
+		size_t TypeSize(const Type* ty);
+	}
 
 	namespace PhysicalRegisters
 	{

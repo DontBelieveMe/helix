@@ -21,7 +21,6 @@ PassManager::PassManager()
 	AddPass<GenericLowering>();
 	AddPass<ConstantHoisting>();
 	AddPass<CConv>();
-	AddPass<LowerStackAllocations>();
 	AddPass<RegisterAllocator>();
 	AddPass<FinalMatcher>();
 }
