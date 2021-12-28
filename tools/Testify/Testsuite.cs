@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Testify
@@ -40,25 +41,63 @@ namespace Testify
             return new TestRun(TestStatus.Fail, result, expectedStdout, execOutput);
         }
 
-        private static string MakeFilepathWSLFriendly(string filepath)
+        private static string ConvertWindowsToWslPath(string filepath)
         {
+            // Get an absolute path so that there in no ambiguity in WSL land
+            filepath = Path.GetFullPath(filepath);
+
+            // Need to replace any Windows style path seperators (\) with unix style (/)
             filepath = filepath.Replace("\\", "/");
-            return filepath.Replace("C:", "/mnt/c");
+
+            // Now replace any references to drives with the WSL version
+            // e.g. "C:/" becomes "/mnt/c/"
+            string[] drives = Directory.GetLogicalDrives();
+
+            foreach (string drive in drives)
+            {
+                string normalisedDrive = drive.Replace("\\", "/");
+                string driveCharacter = drive.Substring(0, 1).ToLower();
+
+                string inputFilepath = filepath;
+                filepath = filepath.Replace(normalisedDrive, "/mnt/" + driveCharacter + "/");
+
+                // There can only be one drive reference in a path so
+                // if we've already replaced it then don't bother trying to replace any others
+                if (filepath != inputFilepath)
+                {
+                    break;
+                }
+            }
+
+            return filepath;
         }
 
         public static ProgramOutput RunCompiledFile(CompilationResult compilation)
         {
-            string wslExecutablePath = MakeFilepathWSLFriendly(compilation.OutputExecutableFilepath);
-            string program = "bash";
-            string[] args = { "tools/run-arm.sh", wslExecutablePath };
+            // Get a path to the compiled executable in WSL land
+            string wslExecutablePath = ConvertWindowsToWslPath(compilation.OutputExecutableFilepath);
+            
+            // Finally execute the program using WSL. The return code will be the return code of the
+            // executed program.
 
-            return ProcessHelpers.RunExternalProcess(program, string.Join(" ", args));
+            string   program = "wsl";
+
+            // Utility script run-arm.sh will invoke the QEMU arm userspace emulator to execute the
+            // given program.
+            string[] args =
+            {
+                "tools/run-arm.sh", // First argument to 'wsl' is the program to execute (in this case our script)
+                wslExecutablePath,  // Now it's parameters to pass to the first program. Here it's the compiled program to execute.
+                "-quiet"            // Tells the script not to print a message with the exit code to stdout
+            };
+
+            return ProcessHelpers.RunExternalProcess(program, args);
         }
     }
 
-    public interface ITestsuite
+    public abstract class Testsuite
     {
-        TestRun RunTest(string filepath);
-        string[] GetAllTestFiles();
+        public abstract TestRun RunTest(string filepath);
+        public abstract string[] GetAllTestFiles();
     }
 }

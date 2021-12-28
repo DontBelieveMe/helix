@@ -8,70 +8,67 @@ namespace Testify
 {
     class HelixCompiler
     {
-        private static string GetExecutablePath()
+        private static string GetCompilerExecutablePath()
         {
-            string debugPath = "vs2019/Debug/helix.exe";
-            string releasePath = "vs2019/Release/helix.exe";
+            // List of executable paths to try to find the compiler
+            // Priority is top down (e.g. item at the top is most desirable)
+            string[] executablePaths =
+            {
+                "vs2022/src/hxc/Release/hxc.exe",
+                "vs2022/src/hxc/Debug/hxc.exe",
 
-            if (File.Exists(releasePath))
+                "vs2019/src/hxc/Release/hxc.exe",
+                "vs2019/src/hxc/Debug/hxc.exe"
+            };
+
+            foreach (string executablePath in executablePaths)
             {
-                return releasePath;
-            }
-            else
-            {
-                if (File.Exists(debugPath))
+                if (File.Exists(executablePath))
                 {
-                    return debugPath;
+                    return executablePath;
                 }
-
-                throw new Exception("Cannot find compiler path");
             }
+
+            throw new Exception("Cannot suitable helix compiler executable");
         }
 
-        private static string GetGCCFilePath()
+        public static CompilationResult CompileSingleFile(string sourceFile, string[] extraCompilationFlags, string outputExecutableFilepath)
         {
-            return "contrib/bwilks/gcc-arm/bin/arm-none-linux-gnueabihf-gcc.exe";
-        }
+            // Path to the compiler executable
+            string compilerFilepath = GetCompilerExecutablePath();
 
-        public static CompilationResult CompileSingleFile(string tempDir, string sourceFile, string commandLine)
-        {
-            string sourceFilename = Path.GetFileNameWithoutExtension(sourceFile);
+            // Want to put any temporary files in the same folder as the executable.
+            string temporaryFilesDirectory = Path.GetDirectoryName(outputExecutableFilepath);
 
-            string tempAssemblyFilePath = tempDir + "/" + sourceFilename + ".S";
-            string tempExecutablePath = tempDir + "/" + sourceFilename + ".out";
-
-            string filepath = GetExecutablePath();
-            string[] args = { commandLine, sourceFile, "-S", "-o " + tempAssemblyFilePath, "--" };
-
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            ProgramOutput output = ProcessHelpers.RunExternalProcess(filepath, string.Join(" ", args));
-            stopwatch.Stop();
-
-            string assemblyOuptut = "";
-            
-            if (output.ExitCode == 0)
-                assemblyOuptut = File.ReadAllText(tempAssemblyFilePath);
-
-            CompilationResult result =
-                new CompilationResult(output.Stdout, output.Stderr, output.ExitCode, stopwatch.ElapsedMilliseconds, sourceFile, assemblyOuptut, tempExecutablePath);
-
-            result.CompilationCommands.Add(filepath + " " + string.Join(" ", args));
-
-            if (output.ExitCode == 0)
+            // List of arguments to pass to the compiler
+            string[] compilerArguments =
             {
-                string gccFilepath = GetGCCFilePath();
-                string[] gccArgs = { "-static", "-o " + tempExecutablePath, tempAssemblyFilePath};
+                sourceFile,                              // The file we want to compile
+                
+                "-o " + outputExecutableFilepath,        // Set the correct output file
 
-                ProgramOutput gccOutput = ProcessHelpers.RunExternalProcess(gccFilepath, string.Join(" ", gccArgs));
-                result.CompilationCommands.Add(gccFilepath + " " + string.Join(" ", gccArgs));
+                "--no-colours",                          // Want any output as plain text, with no terminal/ascii colouring
+                "--save-temps",                          // Save temporary files
 
-                result.AppendStderr(gccOutput.Stderr);
-                result.AppendStdout(gccOutput.Stdout);
+                "--dumpbase " + temporaryFilesDirectory, // Set the base directory for temporary files (e.g. assembly files)
+                                                         // Want to explictly set this incase the compiler ICEs and doesn't clean
+                                                         // up temporary files (don't want them in an unknown location)
 
-                result.SetExitCode(gccOutput.ExitCode);
-            }
+                string.Join(" ", extraCompilationFlags)  // Any extra arguments passed down
+            };
 
-            return result;
+            // Bingo! Finally invoke the compiler process :-)
+            ProgramOutput output = ProcessHelpers.RunExternalProcess(compilerFilepath, compilerArguments);
+
+            return new CompilationResult(
+                output.Stdout,
+                output.Stderr,
+                output.ExitCode,
+                sourceFile,
+                outputExecutableFilepath,
+                output.Time,
+                string.Format("{0} {1}", compilerFilepath, string.Join(" ", compilerArguments))
+            );
         }
     }
 }

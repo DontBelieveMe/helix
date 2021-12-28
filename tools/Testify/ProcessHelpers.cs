@@ -15,6 +15,11 @@ namespace Testify
 
     class ProcessHelpers
     {
+        public static ProgramOutput RunExternalProcess(string name, string[] args)
+        {
+            return RunExternalProcess(name, string.Join(" ", args));
+        }
+
         public static ProgramOutput RunExternalProcess(string name, string args)
         {
             StringBuilder stdout = new StringBuilder();
@@ -33,14 +38,20 @@ namespace Testify
                 process.OutputDataReceived += (sender, args) => stdout.AppendLine(args.Data);
                 process.ErrorDataReceived += (sender, args) => stderr.AppendLine(args.Data);
 
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
                 process.Start();
                 process.BeginOutputReadLine();
-                if (process.WaitForExit(2000))
-                    exitCode = process.ExitCode;
-                else
-                    exitCode = 1;
 
-                time = (long)process.TotalProcessorTime.TotalMilliseconds;
+                if (!process.WaitForExit(2000))
+                {
+                    process.Kill();
+                }
+
+                stopwatch.Stop();
+
+                exitCode = process.ExitCode;
+                time = stopwatch.ElapsedMilliseconds;
             }
 
             return new ProgramOutput { Stderr = stderr.ToString(), Stdout = stdout.ToString(), ExitCode = exitCode, Time = time };

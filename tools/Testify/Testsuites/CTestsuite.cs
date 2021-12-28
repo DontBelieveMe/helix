@@ -9,9 +9,9 @@ using Newtonsoft.Json;
 
 namespace Testify
 {
-    class CTestsuite : ITestsuite
+    class CTestsuite : Testsuite
     {
-        public string[] GetAllTestFiles()
+        public override string[] GetAllTestFiles()
         {
             return Directory.GetFiles("extras/c-testsuite/tests/single-exec", "*.c", SearchOption.AllDirectories);
         }
@@ -29,7 +29,7 @@ namespace Testify
             }
         }
 
-        public TestRun RunTest(string filepath)
+        public override TestRun RunTest(string filepath)
         {
             string tagsFilepath = filepath + ".tags";
             string[] tags = File.ReadAllLines(tagsFilepath);
@@ -41,13 +41,11 @@ namespace Testify
 
             if (skip)
             {
-                return new TestRun(TestStatus.Skipped, new CompilationResult("", "", 0, 0, filepath, "", ""), "", null);
+                return new TestRun(TestStatus.Skipped, CompilationResult.CreateSkippedCompilation(filepath), "", null);
             }
 
-            string[] flags = { "--no-colours" };
-
-
-            CompilationResult result = HelixCompiler.CompileSingleFile(_baseDirectory, filepath, string.Join(" ", flags));
+            string outputExecutableFilepath = _baseDirectory + Path.GetFileNameWithoutExtension(filepath);
+            CompilationResult result = HelixCompiler.CompileSingleFile(filepath, new string[] { }, outputExecutableFilepath);
 
             if (result.CompilerExitCode == 0)
                 return new TestRun(TestStatus.Pass, result, "", null);

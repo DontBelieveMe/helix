@@ -4,49 +4,56 @@ namespace Testify
 {
     public class CompilationResult
     {
+        /// <summary>
+        /// Text printed to stdout by the compiler.
+        /// </summary>
         public string CompilerStdout { get; private set; }
-        public string CompilerStderr { get; private set; }
-        public string SourceFile { get; private set; }
-
-        public int CompilerExitCode { get; private set; }
-
-        public string AssemblyOutput { get; private set; }
 
         /// <summary>
-        /// Milliseconds
+        /// Text printed to stderr by the compiler.
+        /// </summary>
+        public string CompilerStderr { get; private set; }
+
+        /// <summary>
+        /// Exit code of the compiler.
+        /// </summary>
+        public int    CompilerExitCode { get; private set; }
+
+        /// <summary>
+        /// Path to the input source file that was compiled.
+        /// </summary>
+        public string SourceFile { get; private set; }
+
+        /// <summary>
+        /// Path to the executable created by the compilation.
+        /// </summary>
+        public string OutputExecutableFilepath { get; private set; }
+
+        /// <summary>
+        /// Time for the compilation (in milliseconds).
         /// </summary>
         public long CompilationTime { get; private set; }
 
-        public List<string> CompilationCommands { get; private set; } = new List<string>();
+        /// <summary>
+        /// Command line used to compile the input source file.
+        /// </summary>
+        public string CompilerCommandLine { get; private set; }
 
-        public string OutputExecutableFilepath { get; private set; }
-
-        public CompilationResult(string compilerStdout, string compilerStderr, int compilerExitCode, long compilationTime, string sourceFile, string assemblyOutput, string outputExecutableFilepath)
+        public CompilationResult(string compilerStdout, string compilerStderr, int compilerExitCode, string sourceFile,
+            string outputExecutableFilepath, long compilationTime, string compilerCommandLine)
         {
             CompilerStdout = compilerStdout;
             CompilerStderr = compilerStderr;
             CompilerExitCode = compilerExitCode;
-            CompilationTime = compilationTime;
             SourceFile = sourceFile;
-            AssemblyOutput = assemblyOutput;
             OutputExecutableFilepath = outputExecutableFilepath;
+            CompilationTime = compilationTime;
+            CompilerCommandLine = compilerCommandLine;
         }
 
-        public void AppendStdout(string stdout)
+        public static CompilationResult CreateSkippedCompilation(string inputSourcefile)
         {
-            CompilerStdout += stdout;
+            return new CompilationResult("", "", 0, inputSourcefile, "", 0, "");
         }
-
-        public void SetExitCode(int exitCode)
-        {
-            CompilerExitCode = exitCode;
-        }
-
-        public void AppendStderr(string stderr)
-        {
-            CompilerStderr += stderr;
-        }
-
-        public static readonly CompilationResult SkippedCompilation = new CompilationResult("", "", 0, 0, "", "","");
     }
 }

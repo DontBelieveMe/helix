@@ -34,11 +34,6 @@ namespace Testify
             return File.ReadAllText(run.Compilation.SourceFile);
         }
 
-        public string GetAssemblyCode(TestRun run)
-        {
-            return run.Compilation.AssemblyOutput;
-        }
-
         public string HtmlId(TestRun testrun)
         {
             return Math.Abs(testrun.Compilation.SourceFile.GetHashCode()).ToString();
@@ -84,15 +79,6 @@ namespace Testify
             File.WriteAllText(TargetBase + "/" + model.TestReport.Name + ".html", result);
         }
 
-        public class Summary
-        {
-            public int Passes;
-            public int Fails;
-            public int Total;
-            public int Skipped;
-            public DateTime When;
-        }
-
         public void Print(Report report)
         {
             if (report.AbortedEarly)
@@ -103,34 +89,8 @@ namespace Testify
                 Directory.CreateDirectory(".testify/html");
             }
 
-            if (!Directory.Exists(".testify/" + report.Name))
-            {
-                Directory.CreateDirectory(".testify/" + report.Name);
-            }
-
-            List<Summary> summaries = new List<Summary>();
-
-            if (File.Exists(".testify/" + report.Name + "-regressions.json"))
-            {
-                summaries = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Summary>>(File.ReadAllText(".testify/" + report.Name + "-regressions.json"));
-            }
-
-            summaries.Add(new Summary()
-            {
-                Passes = report.GetTotalWithStatus(TestStatus.Pass),
-                Fails = report.GetTotalWithStatus(TestStatus.Fail),
-                Skipped = report.GetTotalWithStatus(TestStatus.Skipped),
-                When = report.GenerationTime,
-                Total = report.TotalTestsRan
-            });
-
-            string jsonSummary = Newtonsoft.Json.JsonConvert.SerializeObject(summaries);
-
-            File.WriteAllText(".testify/" + report.Name + "-regressions.json", jsonSummary);
-            File.WriteAllText(".testify/" + report.Name + "/" + report.Name + "-" + report.GenerationTime.ToString("yyyy-MM-dd_HH_mm_ss") + ".json", report.ToJson());
-
             CopyDependencies();
-            GenerateHtml(new Model() { TestReport = report, RegressionJson = jsonSummary });
+            GenerateHtml(new Model() { TestReport = report, RegressionJson = TestsDatabase.GetLastRunSummaryJson() });
         }
     }
 }

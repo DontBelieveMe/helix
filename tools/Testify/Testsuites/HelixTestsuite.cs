@@ -6,9 +6,9 @@ using System.Text.RegularExpressions;
 
 namespace Testify
 {
-    class HelixTestsuite : ITestsuite
+    class HelixTestsuite : Testsuite
     {
-        public string[] GetAllTestFiles()
+        public override string[] GetAllTestFiles()
         {
             return Directory.GetFiles("testsuite", "*.xml", SearchOption.AllDirectories);
         }
@@ -40,14 +40,20 @@ namespace Testify
             return false;
         }
 
-        public TestRun RunTest(string filepath)
+        public override TestRun RunTest(string filepath)
         {
+            // The source file to test should have the same name as the XML file (just with a .c)
+            // extension
             string sourcefilePath = filepath.Replace(".xml", ".c");
+
+            // Parse the test definition, in the standard test definition XML format.
             StandardTestDefinition testDefinition = StandardTestDefinition.FromXml(filepath);
 
-            string[] flags = { "--no-colours", testDefinition.CompilationFlags };
+            string[] extraCompilationFlags = { testDefinition.CompilationFlags };
 
-            CompilationResult result = HelixCompiler.CompileSingleFile(_baseDirectory, sourcefilePath, string.Join(" ", flags));
+            string outputExecutableFilepath = _baseDirectory + "/" + Path.GetFileNameWithoutExtension(sourcefilePath);
+
+            CompilationResult result = HelixCompiler.CompileSingleFile(sourcefilePath, extraCompilationFlags, outputExecutableFilepath);
 
             string expectedStdout = testDefinition.ExpectedOutput.Trim().Replace("\r\n", "\n");
             string actualStdout = result.CompilerStdout.Trim().Replace("\r\n", "\n");

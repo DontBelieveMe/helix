@@ -7,14 +7,13 @@ namespace Testify
     {
         private static Dictionary<string, Func<IReportPrinter>> _printers = new Dictionary<string, Func<IReportPrinter>>
         {
-            { "html", () => { return new HtmlPrinter(); } },
+            // { "html", () => { return new HtmlPrinter(); } },
         };
 
-        public static Dictionary<string, Func<ITestsuite>> Testsuites = new Dictionary<string, Func<ITestsuite>>
+        public static Dictionary<string, Func<Testsuite>> Testsuites = new Dictionary<string, Func<Testsuite>>
         {
             { "helix",      () => { return new HelixTestsuite(); } },
-            { "ctestsuite", () => { return new CTestsuite(); } },
-            { "stub",       () => { return new StubTestsuite(); } },
+            // { "ctestsuite", () => { return new CTestsuite(); } },
         };
 
         public static string GetLinkToTestsuite(string name)
@@ -27,6 +26,9 @@ namespace Testify
             TestRunner runner = new TestRunner(name, Testsuites[name]());
 
             Report report = runner.RunAll();
+
+            // Update the tests JSON history "database"
+            TestsDatabase.Update(report);
 
             // Always print a quick summary to the command line
             new SummaryPrinter().Print(report);

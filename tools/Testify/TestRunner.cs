@@ -7,10 +7,10 @@ namespace Testify
 {
     class TestRunner
     {
-        private ITestsuite _testsuite;
+        private Testsuite _testsuite;
         private string _name;
 
-        public TestRunner(string name, ITestsuite testsuite)
+        public TestRunner(string name, Testsuite testsuite)
         {
             _name = name;
             _testsuite = testsuite;
@@ -64,10 +64,7 @@ namespace Testify
 
                 if (ProgramOptions.Verbose)
                 {
-                    foreach (string cli in testInfo.Compilation.CompilationCommands)
-                    {
-                        Console.WriteLine("> {0}", cli);
-                    }
+                    Console.WriteLine("> {0}", testInfo.Compilation.CompilerCommandLine);
                 }
 
                 if (ProgramOptions.FailFast && testInfo.Status == TestStatus.Fail)
