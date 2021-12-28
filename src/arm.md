@@ -75,6 +75,29 @@
 		(match_operand:i32 2 "register"))]
 	"mul {2}, {0}, {1}")
 
+; 32 bit Register/Register Bitwise Or
+(define-insn "or_r32r32"
+	[(kInsn_Or
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"orr {2}, {0}, {1}")
+
+; 32 bit Register/Register Bitwise And
+(define-insn "and_r32r32"
+	[(kInsn_And
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"and {2}, {0}, {1}")
+
+; 32 bit Register/Register Bitwise Exclusive Or
+(define-insn "xor_r32r32"
+	[(kInsn_Xor
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"eor {2}, {0}, {1}")
 
 ; *****************************************************************************
 ;                             Memory Operations
