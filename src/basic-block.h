@@ -92,10 +92,11 @@ namespace Helix
 
 		void Replace(Instruction* original, Instruction* newValue)
 		{
+			newValue->SetParent(this);
 			Instructions.replace(original, newValue);
 		}
 
-		void Remove(iterator where) { Instructions.remove(where); }
+		void Remove(iterator where) { where->SetParent(nullptr); Instructions.remove(where); }
 
 		bool CanDelete() const;
 

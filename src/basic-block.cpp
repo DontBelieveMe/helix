@@ -54,6 +54,7 @@ BasicBlock::BasicBlock()
 
 BasicBlock::iterator BasicBlock::InsertBefore(iterator where, Instruction* insn)
 {
+	insn->SetParent(this);
 	return Instructions.insert_before(where, insn);
 }
 
@@ -61,6 +62,7 @@ BasicBlock::iterator BasicBlock::InsertBefore(iterator where, Instruction* insn)
 
 BasicBlock::iterator BasicBlock::InsertAfter(iterator where, Instruction* insn)
 {
+	insn->SetParent(this);
 	return Instructions.insert_after(where, insn);
 }
 

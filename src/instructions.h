@@ -118,7 +118,11 @@ namespace Helix
 			}
 		}
 
+		void SetParent(BasicBlock* bb) { m_Parent = bb; }
+		BasicBlock* GetParent() const { return m_Parent; }
+
 	protected:
+		BasicBlock* m_Parent = nullptr;
 		Opcode      m_Opcode = kInsn_Undefined;
 		OperandList m_Operands;
 		std::string m_DebugComment;
