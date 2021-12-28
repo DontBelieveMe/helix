@@ -31,6 +31,14 @@
 		(match_operand:i32 2 "register"))]
 	"add {2}, {0}, {1}")
 
+; 32 bit Register/Register Signed Division
+(define-insn "div_r32r32"
+	[(kInsn_IDiv
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"sdiv {2}, {0}, {1}")
+
 ; 32 bit Register/Immediate Subtraction
 ;
 ; #FIXME: Same problem with assuming that the constant int is suitable
