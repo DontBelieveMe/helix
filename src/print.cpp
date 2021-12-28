@@ -17,7 +17,8 @@ const char* Helix::GetOpcodeName(Opcode opcode)
 	switch (opcode) {
 		#define BEGIN_INSN_CLASS(_)
 		#define END_INSN_CLASS(_)
-		#define DEF_INSN(code_name,pretty_name) case kInsn_##code_name: return pretty_name;
+		#define DEF_INSN_FIXED(code_name,pretty_name, n_operands, ...) case kInsn_##code_name: return pretty_name;
+		#define DEF_INSN_DYN(code_name,pretty_name) case kInsn_##code_name: return pretty_name;
 			#include "insns.def"
 
 	default:

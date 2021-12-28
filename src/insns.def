@@ -1,5 +1,9 @@
-#ifndef DEF_INSN
-	#define DEF_INSN(code_name, pretty_name)
+#ifndef DEF_INSN_FIXED
+	#define DEF_INSN_FIXED(code_name, pretty_name, n_operands, ...)
+#endif
+
+#ifndef DEF_INSN_DYN
+	#define DEF_INSN_DYN(code_name, pretty_name)
 #endif
 
 #ifndef BEGIN_INSN_CLASS
@@ -10,72 +14,56 @@
 	#define END_INSN_CLASS(class_name)
 #endif
 
+#define FLG(e) Instruction::OP_##e
+
 BEGIN_INSN_CLASS(BinaryOp)
-	DEF_INSN(IAdd, "iadd")
-
-	DEF_INSN(ISub, "isub")
-
-	DEF_INSN(IMul, "imul")
-
-	DEF_INSN(IDiv, "idiv")
-
-	DEF_INSN(IRem, "irem")
-
-	DEF_INSN(And, "and")
-
-	DEF_INSN(Or, "or")
-
-	DEF_INSN(Shl, "shl")
-
-	DEF_INSN(Shr, "shr")
-
-	DEF_INSN(Xor, "xor")
+	DEF_INSN_FIXED(IAdd, "iadd", 3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(ISub, "isub", 3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(IMul, "imul", 3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(IDiv, "idiv", 3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(IRem, "irem", 3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(And,  "and",  3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(Or,   "or" ,  3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(Shl,  "shl",  3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(Shr,  "shr",  3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(Xor,  "xor",  3, FLG(READ), FLG(READ), FLG(WRITE))
 END_INSN_CLASS(BinaryOp)
 
-DEF_INSN(Load, "load")
-
-DEF_INSN(Store, "store")
-
-DEF_INSN(StackAlloc, "stack_alloc")
-
-DEF_INSN(LoadElementAddress, "lea")
-
-DEF_INSN(LoadFieldAddress, "lfa")
+DEF_INSN_FIXED(Load,               "load",        2, FLG(READ), FLG(WRITE))
+DEF_INSN_FIXED(Store,              "store",       2, FLG(READ), FLG(READ))
+DEF_INSN_FIXED(StackAlloc,         "stack_alloc", 1, FLG(WRITE))
+DEF_INSN_FIXED(LoadElementAddress, "lea",         3, FLG(READ), FLG(READ), FLG(WRITE))
+DEF_INSN_FIXED(LoadFieldAddress,   "lfa",         3, FLG(READ), FLG(READ), FLG(WRITE))
 
 BEGIN_INSN_CLASS(Branch)
 	BEGIN_INSN_CLASS(Terminator)
-		DEF_INSN(ConditionalBranch, "cbr")
-		
-		DEF_INSN(UnconditionalBranch, "br")
-		
-		DEF_INSN(Return, "ret")
+		DEF_INSN_FIXED(ConditionalBranch,   "cbr", 3, FLG(READ), FLG(READ), FLG(READ))
+		DEF_INSN_FIXED(UnconditionalBranch, "br",  1, FLG(READ))
+		DEF_INSN_DYN(Return,                "ret")
 	END_INSN_CLASS(Terminator)
 
-	DEF_INSN(Call, "call")
+	DEF_INSN_DYN(Call, "call")
 END_INSN_CLASS(Branch)
 
 BEGIN_INSN_CLASS(Compare)
-	DEF_INSN(ICmp_Neq, "icmp_neq")
-	
-	DEF_INSN(ICmp_Eq, "icmp_eq")
-	
-	DEF_INSN(ICmp_Gt, "icmp_gt")
-	
-	DEF_INSN(ICmp_Lt, "icmp_lt")
-	
-	DEF_INSN(ICmp_Gte, "icmp_gte")
-	
-	DEF_INSN(ICmp_Lte, "icmp_lte")
+	DEF_INSN_FIXED(ICmp_Neq, "icmp_neq", 3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(ICmp_Eq, "icmp_eq",   3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(ICmp_Gt, "icmp_gt",   3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(ICmp_Lt, "icmp_lt",   3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(ICmp_Gte, "icmp_gte", 3, FLG(READ), FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(ICmp_Lte, "icmp_lte", 3, FLG(READ), FLG(READ), FLG(WRITE))
 END_INSN_CLASS(Compare)
 
 BEGIN_INSN_CLASS(Cast)
-	DEF_INSN(PtrToInt, "ptrtoint")
-	
-	DEF_INSN(IntToPtr, "inttoptr")
+	DEF_INSN_FIXED(PtrToInt, "ptrtoint", 2, FLG(READ), FLG(WRITE))
+	DEF_INSN_FIXED(IntToPtr, "inttoptr", 2, FLG(READ), FLG(WRITE))
 END_INSN_CLASS(Cast)
 
-DEF_INSN(Undefined, "undef")
+DEF_INSN_FIXED(Undefined, "undef", 0)
 
+#undef FLG
 #undef BEGIN_INSN_CLASS
 #undef END_INSN_CLASS
-#undef DEF_INSN
+#undef DEF_INSN_FIXED
+#undef DEF_INSN_DYN
+

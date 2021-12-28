@@ -5,6 +5,19 @@
 
 using namespace Helix;
 
+static std::vector<Instruction::OperandFlags> s_fixedOperandsFlags[KInsnCount] =
+{
+	#define DEF_INSN_FIXED(code_name,pretty_name, n_operands, ...) { __VA_ARGS__ },
+
+	// Need to define these (even though they're not used) so we can use the opcode
+	// directly as an index into the table & since the opcode enum has these in them
+	// if we didn't have them in the table here the indexes would all be wrong
+	#define DEF_INSN_DYN(code_name,pretty_name) { },
+	#define BEGIN_INSN_CLASS(class_name) { },
+	#define END_INSN_CLASS(class_name) { },
+
+		#include "insns.def"
+} ;
 
 CastInsn* Helix::CreatePtrToInt(const Type* dstIntType, Value* inputPtr, Value* outputInt)
 {
@@ -278,3 +291,48 @@ std::string Helix::stringify_operand(Value* v, SlotTracker& slots)
 	helix_unimplemented("stringify_operand, unknown value type");
 	return {};
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static Instruction::OperandFlags GetFixedOpFlags(const Instruction* insn, size_t index)
+{
+	if (index >= insn->GetCountOperands())
+		return Instruction::OP_NONE;
+
+	return s_fixedOperandsFlags[insn->GetOpcode()][index];
+}
+
+Instruction::OperandFlags BinOpInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags StoreInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags LoadInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags StackAllocInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags ConditionalBranchInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags UnconditionalBranchInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags CompareInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags LoadEffectiveAddressInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags LoadFieldAddressInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags CastInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+
+Instruction::OperandFlags CallInsn::GetOperandFlags(size_t i) const
+{
+	if (i >= this->GetCountOperands()) {
+		return Instruction::OP_NONE;
+	}
+
+	switch (i) {
+	case 0:  return Instruction::OP_WRITE;
+	case 1:  return Instruction::OP_READ;
+	default: return Instruction::OP_READ;
+	}
+}
+
+Instruction::OperandFlags RetInsn::GetOperandFlags(size_t i) const
+{
+	if (i >= this->GetCountOperands()) {
+		return Instruction::OP_NONE;
+	}
+
+	return Instruction::OP_READ;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

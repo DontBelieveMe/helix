@@ -27,8 +27,11 @@ namespace Helix
 	{
 		#define BEGIN_INSN_CLASS(class_name) kInsnStart_##class_name,
 		#define END_INSN_CLASS(class_name) kInsnEnd_##class_name,
-		#define DEF_INSN(code_name, pretty_name) kInsn_##code_name,
+		#define DEF_INSN_FIXED(code_name, pretty_name,n_operands, ...) kInsn_##code_name,
+		#define DEF_INSN_DYN(code_name, pretty_name) kInsn_##code_name,
 			#include "insns.def"
+
+		KInsnCount
 	};
 
 #define IMPLEMENT_OPCODE_CATEGORY_IDENTITY(category) \
@@ -39,7 +42,8 @@ namespace Helix
 
 	#define BEGIN_INSN_CLASS(class_name) IMPLEMENT_OPCODE_CATEGORY_IDENTITY(class_name)
 	#define END_INSN_CLASS(class_name)
-	#define DEF_INSN(code_name, pretty_name)
+	#define DEF_INSN_FIXED(code_name, pretty_name, n_operands, ...)
+	#define DEF_INSN_DYN(code_name, pretty_name)
 		#include "insns.def"
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,6 +53,13 @@ namespace Helix
 		using OperandList = std::vector<Value*>;
 
 	public:
+		enum OperandFlags
+		{
+			OP_NONE   = 0x0,
+			OP_READ   = 0x1,
+			OP_WRITE  = 0x2
+		};
+
 		virtual ~Instruction() { }
 
 		Instruction(Opcode opcode, size_t nOperands)
@@ -60,6 +71,10 @@ namespace Helix
 		Instruction(Opcode opcode)
 		    : m_Opcode(opcode)
 		{ }
+
+		virtual OperandFlags GetOperandFlags(size_t) const { return OP_NONE; }
+
+		virtual bool OperandHasFlags(size_t index, OperandFlags flags) const { return GetOperandFlags(index) & flags; }
 
 		/**
 		 * Set the operand at the given index to 'value'.
@@ -119,6 +134,8 @@ namespace Helix
 		Value* GetLHS()                  const { return this->GetOperand(0);                                  }
 		Value* GetRHS()                  const { return this->GetOperand(1);                                  }
 		VirtualRegisterName* GetResult() const { return value_cast<VirtualRegisterName>(this->GetOperand(2)); }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,6 +147,8 @@ namespace Helix
 
 		Value* GetSrc() const { return this->GetOperand(0); }
 		Value* GetDst() const { return this->GetOperand(1); }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,6 +160,8 @@ namespace Helix
 
 		Value* GetSrc() const { return this->GetOperand(0); }
 		Value* GetDst() const { return this->GetOperand(1); }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,6 +175,8 @@ namespace Helix
 
 		Value* GetOutputPtr() const { return this->GetOperand(0); }
 		const Type* GetAllocatedType() const { return m_Type; }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 
 	private:
 		const Type* m_Type;
@@ -169,6 +192,8 @@ namespace Helix
 		BasicBlock* GetTrueBB() const { return  value_cast<BlockBranchTarget>(this->GetOperand(0))->GetParent(); }
 		BasicBlock* GetFalseBB() const { return value_cast<BlockBranchTarget>(this->GetOperand(1))->GetParent(); }
 		Value*      GetCond() const { return this->GetOperand(2); }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,6 +204,8 @@ namespace Helix
 		UnconditionalBranchInsn(BasicBlock* bb);
 
 		BasicBlock* GetBB() const { return value_cast<BlockBranchTarget>(this->GetOperand(0))->GetParent(); }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,6 +214,8 @@ namespace Helix
 	{
 	public:
 		CallInsn(Function* function, Value* ret, const ParameterList& params);
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,6 +229,8 @@ namespace Helix
 		Value* GetReturnValue() const;
 		void MakeVoid();
 		bool HasReturnValue() const;
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -208,6 +239,8 @@ namespace Helix
 	{
 	public:
 		CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -228,6 +261,8 @@ namespace Helix
 		Value* GetInputPtr() const { return this->GetOperand(0); }
 		Value* GetIndex() const { return this->GetOperand(1); }
 		Value* GetOutputPtr() const { return this->GetOperand(2); }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 
 	private:
 		const Type* m_Type;
@@ -251,6 +286,8 @@ namespace Helix
 		const Type* GetBaseType() const { return m_BaseType; }
 		unsigned int GetFieldIndex() const { return m_Index; }
 
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
+
 	private:
 		const Type* m_BaseType;
 		unsigned int m_Index;
@@ -270,6 +307,8 @@ namespace Helix
 
 		const Type* GetSrcType() const { return m_SrcType; }
 		const Type* GetDstType() const { return m_DstType; }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
 
 	private:
 		const Type* m_SrcType;
