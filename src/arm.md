@@ -100,6 +100,66 @@
 	"eor {2}, {0}, {1}")
 
 ; *****************************************************************************
+;                             Comparison Operations
+; These could probably be handled better in the IR, without having to expand
+; to multiple MC instructions here.
+; *****************************************************************************
+
+(define-insn "icmpeq_r32r32r32"
+	[(kInsn_ICmp_Eq
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"cmp {0}, {1}"
+	"mov {2}, #0"
+	"movweq {2}, #1")
+
+(define-insn "icmpneq_r32r32r32"
+	[(kInsn_ICmp_Neq
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"cmp {0}, {1}"
+	"mov {2}, #0"
+	"movwne {2}, #1")
+
+(define-insn "icmplt_r32r32r32"
+	[(kInsn_ICmp_Lt
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"cmp {0}, {1}"
+	"mov {2}, #0"
+	"movwlt {2}, #1")
+
+(define-insn "icmplte_r32r32r32"
+	[(kInsn_ICmp_Lte
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"cmp {0}, {1}"
+	"mov {2}, #0"
+	"movwle {2}, #1")	
+
+(define-insn "icmpgt_r32r32r32"
+	[(kInsn_ICmp_Gt
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"cmp {0}, {1}"
+	"mov {2}, #0"
+	"movwgt {2}, #1")
+
+(define-insn "icmpgte_r32r32r32"
+	[(kInsn_ICmp_Gte
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"cmp {0}, {1}"
+	"mov {2}, #0"
+	"movwge {2}, #1")	
+
+; *****************************************************************************
 ;                             Memory Operations
 ; *****************************************************************************
 
@@ -157,6 +217,12 @@
 ;         and should never get this far.
 (define-insn "inttoptr"
 	[(kInsn_IntToPtr
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register"))]
+	"mov {1}, {0}")
+
+(define-insn "ptrtoint"
+	[(kInsn_PtrToInt
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register"))]
 	"mov {1}, {0}")

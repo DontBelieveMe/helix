@@ -443,7 +443,7 @@ namespace MachineDescription
     class Instruction
     {
         public string Name;
-        public string OutputFormat;
+        public string[] OutputFormat;
         public IRInstructionTemplate Template;
     }
 
@@ -526,14 +526,18 @@ namespace MachineDescription
             
             // got a match
             {
-                string outputString = _parent.OutputFormat;
+                string outputStringTemp = string.Join("", _parent.OutputFormat);
 
-                if (!outputString.Contains("{") || outputString.StartsWith("@"))
+                if (!outputStringTemp.Contains("{") || outputStringTemp.StartsWith("@"))
                 {
-                    if (outputString.StartsWith("@"))
-                        outputString = outputString.Substring(1);
+                    foreach (string asmLine in _parent.OutputFormat)
+                    {
+                        string tmp = asmLine;
+                        if (tmp.StartsWith("@"))
+                            tmp = tmp.Substring(1);
 
-                    ctx.PrintIndentedLine("fprintf(file, \"\\t" + outputString + "\\n\");");
+                        ctx.PrintIndentedLine("fprintf(file, \"\\t" + tmp + "\\n\");");
+                    }
                 }
                 else
                 {
@@ -552,8 +556,11 @@ namespace MachineDescription
 
                     string args = string.Join(", ", formatArgs);
 
-                    ctx.PrintIndentedLine(string.Format("const std::string as = fmt::format(\"\\t{0}\\n\", {1});", _parent.OutputFormat,args));
-                    ctx.PrintIndentedLine("fprintf(file, \"%s\",as.c_str());");
+                    foreach (string asmLine in _parent.OutputFormat)
+                    {
+                        ctx.PrintIndentedLine(string.Format("{{const std::string as = fmt::format(\"\\t{0}\\n\", {1});", asmLine, args));
+                        ctx.PrintIndentedLine("fprintf(file, \"%s\",as.c_str());}");
+                    }
                 }
 
                 ctx.PrintIndentedLine("return;");
@@ -626,11 +633,19 @@ namespace MachineDescription
         {
             String name = node.GetChildAs<String>(1);
             SExpression template = node.GetChildAs<Array>(2).GetChildAs<SExpression>(0);
+
+            List<string> outputAssembly = new List<string>();
+
+            for (int i = 3; i < node.Children.Count; ++i)
+            {
+                outputAssembly.Add(node.GetChildAs<String>(i).Value);
+            }
+
             String outputFormat = node.GetChildAs<String>(3);
 
             Instruction insn = new Instruction() { 
                 Name = name.Value,
-                OutputFormat = outputFormat.Value,
+                OutputFormat = outputAssembly.ToArray()
             };
             insn.Template = new IRInstructionTemplate(template, insn);
 
