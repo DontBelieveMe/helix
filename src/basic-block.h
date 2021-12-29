@@ -72,6 +72,8 @@ namespace Helix
 		iterator InsertBefore(iterator where, Instruction* insn);
 		iterator InsertAfter(iterator where, Instruction* insn);
 
+		Instruction* GetLast() { return &Instructions.back(); }
+
 		static BasicBlock* Create(const char* name);
 		static BasicBlock* Create();
 
