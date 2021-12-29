@@ -75,7 +75,7 @@ namespace Testify
             {
                 execOutput = CommonTestsuiteActions.RunCompiledFile(result);
 
-                if (execOutput.ExitCode != 0)
+                if (execOutput.ExitCode != testDefinition.ExecutableExpectedExitCode)
                 {
                     return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
                 }

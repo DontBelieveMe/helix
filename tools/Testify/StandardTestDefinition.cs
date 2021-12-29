@@ -20,6 +20,8 @@ namespace Testify
 
         public TextCompareMode ExpectedOutputComparisonMode { get; private set; }
 
+        public int ExecutableExpectedExitCode { get; private set; } = 0;
+
         public static StandardTestDefinition FromXml(string xmlFilepath)
         {
             StandardTestDefinition def = new StandardTestDefinition();
@@ -29,6 +31,13 @@ namespace Testify
 
             XmlNode expectedOutputNode = xmlDocument.GetElementsByTagName("ExpectedOutput")[0];
             XmlNode flagsNode = xmlDocument.GetElementsByTagName("Flags")[0];
+
+            var exeExitCode = xmlDocument.GetElementsByTagName("ExecutableExpectedExitCode");
+
+            if (exeExitCode.Count > 0)
+            {
+                def.ExecutableExpectedExitCode = Convert.ToInt32(exeExitCode[0].InnerText);
+            }
 
             def.ExpectedOutput = expectedOutputNode.InnerText.Trim().Replace("\r\n", "\n");
             def.CompilationFlags = flagsNode.InnerText;
