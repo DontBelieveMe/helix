@@ -41,6 +41,11 @@ namespace Testify
             return Newtonsoft.Json.JsonConvert.SerializeObject(this);
         }
 
+        public static Report FromJson(string json)
+        {
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<Report>(json);
+        }
+
         public long GetSmallestCompilationTime()
         {
             return _tests.Min((TestRun run) => { return run.Compilation.CompilationTime; });

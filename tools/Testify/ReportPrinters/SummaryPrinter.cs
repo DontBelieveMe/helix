@@ -38,6 +38,7 @@ namespace Testify
             double totalTimeSeconds = report.OverallRuntime / 1000.0;
 
             Console.WriteLine();
+            Console.WriteLine("Testsuite run at {0}", report.GenerationTime.ToString());
             Console.WriteLine("Executing {0} tests took {1:0.00}s (average of {4:0.00}ms each, range {2}ms -> {3}ms)",
                 totalRuns, totalTimeSeconds, smallest, largest, average
             );

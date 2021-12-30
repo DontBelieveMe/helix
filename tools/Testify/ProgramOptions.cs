@@ -14,6 +14,8 @@ namespace Testify
 
         public static bool Verbose { get; private set; } = false;
 
+        public static bool SummariseLastRun { get; private set; } = false;
+
         public static void Parse(string[] args)
         {
             List<string> testsuites = new List<string>();
@@ -40,6 +42,10 @@ namespace Testify
                 else if (arg == "-verbose")
                 {
                     Verbose = true;
+                }
+                else if (arg == "-summarise-last")
+                {
+                    SummariseLastRun = true;
                 }
             }
 

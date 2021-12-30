@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Testify
@@ -17,6 +18,15 @@ namespace Testify
         }
 
         private static string _lastRunSummaryJson;
+
+        public static Report ReadLastReport(string testsuiteName)
+        {
+            FileInfo file = 
+                new DirectoryInfo(".testify/" + testsuiteName).GetFiles().OrderByDescending(o => o.CreationTime).FirstOrDefault();
+
+            string json = File.ReadAllText(file.FullName);
+            return Report.FromJson(json);
+        }
 
         public static void Update(Report report)
         {

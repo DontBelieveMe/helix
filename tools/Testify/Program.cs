@@ -44,6 +44,13 @@ namespace Testify
         {
             ProgramOptions.Parse(args);
 
+            if (ProgramOptions.SummariseLastRun)
+            {
+                Report report = TestsDatabase.ReadLastReport("helix");
+                new SummaryPrinter().Print(report);
+                return;
+            }
+
             if (ProgramOptions.Testsuites.Length == 0)
             {
                 RunTestsuite("helix");
