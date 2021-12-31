@@ -13,7 +13,7 @@ function main(): i32 {
 	br .1
 .1:
 	load %0:ptr, %1:i32
-	icmp_gte %1:i32, 0:i32, %2:i32
+	icmp_gt %1:i32, 0:i32, %2:i32
 	cbr .2, .3, %2:i32
 .2:
 	load %0:ptr, %3:i32

@@ -3,6 +3,7 @@
 
 	<TestFlags>
 		<TestFlag name="regex" value="false"></TestFlag>
+		<TestFlag name="xfail" value="true"></TestFlag>
 	</TestFlags>
 
 	<ExpectedOutput>

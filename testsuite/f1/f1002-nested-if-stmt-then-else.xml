@@ -5,6 +5,8 @@
 		<TestFlag name="regex" value="false"></TestFlag>
 	</TestFlags>
 
+	<ExecutableExpectedExitCode>2</ExecutableExpectedExitCode>
+
 	<ExpectedOutput>
 function main(): i32 {
 .0:
@@ -15,7 +17,7 @@ function main(): i32 {
 	icmp_lte 3:i32, 3:i32, %2:i32
 	cbr .3, .4, %2:i32
 .3:
-	store 1:i32, %0:ptr
+	store 5:i32, %0:ptr
 	br .5
 .4:
 	store 60:i32, %0:ptr
