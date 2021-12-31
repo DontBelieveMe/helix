@@ -4,6 +4,12 @@ using System.Text;
 
 namespace Testify
 {
+    enum SummaryMode
+    {
+        Short,
+        Long
+    }
+
     class ProgramOptions
     {
         public static string[] ReportFormats { get; private set; } = new string[] { };
@@ -15,6 +21,7 @@ namespace Testify
         public static bool Verbose { get; private set; } = false;
 
         public static bool SummariseLastRun { get; private set; } = false;
+        public static SummaryMode SummaryMode { get; private set; } = SummaryMode.Short;
 
         public static void Parse(string[] args)
         {
@@ -46,6 +53,15 @@ namespace Testify
                 else if (arg == "-summarise-last")
                 {
                     SummariseLastRun = true;
+                }
+                else if (arg.StartsWith("-summary-mode="))
+                {
+                    string mode = arg.Split("=")[1];
+
+                    if (mode == "short")
+                        SummaryMode = SummaryMode.Short;
+                    else if (mode == "long")
+                        SummaryMode = SummaryMode.Long;
                 }
             }
 
