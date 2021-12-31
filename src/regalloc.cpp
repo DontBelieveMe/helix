@@ -158,6 +158,8 @@ void RegisterAllocator::Execute(Function* fn)
 				Value* operand = insn.GetOperand(operandIndex);
 
 				if (VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(operand)) {
+					helix_assert(CanTypeFitInNativeRegister(vreg->GetType()), "type is too big for native regiser (e.g. 32 bits)");
+
 					PhysicalRegisterName* physical_register = PhysicalRegisters::GetRegister(kPhysicalRegisterIDs[nextAvailablePhysicalRegister]);
 					nextAvailablePhysicalRegister++;
 
