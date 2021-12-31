@@ -45,6 +45,26 @@ using namespace Helix;
 
 /*********************************************************************************************************************/
 
+static const char* GetAssemblyDirectiveForType(const Type* type)
+{
+	if (const IntegerType* int_type = type_cast<IntegerType>(type)) {
+		switch (int_type->GetBitWidth()) {
+		case 8:  return "byte";
+		case 16: return "2byte";
+		case 32: return "4byte";
+		case 64: return "8byte";
+		default:
+			helix_unreachable("no assembly directive for integral type of this size");
+			break;
+		}
+	}
+
+	helix_unreachable("no assembly directive for unknown type");
+	return nullptr;
+}
+
+/*********************************************************************************************************************/
+
 void FinalMatcher::Execute(Module* mod)
 {
 	const std::string& assemblyFileName = Helix::GetAssemblyOutputFilePath(mod);
@@ -68,9 +88,10 @@ void FinalMatcher::Execute(Module* mod)
 
 	for (GlobalVariable* global : mod->globals()) {
 		ConstantInt* init = value_cast<ConstantInt>(global->GetInit());
-		helix_assert(init && init->GetType() == BuiltinTypes::GetInt32(), "only 32 bit integer constants with initializers");
+		helix_assert(init->GetType()->IsIntegral(), "only globals with integer initializers supported");
 
-		fprintf(file, "%s: .long %llu\n", global->GetName(), init->GetIntegralValue());
+		const char* label = GetAssemblyDirectiveForType(init->GetType());
+		fprintf(file, "%s: .%s %llu\n", global->GetName(), label, init->GetIntegralValue());
 	}
 
 	// Then print the actual function (code) itself...
