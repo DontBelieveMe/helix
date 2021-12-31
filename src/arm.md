@@ -194,6 +194,16 @@
 		(match_operand:lbl 0 "basic_block"))]
 	"b {0}")
 
+(define-insn "cbr"
+	[(kInsn_ConditionalBranch
+		(match_operand:lbl 0 "basic_block")
+		(match_operand:lbl 1 "basic_block")
+		(match_operand:i32 2 "register")
+		)]
+	"cmp {2}, #1"
+	"bge {0}"
+	"b   {1}")
+
 ; 'ret' here implements the function prologue
 ; This acts as a return from the current instruction, since
 ; in the prologue we pushed onto the stack the link register (LR)
