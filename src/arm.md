@@ -216,6 +216,14 @@
 	"movt r7, :upper16:{0}"
 	"str r7, [{1}]")
 
+(define-insn "store_r32g"
+	[(kInsn_Store
+		(match_operand:i32 0 "register")
+		(match_operand:ptr 1 "global"))]
+	"movw r7, :lower16:{1}"
+	"movt r7, :upper16:{1}"
+	"str {0}, [r7]")
+
 ; *****************************************************************************
 ;                             Branching Operations
 ; *****************************************************************************
