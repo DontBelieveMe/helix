@@ -69,6 +69,19 @@ void RegisterAllocator::ComputeStackFrame(StackFrame& frame, Function* fn)
 	frame.size = Align(frame.size, 8);
 }
 
+static const Type* LowerVirtualRegisterType(const Type* type) {
+	if (type->IsPointer()) {
+		return BuiltinTypes::GetInt32();
+	}
+	else if (type->IsIntegral()) {
+		return type;
+	}
+
+	helix_unreachable("type cannot be lowered into a single physical register");
+
+	return nullptr;
+}
+
 /*********************************************************************************************************************/
 
 void RegisterAllocator::Execute(Function* fn)
@@ -159,7 +172,8 @@ void RegisterAllocator::Execute(Function* fn)
 				if (VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(operand)) {
 					helix_assert(CanTypeFitInNativeRegister(vreg->GetType()), "type is too big for native regiser (e.g. 32 bits)");
 
-					PhysicalRegisterName* physical_register = PhysicalRegisters::GetRegister(kPhysicalRegisterIDs[nextAvailablePhysicalRegister]);
+					const Type* preg_type = LowerVirtualRegisterType(vreg->GetType());
+					PhysicalRegisterName* physical_register = PhysicalRegisters::GetRegister(preg_type, kPhysicalRegisterIDs[nextAvailablePhysicalRegister]);
 					nextAvailablePhysicalRegister++;
 
 					if (IsStackAllocation(vreg)) {
@@ -228,7 +242,7 @@ void RegisterAllocator::Execute(Function* fn)
 
 	BasicBlock* tail = fn->GetTailBlock();
 
-	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(PhysicalRegisters::SP);
+	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::SP);
 
 	for (const StackVariable& stack_var : stack_frame.variables) {
 		const unsigned offset = stack_frame.size - stack_var.offset;
@@ -256,7 +270,7 @@ void RegisterAllocator::Execute(Function* fn)
 
 			BasicBlock::iterator where = head->Where(use.GetInstruction());
 
-			PhysicalRegisterName* output = PhysicalRegisters::GetRegister(kAvailableAddressRegisters[c % 2]);  //addressRegisters[use.GetInstruction()->GetOperand(use.GetOperandIndex())];
+			PhysicalRegisterName* output = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), kAvailableAddressRegisters[c % 2]);  //addressRegisters[use.GetInstruction()->GetOperand(use.GetOperandIndex())];
 			//PhysicalRegisterName* output = addressRegisters[use.GetInstruction()->GetOperand(use.GetOperandIndex())];
 			head->InsertBefore(where, Helix::CreateBinOp(kInsn_IAdd, sp, offset_value, output));
 			//use.GetInstruction()->SetOperand(use.GetOperandIndex(), output);

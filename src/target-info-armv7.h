@@ -43,7 +43,7 @@ namespace Helix
 
 		void Init();
 
-		PhysicalRegisterName* GetRegister(ArmV7RegisterID id);
+		PhysicalRegisterName* GetRegister(const Type* type, ArmV7RegisterID id);
 		const char* GetRegisterString(ArmV7RegisterID id);
 	}
 

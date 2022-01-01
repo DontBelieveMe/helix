@@ -183,7 +183,7 @@
 ;   >     .asciz "Hello World!"
 
 ; Load a 32 bit global variable into a register
-(define-insn "load_gptr"
+(define-insn "ldrw_gptr"
 	[(kInsn_Load
 		(match_operand:ptr 0 "global")
 		(match_operand:i32 1 "register"))]
@@ -191,19 +191,65 @@
 	"movt {1}, :upper16:{0}"
 	"ldr {1}, [{1}]")
 
+; Load a 16 bit unsigned global variable into a register
+(define-insn "ldrh_gptr"
+	[(kInsn_Load
+		(match_operand:ptr 0 "global")
+		(match_operand:i16 1 "register"))]
+	"movw {1}, :lower16:{0}"
+	"movt {1}, :upper16:{0}"
+	"ldrh {1}, [{1}]")
+
+; Load a 8 bit unsigned global variable into a register
+(define-insn "ldrb_gptr"
+	[(kInsn_Load
+		(match_operand:ptr 0 "global")
+		(match_operand:i8 1 "register"))]
+	"movw {1}, :lower16:{0}"
+	"movt {1}, :upper16:{0}"
+	"ldrb {1}, [{1}]")
+
 ; Load a 32 bit value pointed at by a register into another register
-(define-insn "load_r32"
+(define-insn "ldrw_r32"
 	[(kInsn_Load
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register"))]
 	"ldr {1}, [{0}]")
 
+; Load a 16 bit unsigned value pointed at by a register into another register
+(define-insn "ldrh_r32"
+	[(kInsn_Load
+		(match_operand:i32 0 "register")
+		(match_operand:i16 1 "register"))]
+	"ldrh {1}, [{0}]")
+
+; Load a 32 bit value pointed at by a register into another register
+(define-insn "ldrb_r32"
+	[(kInsn_Load
+		(match_operand:i32 0 "register")
+		(match_operand:i8 1 "register"))]
+	"ldrb {1}, [{0}]")
+
 ; Store a 32 bit value into the address specified by another register
-(define-insn "store"
+(define-insn "strw"
 	[(kInsn_Store
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register"))]
 	"str {0}, [{1}]")
+
+; Store a 8 bit value into the address specified by another register
+(define-insn "strb"
+	[(kInsn_Store
+		(match_operand:i8 0 "register")
+		(match_operand:i32 1 "register"))]
+	"strb {0}, [{1}]")
+
+; Store a 16 bit value into the address specified by another register
+(define-insn "strh"
+	[(kInsn_Store
+		(match_operand:i16 0 "register")
+		(match_operand:i32 1 "register"))]
+	"strh {0}, [{1}]")
 
 ; Store the pointer of a global variable into the memory address
 ; given by a register (note that it doesn't load the value pointed to

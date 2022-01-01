@@ -10,34 +10,62 @@ using namespace Helix;
 struct RegisterData
 {
 	const char* str;
-	PhysicalRegisterName reg_name;
+	PhysicalRegisterName byte_reg;
+	PhysicalRegisterName halfword_reg;
+	PhysicalRegisterName word_reg;
 };
 
 static std::array<RegisterData, PhysicalRegisters::NumRegisters> s_Registers;
 
 void PhysicalRegisters::Init()
 {
-	s_Registers[0] = { "r0", PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R0)  };
-	s_Registers[1] = { "r1",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R1) };
-	s_Registers[2] = { "r2",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R2) };
-	s_Registers[3] = { "r3",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R3) };
-	s_Registers[4] = { "r4",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R4) };
-	s_Registers[5] = { "r5",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R5) };
-	s_Registers[6] = { "r6",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R6) };
-	s_Registers[7] = { "r7",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R7) };
-	s_Registers[8] = { "r8",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R8) };
-	s_Registers[9] = { "r9",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R9) };
-	s_Registers[10] = { "r10", PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R10) };
-	s_Registers[11] = { "fp",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R11) };
-	s_Registers[12] = { "ip",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R12) };
-	s_Registers[13] = { "sp",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R13) };
-	s_Registers[14] = { "lr",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R14) };
-	s_Registers[15] = { "pc",  PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::R15) };
+	#define PHYSICAL_REGISTER(index, string_name, enum_name) \
+		s_Registers[index] = \
+		{ \
+			string_name, \
+			PhysicalRegisterName(BuiltinTypes::GetInt8(), PhysicalRegisters::enum_name), \
+			PhysicalRegisterName(BuiltinTypes::GetInt16(), PhysicalRegisters::enum_name), \
+			PhysicalRegisterName(BuiltinTypes::GetInt32(), PhysicalRegisters::enum_name), \
+		};
+
+
+	PHYSICAL_REGISTER(0,  "r0",  R0);
+	PHYSICAL_REGISTER(1,  "r1",  R1);
+	PHYSICAL_REGISTER(2,  "r2",  R2);
+	PHYSICAL_REGISTER(3,  "r3",  R3);
+	PHYSICAL_REGISTER(4,  "r4",  R4);
+	PHYSICAL_REGISTER(5,  "r5",  R5);
+	PHYSICAL_REGISTER(6,  "r6",  R6);
+	PHYSICAL_REGISTER(7,  "r7",  R7);
+	PHYSICAL_REGISTER(8,  "r8",  R8);
+	PHYSICAL_REGISTER(9,  "r9",  R9);
+	PHYSICAL_REGISTER(10, "r10", R10);
+	PHYSICAL_REGISTER(11, "r11", R11);
+	PHYSICAL_REGISTER(12, "r12", R12);
+	PHYSICAL_REGISTER(13, "r13", R13);
+	PHYSICAL_REGISTER(14, "r14", R14);
+	PHYSICAL_REGISTER(15, "r15", R15);
 }
 
-PhysicalRegisterName* PhysicalRegisters::GetRegister(ArmV7RegisterID id)
+PhysicalRegisterName* PhysicalRegisters::GetRegister(const Type* type, ArmV7RegisterID id)
 {
-	return &s_Registers[id].reg_name;
+	if (const IntegerType* int_type = type_cast<IntegerType>(type)) {
+		RegisterData& reg_data = s_Registers[id];
+		switch (int_type->GetBitWidth()) {
+		case 8: return &reg_data.byte_reg;
+		case 16: return &reg_data.halfword_reg;
+		case 32: return &reg_data.word_reg;
+		default:
+			helix_unreachable("physical register sizes can only be 8/16/32 bits");
+			break;
+		}
+
+		return nullptr;
+	}
+
+	helix_unreachable("physical registers can only have integral type");
+
+	return nullptr;
 }
 
 const char* PhysicalRegisters::GetRegisterString(ArmV7RegisterID id)

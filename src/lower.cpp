@@ -377,7 +377,7 @@ void CConv::Execute(Function* fn)
 	if (!ret)
 		return;
 
-	PhysicalRegisterName* r0 = PhysicalRegisters::GetRegister(PhysicalRegisters::R0);
+	PhysicalRegisterName* r0 = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R0);
 	const size_t r0Size = ARMv7::TypeSize(r0->GetType()); // always going to be 4, but meh
 
 	if (ret->HasReturnValue()) {
