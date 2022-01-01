@@ -138,7 +138,8 @@ void FinalMatcher::Execute(Module* mod)
 			fprintf(file, "\n");
 		}
 		else {
-			helix_unimplemented("globals without initializers not supported");
+			const size_t sizeInBytes = ARMv7::TypeSize(global->GetBaseType());
+			fprintf(file, "%s: .space %llu\n", global->GetName(), sizeInBytes);
 		}
 	}
 
