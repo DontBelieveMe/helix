@@ -41,6 +41,10 @@ void PassManager::RunPass(const PassData& passData, Module* module)
 
 	std::unique_ptr<Pass> pass = passData.create_action();
 
+	if (Options::GetEmitIRPrePass() == passData.name) {
+		Helix::DebugDump(*module);
+	}
+
 	pass->Execute(module);
 
 	if (Options::GetEmitIRPostPass() == passData.name) {
