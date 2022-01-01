@@ -40,6 +40,7 @@ namespace Helix
 		void LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn);
 		void LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn);
 		void LowerIRem(BasicBlock& bb, BinOpInsn& insn);
+		void LowerStackAlloc(BasicBlock& bb, StackAllocInsn& insn);
 	};
 
 	/*********************************************************************************************************************/

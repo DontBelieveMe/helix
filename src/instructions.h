@@ -182,6 +182,8 @@ namespace Helix
 
 		virtual OperandFlags GetOperandFlags(size_t index) const override;
 
+		void SetAllocatedType(const Type* type) { m_Type = type; }
+
 	private:
 		const Type* m_Type;
 	};
