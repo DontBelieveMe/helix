@@ -163,12 +163,33 @@
 ;                             Memory Operations
 ; *****************************************************************************
 
+;
+; The movw/movt pair is what GCC likes to emit, and clang sometimes (clang also sometimes
+; defines another global/label that just contains the address
+; and uses ldr to load the address from that. Choosing to do it this way for now, since
+; it can be done entirely here & doesn't require extra support in the code generator to
+; emit extra labels.
+;
+; Example:
+;
+;   > main:
+;   >    ldr r0, .LC0
+;   >    bx lr
+;   >
+;   > .LC0:
+;   >     .long .LC1
+;   >
+;   > .LC1:
+;   >     .asciz "Hello World!"
+
 ; Load a 32 bit global variable into a register
 (define-insn "load_gptr"
 	[(kInsn_Load
 		(match_operand:ptr 0 "global")
 		(match_operand:i32 1 "register"))]
-	"ldr {1}, {0}")
+	"movw {1}, :lower16:{0}"
+	"movt {1}, :upper16:{0}"
+	"ldr {1}, [{1}]")
 
 ; Load a 32 bit value pointed at by a register into another register
 (define-insn "load_r32"
@@ -183,6 +204,17 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register"))]
 	"str {0}, [{1}]")
+
+; Store the pointer of a global variable into the memory address
+; given by a register (note that it doesn't load the value pointed to
+; by the global, but the pointer of the global itself!)
+(define-insn "store_gr32"
+	[(kInsn_Store
+		(match_operand:ptr 0 "global")
+		(match_operand:i32 1 "register"))]
+	"movw r7, :lower16:{0}"
+	"movt r7, :upper16:{0}"
+	"str r7, [{1}]")
 
 ; *****************************************************************************
 ;                             Branching Operations
