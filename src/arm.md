@@ -110,54 +110,54 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}"
-	"mov {2}, #0"
-	"movweq {2}, #1")
+	"cmp {0}, {1}
+	 mov {2}, #0
+	 movweq {2}, #1")
 
 (define-insn "icmpneq_r32r32r32"
 	[(kInsn_ICmp_Neq
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}"
-	"mov {2}, #0"
-	"movwne {2}, #1")
+	"cmp {0}, {1}
+	 mov {2}, #0
+	 movwne {2}, #1")
 
 (define-insn "icmplt_r32r32r32"
 	[(kInsn_ICmp_Lt
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}"
-	"mov {2}, #0"
-	"movwlt {2}, #1")
+	"cmp {0}, {1}
+	 mov {2}, #0
+	 movwlt {2}, #1")
 
 (define-insn "icmplte_r32r32r32"
 	[(kInsn_ICmp_Lte
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}"
-	"mov {2}, #0"
-	"movwle {2}, #1")	
+	"cmp {0}, {1}
+	 mov {2}, #0
+	 movwle {2}, #1")	
 
 (define-insn "icmpgt_r32r32r32"
 	[(kInsn_ICmp_Gt
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}"
-	"mov {2}, #0"
-	"movwgt {2}, #1")
+	"cmp {0}, {1}
+	 mov {2}, #0
+	 movwgt {2}, #1")
 
 (define-insn "icmpgte_r32r32r32"
 	[(kInsn_ICmp_Gte
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}"
-	"mov {2}, #0"
-	"movwge {2}, #1")	
+	"cmp {0}, {1}
+	 mov {2}, #0
+	 movwge {2}, #1")	
 
 ; *****************************************************************************
 ;                             Memory Operations
@@ -187,27 +187,27 @@
 	[(kInsn_Load
 		(match_operand:ptr 0 "global")
 		(match_operand:i32 1 "register"))]
-	"movw {1}, :lower16:{0}"
-	"movt {1}, :upper16:{0}"
-	"ldr {1}, [{1}]")
+	"movw {1}, :lower16:{0}
+	 movt {1}, :upper16:{0}
+	 ldr {1}, [{1}]")
 
 ; Load a 16 bit unsigned global variable into a register
 (define-insn "ldrh_gptr"
 	[(kInsn_Load
 		(match_operand:ptr 0 "global")
 		(match_operand:i16 1 "register"))]
-	"movw {1}, :lower16:{0}"
-	"movt {1}, :upper16:{0}"
-	"ldrh {1}, [{1}]")
+	"movw {1}, :lower16:{0}
+	 movt {1}, :upper16:{0}
+	 ldrh {1}, [{1}]")
 
 ; Load a 8 bit unsigned global variable into a register
 (define-insn "ldrb_gptr"
 	[(kInsn_Load
 		(match_operand:ptr 0 "global")
 		(match_operand:i8 1 "register"))]
-	"movw {1}, :lower16:{0}"
-	"movt {1}, :upper16:{0}"
-	"ldrb {1}, [{1}]")
+	"movw {1}, :lower16:{0}
+	 movt {1}, :upper16:{0}
+	 ldrb {1}, [{1}]")
 
 ; Load a 32 bit value pointed at by a register into another register
 (define-insn "ldrw_r32"
@@ -258,17 +258,17 @@
 	[(kInsn_Store
 		(match_operand:ptr 0 "global")
 		(match_operand:i32 1 "register"))]
-	"movw r7, :lower16:{0}"
-	"movt r7, :upper16:{0}"
-	"str r7, [{1}]")
+	"movw r7, :lower16:{0}
+	 movt r7, :upper16:{0}
+	 str r7, [{1}]")
 
 (define-insn "store_r32g"
 	[(kInsn_Store
 		(match_operand:i32 0 "register")
 		(match_operand:ptr 1 "global"))]
-	"movw r7, :lower16:{1}"
-	"movt r7, :upper16:{1}"
-	"str {0}, [r7]")
+	"movw r7, :lower16:{1}
+	 movt r7, :upper16:{1}
+	 str {0}, [r7]")
 
 ; *****************************************************************************
 ;                             Branching Operations
@@ -286,9 +286,9 @@
 		(match_operand:lbl 1 "basic_block")
 		(match_operand:i32 2 "register")
 		)]
-	"cmp {2}, #1"
-	"bge {0}"
-	"b   {1}")
+	"cmp {2}, #1
+	 bge {0}
+	 b   {1}")
 
 ; 'ret' here implements the function prologue
 ; This acts as a return from the current instruction, since

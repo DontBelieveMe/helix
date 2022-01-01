@@ -8,7 +8,7 @@ namespace MachineDescription
     class Instruction
     {
         public string Name;
-        public string[] OutputFormat;
+        public string OutputFormat;
         public IRInstructionTemplate Template;
     }
 
@@ -93,11 +93,22 @@ namespace MachineDescription
             
             // got a match
             {
-                string outputStringTemp = string.Join("", _parent.OutputFormat);
+                string outputString = _parent.OutputFormat;
 
-                if (!outputStringTemp.Contains("{") || outputStringTemp.StartsWith("@"))
+                List<string> outputLines = new List<string>();
+
                 {
-                    foreach (string asmLine in _parent.OutputFormat)
+                    string[] lines = outputString.Split("\n");
+
+                    foreach (string line in lines)
+                    {
+                        outputLines.Add(line.Trim());
+                    }
+                }
+
+                if (!outputString.Contains("{") || outputString.StartsWith("@"))
+                {
+                    foreach (string asmLine in outputLines)
                     {
                         string tmp = asmLine;
                         if (tmp.StartsWith("@"))
@@ -123,7 +134,7 @@ namespace MachineDescription
 
                     string args = string.Join(", ", formatArgs);
 
-                    foreach (string asmLine in _parent.OutputFormat)
+                    foreach (string asmLine in outputLines)
                     {
                         ctx.PrintIndentedLine(string.Format("{{const std::string as = fmt::format(\"\\t{0}\\n\", {1});", asmLine, args));
                         ctx.PrintIndentedLine("fprintf(file, \"%s\",as.c_str());}");
@@ -198,21 +209,20 @@ namespace MachineDescription
 
         private Instruction ParseInstruction(SExpression node)
         {
+            if (node.Children.Count > 4)
+            {
+                Console.WriteLine(" > Error, too many parameters passed to define-insn");
+                Environment.Exit(1);
+            }
+
             String name = node.GetChildAs<String>(1);
             SExpression template = node.GetChildAs<Array>(2).GetChildAs<SExpression>(0);
-
-            List<string> outputAssembly = new List<string>();
-
-            for (int i = 3; i < node.Children.Count; ++i)
-            {
-                outputAssembly.Add(node.GetChildAs<String>(i).Value);
-            }
 
             String outputFormat = node.GetChildAs<String>(3);
 
             Instruction insn = new Instruction() { 
                 Name = name.Value,
-                OutputFormat = outputAssembly.ToArray()
+                OutputFormat = outputFormat.Value
             };
             insn.Template = new IRInstructionTemplate(template, insn);
 
