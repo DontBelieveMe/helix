@@ -304,21 +304,17 @@ namespace Helix
 	class CastInsn : public Instruction
 	{
 	public:
-		CastInsn(Opcode opc, const Type* srcTy, const Type* dstTy, Value* in, Value* out)
-			: Instruction(opc, 2), m_SrcType(srcTy), m_DstType(dstTy)
+		CastInsn(Opcode opc, Value* in, Value* out)
+			: Instruction(opc, 2)
 		{
 			this->SetOperand(0, in);
 			this->SetOperand(1, out);
 		}
 
-		const Type* GetSrcType() const { return m_SrcType; }
-		const Type* GetDstType() const { return m_DstType; }
+		const Type* GetSrcType() const { return this->GetOperand(0)->GetType(); }
+		const Type* GetDstType() const { return this->GetOperand(1)->GetType(); }
 
 		virtual OperandFlags GetOperandFlags(size_t index) const override;
-
-	private:
-		const Type* m_SrcType;
-		const Type* m_DstType;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -366,8 +362,8 @@ namespace Helix
 	LoadEffectiveAddressInsn* CreateLoadEffectiveAddress(const Type* baseType, Value* input, Value* index, Value* outputPtr);
 	LoadFieldAddressInsn* CreateLoadFieldAddress(const StructType* baseType, Value* input, unsigned int index, Value* outputPtr);
 
-	CastInsn* CreatePtrToInt(const Type* dstIntType, Value* inputPtr, Value* outputInt);
-	CastInsn* CreateIntToPtr(const Type* srcIntType, Value* inputInt, Value* outputPtr);
+	CastInsn* CreatePtrToInt(Value* inputPtr, Value* outputInt);
+	CastInsn* CreateIntToPtr(Value* inputInt, Value* outputPtr);
 
 	void DestroyInstruction(Instruction* insn);
 

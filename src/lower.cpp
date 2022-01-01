@@ -96,10 +96,10 @@ void GenericLowering::LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
 
 	BasicBlock::iterator where = bb.Where(&insn);
 	
-	where = bb.InsertAfter(where, Helix::CreatePtrToInt(ARMv7::PointerType(), insn.GetInputPtr(), ptrint));
+	where = bb.InsertAfter(where, Helix::CreatePtrToInt(insn.GetInputPtr(), ptrint));
 	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IMul, insn.GetIndex(), typeSize, offset));
 	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, ptrint, offset, newAddress));
-	where = bb.InsertAfter(where, Helix::CreateIntToPtr(ARMv7::PointerType(), newAddress, intptr));
+	where = bb.InsertAfter(where, Helix::CreateIntToPtr(newAddress, intptr));
 
 	IR::ReplaceAllUsesWith(insn.GetOutputPtr(), intptr);
 
@@ -125,9 +125,9 @@ void GenericLowering::LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 
 	BasicBlock::iterator where = bb.Where(&insn);
 
-	where = bb.InsertAfter(where, Helix::CreatePtrToInt(ARMv7::PointerType(), insn.GetInputPtr(), inputInteger));
+	where = bb.InsertAfter(where, Helix::CreatePtrToInt(insn.GetInputPtr(), inputInteger));
 	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, inputInteger, offset, newAddress));
-	where = bb.InsertAfter(where, Helix::CreateIntToPtr(ARMv7::PointerType(), newAddress, resultPointer));
+	where = bb.InsertAfter(where, Helix::CreateIntToPtr(newAddress, resultPointer));
 
 	IR::ReplaceAllUsesWith(insn.GetOutputPtr(), resultPointer);
 
