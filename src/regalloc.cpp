@@ -81,8 +81,7 @@ void RegisterAllocator::Execute(Function* fn)
 		PhysicalRegisters::R3,
 		PhysicalRegisters::R4,
 		PhysicalRegisters::R5,
-		PhysicalRegisters::R6,
-		PhysicalRegisters::R7,
+		PhysicalRegisters::R6
 	};
 
 	size_t nextAvailablePhysicalRegister = 0;
