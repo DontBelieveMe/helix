@@ -326,7 +326,12 @@ namespace Helix
 		}
 
 		/// Probably, anyway
-		bool IsString() const { return type_cast<ArrayType>(GetType())->GetBaseType() == BuiltinTypes::GetInt8(); }
+		bool IsString() const
+		{
+			return m_Values.back() == '\0' && type_cast<ArrayType>(GetType())->GetBaseType() == BuiltinTypes::GetInt8();
+		}
+
+		iterator_range<const_init_iterator> bytes() const { return iterator_range(begin(), end()); }
 
 		const_init_iterator begin() const { return m_Values.begin(); }
 		const_init_iterator end() const { return m_Values.end(); }
