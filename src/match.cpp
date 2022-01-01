@@ -59,8 +59,23 @@ static const char* GetAssemblyDirectiveForType(const Type* type)
 		}
 	}
 
+	if (const ArrayType* array_type = type_cast<ArrayType>(type)) {
+		return GetAssemblyDirectiveForType(array_type->GetBaseType());
+	}
+
 	helix_unreachable("no assembly directive for unknown type");
 	return nullptr;
+}
+
+static const char* GetAssemblyDirectiveForValue(Value* value)
+{
+	if (ConstantByteArray* cba = value_cast<ConstantByteArray>(value)) {
+		if (cba->IsString()) {
+			return "ascii"; // we include the null terminator ourselves so don't use .asciz
+		}
+	}
+
+	return GetAssemblyDirectiveForType(value->GetType());
 }
 
 /*********************************************************************************************************************/
@@ -86,13 +101,48 @@ void FinalMatcher::Execute(Module* mod)
 
 	// First go through and print all the global variables at the top of the file...
 
-	for (GlobalVariable* global : mod->globals()) {
-		ConstantInt* init = value_cast<ConstantInt>(global->GetInit());
-		helix_assert(init->GetType()->IsIntegral(), "only globals with integer initializers supported");
+	fprintf(file, ".section .data\n");
 
-		const char* label = GetAssemblyDirectiveForType(init->GetType());
-		fprintf(file, "%s: .%s %llu\n", global->GetName(), label, init->GetIntegralValue());
+	for (GlobalVariable* global : mod->globals()) {
+		Value* init = global->GetInit();
+		if (init) {
+			const char* label = GetAssemblyDirectiveForValue(init);
+			fprintf(file, "%s: .%s ", global->GetName(), label);
+
+			if (ConstantInt* constIntExpr = value_cast<ConstantInt>(init)) {
+				fprintf(file, "%llu", constIntExpr->GetIntegralValue());
+			}
+			else if (ConstantByteArray* constByteArray = value_cast<ConstantByteArray>(init)) {
+				if (constByteArray->IsString()) {
+					fprintf(file, "\"");
+
+					for (uint8_t byte : constByteArray->bytes()) {
+						if (isprint(byte)) {
+							fprintf(file, "%c", byte);
+						}
+						else {
+							fprintf(file, "\\%x", byte);
+						}
+					}
+
+					fprintf(file, "\"");
+				}
+				else {
+					helix_unimplemented("can't print ConstantByteArray global initializer");
+				}
+			}
+			else {
+				helix_unimplemented("can't print constant initializer expression");
+			}
+
+			fprintf(file, "\n");
+		}
+		else {
+			helix_unimplemented("globals without initializers not supported");
+		}
 	}
+
+	fprintf(file, ".text\n");
 
 	// Then print the actual function (code) itself...
 
