@@ -134,15 +134,6 @@ void GenericLowering::LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 	bb.Delete(bb.Where(&insn));
 }
 
-void GenericLowering::LowerStackAlloc(BasicBlock& bb, StackAllocInsn& insn)
-{
-	if (insn.GetAllocatedType()->IsStruct()) {
-		const size_t structSize = ARMv7::TypeSize(insn.GetAllocatedType());
-		const ArrayType* arrayType = ArrayType::Create(structSize, BuiltinTypes::GetInt8());
-		insn.SetAllocatedType(arrayType);
-	}
-}
-
 void GenericLowering::Execute(Function* fn)
 {
 	struct WorkPair { Instruction* insn; BasicBlock* bb; };
@@ -155,7 +146,6 @@ void GenericLowering::Execute(Function* fn)
 			case kInsn_LoadElementAddress:
 			case kInsn_LoadFieldAddress:
 			case kInsn_IRem:
-			case kInsn_StackAlloc:
 				worklist.push_back({&insn, &bb});
 				break;
 
@@ -169,10 +159,6 @@ void GenericLowering::Execute(Function* fn)
 
 	for (const WorkPair& workload : worklist) {
 		switch (workload.insn->GetOpcode()) {
-		case kInsn_StackAlloc:
-			this->LowerStackAlloc(*workload.bb, *static_cast<StackAllocInsn*>(workload.insn));
-			break;
-
 		case kInsn_LoadElementAddress:
 			this->LowerLea(*workload.bb, *static_cast<LoadEffectiveAddressInsn*>(workload.insn));
 			break;
@@ -454,6 +440,25 @@ void ConstantHoisting::Execute(BasicBlock* bb)
 				bb->InsertBefore(bb->Where(&insn), Helix::CreateLoad(g, v));
 
 				insn.SetOperand(operandIndex, v);
+			}
+		}
+	}
+}
+
+/*********************************************************************************************************************/
+
+void LowerStructStackAllocation::Execute(Function* fn)
+{
+	BasicBlock* head = fn->GetHeadBlock();
+
+	for (Instruction& insn : head->insns()) {
+		if (insn.GetOpcode() == kInsn_StackAlloc) {
+			StackAllocInsn& stack_alloc = (StackAllocInsn&) insn;
+	
+			if (stack_alloc.GetAllocatedType()->IsStruct()) {
+				const size_t structSize = ARMv7::TypeSize(stack_alloc.GetAllocatedType());
+				const ArrayType* arrayType = ArrayType::Create(structSize, BuiltinTypes::GetInt8());
+				stack_alloc.SetAllocatedType(arrayType);
 			}
 		}
 	}

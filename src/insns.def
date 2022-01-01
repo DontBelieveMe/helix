@@ -57,6 +57,12 @@ END_INSN_CLASS(Compare)
 BEGIN_INSN_CLASS(Cast)
 	DEF_INSN_FIXED(PtrToInt, "ptrtoint", 2, FLG(READ), FLG(WRITE))
 	DEF_INSN_FIXED(IntToPtr, "inttoptr", 2, FLG(READ), FLG(WRITE))
+
+	/* Sign Extension */
+	DEF_INSN_FIXED(SExt,     "sext",     2, FLG(READ), FLG(WRITE))
+
+	/* Zero Extension */
+	DEF_INSN_FIXED(ZExt,     "zext",     2, FLG(READ), FLG(WRITE))
 END_INSN_CLASS(Cast)
 
 DEF_INSN_FIXED(Undefined, "undef", 0)

@@ -19,8 +19,10 @@ PassManager::PassManager()
 	AddPass<GenericLegalizer>();
 	AddPass<ReturnCombine>();
 	AddPass<GenericLowering>();
+
 	AddPass<ConstantHoisting>();
 	AddPass<CConv>();
+	AddPass<LowerStructStackAllocation>();
 	AddPass<RegisterAllocator>();
 	AddPass<FinalMatcher>();
 }
