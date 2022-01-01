@@ -50,6 +50,9 @@ namespace Testify
 
             Stopwatch timer = Stopwatch.StartNew();
 
+            if (_testsuite.GetOverrideAbortEarly())
+                report.AbortedEarly = true;
+
             foreach (string file in files)
             {
                 Console.Write("{0}... ", file);

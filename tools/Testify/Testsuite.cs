@@ -99,5 +99,6 @@ namespace Testify
     {
         public abstract TestRun RunTest(string filepath);
         public abstract string[] GetAllTestFiles();
+        public virtual bool GetOverrideAbortEarly() { return false; }
     }
 }

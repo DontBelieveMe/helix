@@ -8,8 +8,48 @@ namespace Testify
 {
     class HelixTestsuite : Testsuite
     {
+        private bool GetRunSubSection()
+        {
+            if (ProgramOptions.PositionalArguments.Length > 0)
+            {
+                string pos0 = ProgramOptions.PositionalArguments[0];
+                if (pos0.StartsWith("f"))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public override bool GetOverrideAbortEarly()
+        {
+            if (GetRunSubSection())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public override string[] GetAllTestFiles()
         {
+            if (ProgramOptions.PositionalArguments.Length > 0)
+            {
+                string pos0 = ProgramOptions.PositionalArguments[0];
+
+                if (pos0.StartsWith("f"))
+                {
+                    return Directory.GetFiles("testsuite/" + pos0, "*.xml", SearchOption.AllDirectories);
+                }
+            }
+
+            if (GetRunSubSection())
+            {
+                string pos0 = ProgramOptions.PositionalArguments[0];
+                return Directory.GetFiles("testsuite/" + pos0, "*.xml", SearchOption.AllDirectories);
+            }
+
             return Directory.GetFiles("testsuite", "*.xml", SearchOption.AllDirectories);
         }
 

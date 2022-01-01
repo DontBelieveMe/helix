@@ -23,10 +23,13 @@ namespace Testify
         public static bool SummariseLastRun { get; private set; } = false;
         public static SummaryMode SummaryMode { get; private set; } = SummaryMode.Short;
 
+        public static string[] PositionalArguments { get; private set; } = new string[] { };
+
         public static void Parse(string[] args)
         {
             List<string> testsuites = new List<string>();
             List<string> reports = new List<string>();
+            List<string> positionals = new List<string>();
 
             foreach (string arg in args)
             {
@@ -63,10 +66,15 @@ namespace Testify
                     else if (mode == "long")
                         SummaryMode = SummaryMode.Long;
                 }
+                else if (!arg.StartsWith("-"))
+                {
+                    positionals.Add(arg);
+                }
             }
 
             ReportFormats = reports.ToArray();
             Testsuites = testsuites.ToArray();
+            PositionalArguments = positionals.ToArray();
         }
     }
 }
