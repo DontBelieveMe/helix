@@ -484,6 +484,8 @@ namespace MachineDescription
 
         private Dictionary<string, string> typeMap = new Dictionary<string, string>()
         {
+            { "i8", "BuiltinTypes::GetInt8" },
+            { "i16", "BuiltinTypes::GetInt16" },
             { "i32", "BuiltinTypes::GetInt32" },
             { "ptr", "BuiltinTypes::GetPointer" },
             { "lbl", "BuiltinTypes::GetLabelType" }
