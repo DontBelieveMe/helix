@@ -5,6 +5,8 @@
 		<TestFlag name="regex" value="false"></TestFlag>
 	</TestFlags>
 
+	<ExecutableExpectedExitCode>60</ExecutableExpectedExitCode>
+
 	<ExpectedOutput>
 @a:ptr = global i32
 @b:ptr = global i32 20:i32

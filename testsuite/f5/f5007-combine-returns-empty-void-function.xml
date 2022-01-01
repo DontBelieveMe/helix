@@ -1,5 +1,5 @@
 <Test>
-	<Flags>--emit-ir-post=retcomb</Flags>
+	<Flags>--emit-ir-post=retcomb -c</Flags>
 
 	<TestFlags>
 		<TestFlag name="regex" value="false"></TestFlag>
