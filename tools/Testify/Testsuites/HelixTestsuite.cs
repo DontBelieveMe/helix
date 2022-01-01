@@ -55,17 +55,21 @@ namespace Testify
 
             CompilationResult result = HelixCompiler.CompileSingleFile(sourcefilePath, extraCompilationFlags, outputExecutableFilepath);
 
-            string expectedStdout = testDefinition.ExpectedOutput.Trim().Replace("\r\n", "\n");
-            string actualStdout = result.CompilerStdout.Trim().Replace("\r\n", "\n");
+            string expectedStdout = testDefinition.ExpectedOutput != null ? testDefinition.ExpectedOutput.Trim().Replace("\r\n", "\n") : "";
 
             if (result.CompilerExitCode != 0)
             {
                 return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
             }
 
-            if (!TextMatches(expectedStdout, actualStdout, testDefinition.ExpectedOutputComparisonMode))
+            if (testDefinition.ExpectedOutput != null)
             {
-                return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
+                string actualStdout = result.CompilerStdout.Trim().Replace("\r\n", "\n");
+
+                if (!TextMatches(expectedStdout, actualStdout, testDefinition.ExpectedOutputComparisonMode))
+                {
+                    return CommonTestsuiteActions.FailedTest(testDefinition.ExpectedStatus, result, expectedStdout);
+                }
             }
 
             ProgramOutput execOutput = null;
