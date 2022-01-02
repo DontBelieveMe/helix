@@ -62,6 +62,8 @@ void RegisterAllocator::ComputeStackFrame(StackFrame& frame, Function* fn)
 				&stack_alloc
 			};
 
+			helix_debug(logs::regalloc, "@ {}={} bytes, +{}", GetTypeName(allocated_type), allocated_size, stack_variable.offset);
+
 			frame.variables.push_back(stack_variable);
 		}
 	}
@@ -101,6 +103,7 @@ void RegisterAllocator::Execute(Function* fn)
 	
 	struct Spill
 	{
+		size_t spillIndex;
 		const Type* ty;
 		VirtualRegisterName* mem_addr;
 	};
@@ -146,6 +149,8 @@ void RegisterAllocator::Execute(Function* fn)
 
 	size_t nextAvailableAddressRegister = 0;
 
+	size_t nextSpillID = 0;
+
 	for (BasicBlock& bb : fn->blocks()) {
 		for (Instruction& insn : bb.insns()) {
 			if (insn.GetOpcode() == kInsn_StackAlloc/* || insn.GetOpcode() == kInsn_Load ||
@@ -188,9 +193,10 @@ void RegisterAllocator::Execute(Function* fn)
 					const Spill* spill_ref = nullptr;
 
 					if (it == spills.end()) {
-						const Spill spill { vreg->GetType(), VirtualRegisterName::Create(BuiltinTypes::GetPointer()) };
+						const Spill spill { nextSpillID, vreg->GetType(), VirtualRegisterName::Create(BuiltinTypes::GetPointer()) };
 						spills.insert({vreg, spill});
 						spill_ref = &spills[vreg];
+						nextSpillID++;
 					} else {
 						spill_ref = &it->second;
 					}
@@ -230,8 +236,16 @@ void RegisterAllocator::Execute(Function* fn)
 
 	BasicBlock* head = fn->GetHeadBlock();
 
-	for (const auto& spillPair : spills) {
-		const Spill& spill = spillPair.second;
+	std::vector<Spill> sortedSpills;
+	sortedSpills.reserve(spills.size());
+	
+	for (auto it = spills.begin(); it != spills.end(); ++it) {
+		sortedSpills.push_back(it->second);
+	}
+
+	std::sort(sortedSpills.begin(), sortedSpills.end(), [](const Spill& a, const Spill& b) { return a.spillIndex < b.spillIndex; });
+
+	for (const Spill& spill : sortedSpills) {
 		auto i = Helix::CreateStackAlloc(spill.mem_addr, spill.ty);
 		i->SetComment("spilled temp");
 		head->InsertBefore(head->begin(), i);
@@ -246,6 +260,7 @@ void RegisterAllocator::Execute(Function* fn)
 
 	for (const StackVariable& stack_var : stack_frame.variables) {
 		const unsigned offset = stack_frame.size - stack_var.offset;
+		helix_debug(logs::regalloc, "Result Offset: {} (Stack Frame: {}, Var Offset: {})", offset, stack_frame.size, stack_var.offset);
 		ConstantInt*         offset_value = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
 
 		Value*               output_ptr   = stack_var.alloca_insn->GetOutputPtr();
