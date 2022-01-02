@@ -511,6 +511,8 @@ void LegaliseStructs::Execute(Function* fn)
 					LoadStore ls;
 					ls.load = &load;
 
+					bool usedInRet = false;
+
 					for (const Use& use : dst->uses()) {
 						Instruction* use_insn = use.GetInstruction();
 
@@ -518,11 +520,16 @@ void LegaliseStructs::Execute(Function* fn)
 							StoreInsn* store = (StoreInsn*) use_insn;
 							ls.stores.push_back(store);
 						}
+
+						if (use_insn->GetOpcode() == kInsn_Return) {
+							usedInRet = true;
+						}
 					}
 
-					helix_assert(ls.stores.size() > 0, "expected at least one store of loaded struct");
-
-					load_stores.push_back(ls);
+					if (!usedInRet) {
+						helix_assert(ls.stores.size() > 0, "expected at least one store of loaded struct");
+						load_stores.push_back(ls);
+					}
 				}
 			}
 		}
