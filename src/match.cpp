@@ -47,6 +47,10 @@ using namespace Helix;
 
 static const char* GetAssemblyDirectiveForType(const Type* type)
 {
+	if (type->IsPointer()) {
+		return "4byte";
+	}
+
 	if (const IntegerType* int_type = type_cast<IntegerType>(type)) {
 		switch (int_type->GetBitWidth()) {
 		case 8:  return "byte";
@@ -80,6 +84,42 @@ static const char* GetAssemblyDirectiveForValue(Value* value)
 
 /*********************************************************************************************************************/
 
+static void EmitDataDirective(FILE* file, Value* init_value)
+{
+	const char* label = GetAssemblyDirectiveForValue(init_value);
+
+	fprintf(file, "\t.%s ", label);
+
+	if (ConstantInt* constIntExpr = value_cast<ConstantInt>(init_value)) {
+		fprintf(file, "%llu\n", constIntExpr->GetIntegralValue());
+	}
+	else if (ConstantByteArray* constByteArray = value_cast<ConstantByteArray>(init_value)) {
+		if (constByteArray->IsString()) {
+			fprintf(file, "\"");
+			for (uint8_t byte : constByteArray->bytes()) {
+				if (isprint(byte)) {
+					fprintf(file, "%c", byte);
+				}
+				else {
+					fprintf(file, "\\%x", byte);
+				}
+			}
+			fprintf(file, "\"\n");
+		}
+		else {
+			helix_unimplemented("can't print ConstantByteArray global initializer");
+		}
+	}
+	else if (GlobalVariable* global = value_cast<GlobalVariable>(init_value)) {
+		fprintf(file, "%s\n", global->GetName());
+	}
+	else {
+		helix_unimplemented("can't print constant initializer expression");
+	}
+}
+
+/*********************************************************************************************************************/
+
 void FinalMatcher::Execute(Module* mod)
 {
 	const std::string& assemblyFileName = Helix::GetAssemblyOutputFilePath(mod);
@@ -106,40 +146,19 @@ void FinalMatcher::Execute(Module* mod)
 	for (GlobalVariable* global : mod->globals()) {
 		Value* init = global->GetInit();
 		if (init) {
-			const char* label = GetAssemblyDirectiveForValue(init);
-			fprintf(file, "%s: .%s ", global->GetName(), label);
-
-			if (ConstantInt* constIntExpr = value_cast<ConstantInt>(init)) {
-				fprintf(file, "%llu", constIntExpr->GetIntegralValue());
-			}
-			else if (ConstantByteArray* constByteArray = value_cast<ConstantByteArray>(init)) {
-				if (constByteArray->IsString()) {
-					fprintf(file, "\"");
-
-					for (uint8_t byte : constByteArray->bytes()) {
-						if (isprint(byte)) {
-							fprintf(file, "%c", byte);
-						}
-						else {
-							fprintf(file, "\\%x", byte);
-						}
-					}
-
-					fprintf(file, "\"");
+			fprintf(file, "%s:\n", global->GetName());
+			
+			if (ConstantStruct* constant_struct = value_cast<ConstantStruct>(init)) {
+				for (size_t i = 0; i < constant_struct->GetCountValues(); ++i) {
+					EmitDataDirective(file, constant_struct->GetValue(i));
 				}
-				else {
-					helix_unimplemented("can't print ConstantByteArray global initializer");
-				}
+			} else {
+				EmitDataDirective(file, init);
 			}
-			else {
-				helix_unimplemented("can't print constant initializer expression");
-			}
-
-			fprintf(file, "\n");
 		}
 		else {
 			const size_t sizeInBytes = ARMv7::TypeSize(global->GetBaseType());
-			fprintf(file, "%s: .space %llu\n", global->GetName(), sizeInBytes);
+			fprintf(file, "%s:\n\t.space %llu\n", global->GetName(), sizeInBytes);
 		}
 	}
 
