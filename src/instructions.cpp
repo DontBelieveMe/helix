@@ -335,4 +335,10 @@ Instruction::OperandFlags RetInsn::GetOperandFlags(size_t i) const
 	return Instruction::OP_READ;
 }
 
+void Instruction::DeleteFromParent()
+{
+	helix_assert(m_Parent, "can't delete instruction from parent since parent is null");
+	m_Parent->Delete(m_Parent->Where(this));
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

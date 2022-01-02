@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pass-manager.h"
+#include "basic-block.h"
 
 /*********************************************************************************************************************/
 
@@ -10,13 +11,13 @@ namespace Helix
 
 	class LoadEffectiveAddressInsn;
 	class LoadFieldAddressInsn;
-	class BasicBlock;
 	class StoreInsn;
 	class GlobalVariable;
 	class Module;
 	class ConstantInt;
 	class StackAllocInsn;
 	class BinOpInsn;
+	class Value;
 
 	/*********************************************************************************************************************/
 
@@ -48,6 +49,17 @@ namespace Helix
 	{
 	public:
 		void Execute(Function* fn);
+	};
+
+	/*********************************************************************************************************************/
+
+	class LegaliseStructs : public FunctionPass
+	{
+	public:
+		void Execute(Function* fn);
+
+	private:
+		void CopyStruct(Value* src, Value* dst, const StructType* structType, BasicBlock::iterator where);
 	};
 
 	/*********************************************************************************************************************/
@@ -85,6 +97,7 @@ namespace Helix
 
 /*********************************************************************************************************************/
 
+REGISTER_PASS(LegaliseStructs, structslegal, "[Generic] Legalise loading & storing struct types to/from virtual registers");
 REGISTER_PASS(LowerStructStackAllocation, lowerallocastructs, "[Generic] Lower the stack allocations of structs to arrays");
 REGISTER_PASS(ConstantHoisting, consthoist, "[ARM] Split and hoist constants to a form compatible with the ARM");
 REGISTER_PASS(ReturnCombine, retcomb, "[Generic] Combine multiple returns into a singular exit point");

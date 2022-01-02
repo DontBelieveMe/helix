@@ -118,6 +118,12 @@ namespace Helix
 			}
 		}
 
+		/**
+		 * Important! This erases this instruction from it's parent and then deletes it, making any references/pointers
+		 * to this instruction invalid!
+		 */
+		void DeleteFromParent();
+
 		void SetParent(BasicBlock* bb) { m_Parent = bb; }
 		BasicBlock* GetParent() const { return m_Parent; }
 

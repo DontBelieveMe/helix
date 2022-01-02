@@ -282,7 +282,7 @@ void GenericLegalizer::Execute(Function* fn)
 			head.InsertBefore(head.begin(), &stack_alloc.insn);
 		}
 
-		dirty = !illegalStores.empty();
+		dirty = illegalStores.size() > 0 && illegalStackAllocs.size() > 0;
 	} while (dirty);
 }
 
@@ -461,6 +461,90 @@ void LowerStructStackAllocation::Execute(Function* fn)
 				stack_alloc.SetAllocatedType(arrayType);
 			}
 		}
+	}
+}
+
+/*********************************************************************************************************************/
+
+void LegaliseStructs::CopyStruct(Value* src, Value* dst, const StructType* structType, BasicBlock::iterator where)
+{
+	// #FIXME: Maybe inserting a `memcpy` here can be better sometimes than a member wise copy?
+	//         (it's what LLVM does)
+
+	helix_assert(src->GetType()->IsPointer(), "source needs to be a pointer");
+	helix_assert(dst->GetType()->IsPointer(), "destination needs to be a pointer");
+
+	for (size_t fieldIndex = 0; fieldIndex < structType->GetCountFields(); ++fieldIndex) {
+		VirtualRegisterName* sourceFieldAddress = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+		VirtualRegisterName* destFieldAddress = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+
+		VirtualRegisterName* value = VirtualRegisterName::Create(structType->GetField(fieldIndex));
+
+		BasicBlock* bb = where->GetParent();
+
+		where = bb->InsertAfter(where, Helix::CreateLoadFieldAddress(structType, src, fieldIndex, sourceFieldAddress));
+		where = bb->InsertAfter(where, Helix::CreateLoadFieldAddress(structType, dst, fieldIndex, destFieldAddress));
+		where = bb->InsertAfter(where, Helix::CreateLoad(sourceFieldAddress, value));
+		where = bb->InsertAfter(where, Helix::CreateStore(value, destFieldAddress));
+	}
+}
+
+/*********************************************************************************************************************/
+
+void LegaliseStructs::Execute(Function* fn)
+{
+	struct LoadStore
+	{
+		LoadInsn*   load;
+		std::vector<StoreInsn*> stores;
+	};
+
+	std::vector<LoadStore> load_stores;
+
+	for (BasicBlock& bb : fn->blocks()) {
+		for (Instruction& insn : bb.insns()) {
+			if (insn.GetOpcode() == kInsn_Load) {
+				LoadInsn& load = (LoadInsn&) insn;
+				Value* dst = load.GetDst();
+
+				if (dst->GetType()->IsStruct()) {
+					LoadStore ls;
+					ls.load = &load;
+
+					for (const Use& use : dst->uses()) {
+						Instruction* use_insn = use.GetInstruction();
+
+						if (use_insn->GetOpcode() == kInsn_Store) {
+							StoreInsn* store = (StoreInsn*) use_insn;
+							ls.stores.push_back(store);
+						}
+					}
+
+					helix_assert(ls.stores.size() > 0, "expected at least one store of loaded struct");
+
+					load_stores.push_back(ls);
+				}
+			}
+		}
+	}
+
+	for (LoadStore& ls : load_stores) {
+		Value* source_ptr = ls.load->GetSrc();
+
+		const StructType* struct_type = type_cast<StructType>(ls.load->GetDst()->GetType());
+		helix_assert(struct_type, "type is not a struct!");
+
+		for (StoreInsn* store : ls.stores) {
+			helix_assert(struct_type == store->GetSrc()->GetType(), "source struct type != dest struct type");
+			Value* dest_ptr = store->GetDst();
+
+			BasicBlock* bb = store->GetParent();
+			CopyStruct(source_ptr, dest_ptr, struct_type, bb->Where(store));
+
+			store->DeleteFromParent();
+		}
+
+		ls.load->DeleteFromParent();
 	}
 }
 

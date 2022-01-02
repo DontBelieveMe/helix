@@ -16,10 +16,13 @@ HELIX_DEFINE_LOG_CHANNEL(pass_manager);
 
 PassManager::PassManager()
 {
+	/* Generic Passes */
 	AddPass<GenericLegalizer>();
+	AddPass<LegaliseStructs>();
 	AddPass<ReturnCombine>();
 	AddPass<GenericLowering>();
 
+	/* ARM Specific Passes */
 	AddPass<ConstantHoisting>();
 	AddPass<CConv>();
 	AddPass<LowerStructStackAllocation>();
