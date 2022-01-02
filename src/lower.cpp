@@ -282,7 +282,7 @@ void GenericLegalizer::Execute(Function* fn)
 			head.InsertBefore(head.begin(), &stack_alloc.insn);
 		}
 
-		dirty = illegalStores.size() > 0 && illegalStackAllocs.size() > 0;
+		dirty = illegalStores.size() > 0 || illegalStackAllocs.size() > 0;
 	} while (dirty);
 }
 
