@@ -11,7 +11,8 @@ void single_struct()
 	struct ST s = { 100, "tester", 123 };
 }
 
-void struct_array()
+/* array of structs */
+int main()
 {
 	struct ST s[] =
 	{
@@ -19,4 +20,6 @@ void struct_array()
 		{ 20, "hello",        10 },
 		{ 30, "world",        0  }
 	};
+
+	return s[2].a;
 }

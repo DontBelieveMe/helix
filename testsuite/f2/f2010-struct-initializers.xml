@@ -5,6 +5,8 @@
 		<TestFlag name="regex" value="false"></TestFlag>
 	</TestFlags>
 
+	<ExecutableExpectedExitCode>30</ExecutableExpectedExitCode>
+
 	<ExpectedOutput>
 ST = struct { i32, ptr, i16 }
 
@@ -21,11 +23,14 @@ function single_struct(): void {
 	store { 100:i32, @str.1:ptr, 123:i16 }:ST, %0:ptr
 	ret
 }
-function struct_array(): void {
+function main(): i32 {
 .0:
 	stack_alloc [ST x 3], %0:ptr
 	store { { 10:i32, @str.2:ptr, 20:i16 }:ST, { 20:i32, @str.3:ptr, 10:i16 }:ST, { 30:i32, @str.4:ptr, 0:i16 }:ST }:[ST x 3], %0:ptr
-	ret
+	lea [ST*], %0:ptr, 2:i32, %1:ptr
+	lfa [ST:0], %1:ptr, %2:ptr
+	load %2:ptr, %3:i32
+	ret %3:i32
 }
 	</ExpectedOutput>
 </Test>
