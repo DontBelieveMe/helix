@@ -11,10 +11,13 @@ void string_array()
 	char* b[] = { "hi", "not hi" };
 }
 
-void struct_array()
+/* struct_array test */
+int main()
 {
 	struct ST tmp;
 	tmp.a = 20;
 	
 	struct ST s[] = { tmp, tmp };
+
+	return s[0].a;
 }
