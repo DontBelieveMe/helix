@@ -19,6 +19,22 @@ static std::vector<Instruction::OperandFlags> s_fixedOperandsFlags[KInsnCount] =
 		#include "insns.def"
 } ;
 
+/*********************************************************************************************************************/
+
+CastInsn* Helix::CreateSExt(Value* input, Value* output)
+{
+	return new CastInsn(kInsn_SExt, input, output);
+}
+
+/*********************************************************************************************************************/
+
+CastInsn* Helix::CreateZExt(Value* input, Value* output)
+{
+	return new CastInsn(kInsn_ZExt, input, output);
+}
+
+/*********************************************************************************************************************/
+
 CastInsn* Helix::CreatePtrToInt(Value* inputPtr, Value* outputInt)
 {
 	return new CastInsn(kInsn_PtrToInt, inputPtr, outputInt);

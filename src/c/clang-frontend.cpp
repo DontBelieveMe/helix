@@ -905,13 +905,15 @@ Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType or
 	}
 
 	if (srcType->IsIntegral()) {
-
+		const IntegerType* srcIntegerType = type_cast<IntegerType>(srcType);
 		// #FIXME(bwilks): This doesn't handle any overflow/underflow cases, and it should
-
-		// const IntegerType* srcIntegerType = type_cast<IntegerType>(srcType);
 
 		if (dstType->IsIntegral()) {
 			const IntegerType* dstIntegerType = type_cast<IntegerType>(dstType);
+			frontend_assert(
+				srcIntegerType->GetBitWidth() != dstIntegerType->GetBitWidth(),
+				"trying to cast between two integral types of the same bit width"
+			);
 
 			if (ConstantInt* cint = value_cast<ConstantInt>(expr)) {
 				if (cint->CanFitInType(dstIntegerType)) {
@@ -920,7 +922,20 @@ Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType or
 					frontend_unreachable("Can't fit integer constant in required type");
 				}
 			} else {
-				frontend_unreachable("Unsupported cast expression operand");
+				if (dstIntegerType->GetBitWidth() > srcIntegerType->GetBitWidth()) {
+					VirtualRegisterName* output = VirtualRegisterName::Create(dstType);
+				
+					if (originalType->isUnsignedIntegerType()) {
+						EmitInsn(Helix::CreateZExt(expr, output));
+					}
+					else {
+						EmitInsn(Helix::CreateSExt(expr, output));
+					}
+
+					return output;
+				} else {
+					frontend_unimplemented("casts from big types to smaller types are not supported");
+				}
 			}
 
 			return expr;

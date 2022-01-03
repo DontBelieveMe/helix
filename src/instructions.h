@@ -371,6 +371,9 @@ namespace Helix
 	CastInsn* CreatePtrToInt(Value* inputPtr, Value* outputInt);
 	CastInsn* CreateIntToPtr(Value* inputInt, Value* outputPtr);
 
+	CastInsn* CreateSExt(Value* input, Value* output);
+	CastInsn* CreateZExt(Value* input, Value* output);
+
 	void DestroyInstruction(Instruction* insn);
 
 	std::string stringify_operand(Value* v, SlotTracker& slots);

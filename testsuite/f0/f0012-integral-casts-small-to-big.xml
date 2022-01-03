@@ -1,0 +1,42 @@
+<Test>
+	<Flags>--emit-ir-1 -c</Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExpectedOutput>
+function s16_to_s32(%0:i16): i32 {
+.0:
+	stack_alloc [i16 x 1], %1:ptr
+	store %0:i16, %1:ptr
+	load %1:ptr, %2:i16
+	sext [i16 -> i32], %2:i16, %3:i32
+	ret %3:i32
+}
+function u16_to_s32(%0:i16): i32 {
+.0:
+	stack_alloc [i16 x 1], %1:ptr
+	store %0:i16, %1:ptr
+	load %1:ptr, %2:i16
+	zext [i16 -> i32], %2:i16, %3:i32
+	ret %3:i32
+}
+function s16_to_u32(%0:i16): i32 {
+.0:
+	stack_alloc [i16 x 1], %1:ptr
+	store %0:i16, %1:ptr
+	load %1:ptr, %2:i16
+	sext [i16 -> i32], %2:i16, %3:i32
+	ret %3:i32
+}
+function u16_to_u32(%0:i16): i32 {
+.0:
+	stack_alloc [i16 x 1], %1:ptr
+	store %0:i16, %1:ptr
+	load %1:ptr, %2:i16
+	zext [i16 -> i32], %2:i16, %3:i32
+	ret %3:i32
+}
+	</ExpectedOutput>
+</Test>
