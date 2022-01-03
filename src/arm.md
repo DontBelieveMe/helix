@@ -52,12 +52,19 @@
 	"add {2}, {0}, {1}")
 
 ; 32 bit Register/Register Signed Division
-(define-insn "div_r32r32"
-	[(kInsn_IDiv
+(define-insn "sdiv_r32r32"
+	[(kInsn_ISDiv
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"sdiv {2}, {0}, {1}")
+
+(define-insn "udiv_r32r32"
+	[(kInsn_IUDiv
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register")
+		(match_operand:i32 2 "register"))]
+	"udiv {2}, {0}, {1}")
 
 ; 32 bit Register/Register Subtraction
 (define-insn "sub_r32r32"

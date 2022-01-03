@@ -595,12 +595,27 @@ Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* a
 	switch (assignmentOp->getOpcode()) {
 	case clang::BO_AddAssign: opc = kInsn_IAdd; break;
 	case clang::BO_SubAssign: opc = kInsn_ISub; break;
-	case clang::BO_DivAssign: opc = kInsn_IDiv; break;
 	case clang::BO_MulAssign: opc = kInsn_IMul; break;
-	case clang::BO_RemAssign: opc = kInsn_IRem; break;
 	case clang::BO_AndAssign: opc = kInsn_And;  break;
 	case clang::BO_OrAssign:  opc = kInsn_Or;   break;
 	case clang::BO_XorAssign: opc = kInsn_Xor;  break;
+	case clang::BO_RemAssign: {
+		if (assignmentOp->getType()->hasUnsignedIntegerRepresentation()) {
+			opc = Helix::kInsn_IURem;
+		} else {
+			opc = Helix::kInsn_ISRem;
+		}
+		break;
+	}
+
+	case clang::BO_DivAssign: {
+		if (assignmentOp->getType()->hasUnsignedIntegerRepresentation()) {
+			opc = Helix::kInsn_IUDiv;
+		} else {
+			opc = Helix::kInsn_ISDiv;
+		}
+		break;
+	}
 	default:
 		frontend_unimplemented_at("unknown compound assignment op", assignmentOp->getOperatorLoc());
 	}
@@ -1407,7 +1422,6 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 	switch (binOp->getOpcode()) {
 	case clang::BO_Add: opc = Helix::kInsn_IAdd; break;
 	case clang::BO_Sub: opc = Helix::kInsn_ISub; break;
-	case clang::BO_Div: opc = Helix::kInsn_IDiv; break;
 	case clang::BO_Mul: opc = Helix::kInsn_IMul; break;
 	case clang::BO_LT:  opc = Helix::kInsn_ICmp_Lt; break;
 	case clang::BO_GT:  opc = Helix::kInsn_ICmp_Gt; break;
@@ -1415,11 +1429,26 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 	case clang::BO_GE:  opc = Helix::kInsn_ICmp_Gte; break;
 	case clang::BO_EQ:  opc = Helix::kInsn_ICmp_Eq; break;
 	case clang::BO_NE:  opc = Helix::kInsn_ICmp_Neq; break;
-	case clang::BO_Rem: opc = Helix::kInsn_IRem; break;
 	case clang::BO_And: opc = Helix::kInsn_And; break;
 	case clang::BO_Or:  opc = Helix::kInsn_Or; break;
 	case clang::BO_Xor: opc = Helix::kInsn_Xor; break;
+	case clang::BO_Rem: {
+		if (binOp->getType()->hasUnsignedIntegerRepresentation()) {
+			opc = Helix::kInsn_IURem;
+		} else {
+			opc = Helix::kInsn_ISRem;
+		}
+		break;
+	}
 
+	case clang::BO_Div: {
+		if (binOp->getType()->hasUnsignedIntegerRepresentation()) {
+			opc = Helix::kInsn_IUDiv;
+		} else {
+			opc = Helix::kInsn_ISDiv;
+		}
+		break;
+	}
 	default:
 		frontend_unimplemented_at("Unsupported binary expression", binOp->getOperatorLoc());
 		break;

@@ -78,7 +78,10 @@ void GenericLowering::LowerIRem(BasicBlock& bb, BinOpInsn& insn)
 
 	BasicBlock::iterator where = bb.Where(&insn);
 
-	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IDiv, lhs, rhs, t0));
+	const Opcode divop
+		= insn.GetOpcode() == kInsn_ISRem ? kInsn_ISDiv : kInsn_IUDiv;
+
+	where = bb.InsertAfter(where, Helix::CreateBinOp(divop, lhs, rhs, t0));
 	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IMul, t0, rhs, t1));
 	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_ISub, lhs, t1, dst));
 
@@ -145,7 +148,8 @@ void GenericLowering::Execute(Function* fn)
 			switch (insn.GetOpcode()) {
 			case kInsn_LoadElementAddress:
 			case kInsn_LoadFieldAddress:
-			case kInsn_IRem:
+			case kInsn_IURem:
+			case kInsn_ISRem:
 				worklist.push_back({&insn, &bb});
 				break;
 
@@ -167,7 +171,8 @@ void GenericLowering::Execute(Function* fn)
 			this->LowerLfa(*workload.bb, *static_cast<LoadFieldAddressInsn*>(workload.insn));
 			break;
 
-		case kInsn_IRem:
+		case kInsn_ISRem:
+		case kInsn_IURem:
 			this->LowerIRem(*workload.bb, *static_cast<BinOpInsn*>(workload.insn));
 			break;
 

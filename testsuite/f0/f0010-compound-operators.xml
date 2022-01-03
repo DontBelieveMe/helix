@@ -29,7 +29,7 @@ function div(): void {
 	stack_alloc [i32 x 1], %0:ptr
 	store 10:i32, %0:ptr
 	load %0:ptr, %1:i32
-	idiv %1:i32, 2:i32, %2:i32
+	isdiv %1:i32, 2:i32, %2:i32
 	store %2:i32, %0:ptr
 	ret
 }
@@ -47,7 +47,7 @@ function rem(): void {
 	stack_alloc [i32 x 1], %0:ptr
 	store 6:i32, %0:ptr
 	load %0:ptr, %1:i32
-	irem %1:i32, 4:i32, %2:i32
+	isrem %1:i32, 4:i32, %2:i32
 	store %2:i32, %0:ptr
 	ret
 }
