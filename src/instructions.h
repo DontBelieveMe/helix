@@ -9,6 +9,7 @@
 #include "value.h"
 #include "target-info-armv7.h"
 #include "system.h"
+#include "opcodes.h"
 
 #include <vector>
 #include <string>
@@ -22,33 +23,6 @@ namespace Helix
 	using ParameterList = std::vector<Value*>;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	static constexpr size_t MAX_COUNT_IR_INSNS = 1024;
-
-	enum Opcode
-	{
-		#define BEGIN_INSN_CLASS(class_name) kInsnStart_##class_name,
-		#define END_INSN_CLASS(class_name) kInsnEnd_##class_name,
-		#define DEF_INSN_FIXED(code_name, pretty_name,n_operands, ...) kInsn_##code_name,
-		#define DEF_INSN_DYN(code_name, pretty_name) kInsn_##code_name,
-			#include "insns.def"
-
-		kInsnCount
-	};
-
-	static_assert(kInsnCount < MAX_COUNT_IR_INSNS, "Too many IR instructions!");
-
-#define IMPLEMENT_OPCODE_CATEGORY_IDENTITY(category) \
-	constexpr inline bool Is##category(Opcode opc) \
-	{ \
-		return opc > kInsnStart_##category && opc < kInsnEnd_##category; \
-	}
-
-	#define BEGIN_INSN_CLASS(class_name) IMPLEMENT_OPCODE_CATEGORY_IDENTITY(class_name)
-	#define END_INSN_CLASS(class_name)
-	#define DEF_INSN_FIXED(code_name, pretty_name, n_operands, ...)
-	#define DEF_INSN_DYN(code_name, pretty_name)
-		#include "insns.def"
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

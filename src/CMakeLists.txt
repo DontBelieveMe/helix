@@ -45,6 +45,7 @@ add_library(HelixCore
 	regalloc.cpp
 	validate.h
 	validate.cpp
+	opcodes.h
 
 	options.def
 	insns.def
