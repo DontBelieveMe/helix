@@ -80,7 +80,7 @@ namespace Helix
 		/**
 		 * Return the opcode for this instruction, represented by ::Opcode
 		 */
-		inline Opcode      GetOpcode()              const { return m_Opcode;                    }
+		inline OpcodeType  GetOpcode()              const { return m_Opcode;                    }
 		inline size_t      GetCountOperands()       const { return m_Operands.size();           }
 		inline Value*      GetOperand(size_t index) const { return m_Operands[index];           }
 		inline std::string GetComment()             const { return m_DebugComment;              }
@@ -107,7 +107,7 @@ namespace Helix
 
 	protected:
 		BasicBlock* m_Parent = nullptr;
-		Opcode      m_Opcode = kInsn_Undefined;
+		OpcodeType  m_Opcode = kInsn_Undefined;
 		OperandList m_Operands;
 		std::string m_DebugComment;
 	};

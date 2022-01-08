@@ -199,7 +199,10 @@ void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Value& value)
 
 void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Instruction& insn)
 {
-	const char* opcodeName = Helix::GetOpcodeName(insn.GetOpcode());
+	const char* opcodeName =
+		Helix::IsMachineOpcode(insn.GetOpcode())
+			? "arm.?"
+			: Helix::GetOpcodeName((Opcode) insn.GetOpcode());
 
 	// Write out the instruction name/opcode (not technically a keyword??? but is
 	// a reserved identifier so highlight it as a keyword.

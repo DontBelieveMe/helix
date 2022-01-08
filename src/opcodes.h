@@ -14,7 +14,7 @@
 /*********************************************************************************************************************/
 
 #define IMPLEMENT_OPCODE_CATEGORY_IDENTITY(category) \
-	constexpr inline bool Is##category(Opcode opc) \
+	constexpr inline bool Is##category(Helix::OpcodeType opc) \
 	{ \
 		return opc > kInsnStart_##category && opc < kInsnEnd_##category; \
 	}
@@ -23,9 +23,11 @@
 
 namespace Helix
 {
+	using OpcodeType = unsigned;
+
 	static constexpr size_t MAX_COUNT_IR_INSNS = 1024;
 
-	enum Opcode
+	enum Opcode : OpcodeType
 	{
 		#define BEGIN_INSN_CLASS(class_name) kInsnStart_##class_name,
 		#define END_INSN_CLASS(class_name) kInsnEnd_##class_name,
@@ -38,6 +40,10 @@ namespace Helix
 
 	#define BEGIN_INSN_CLASS(class_name) IMPLEMENT_OPCODE_CATEGORY_IDENTITY(class_name)
 		#include "insns.def"
+
+	/*********************************************************************************************************************/
+
+	constexpr inline bool IsMachineOpcode(Helix::OpcodeType opc) { return opc > MAX_COUNT_IR_INSNS; }
 
 	/*********************************************************************************************************************/
 
