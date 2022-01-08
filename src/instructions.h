@@ -40,13 +40,13 @@ namespace Helix
 
 		virtual ~Instruction() { }
 
-		Instruction(Opcode opcode, size_t nOperands)
+		Instruction(OpcodeType opcode, size_t nOperands)
 		    : m_Opcode(opcode)
 		{
 			m_Operands.resize(nOperands, nullptr);
 		}
 
-		Instruction(Opcode opcode)
+		Instruction(OpcodeType opcode)
 		    : m_Opcode(opcode)
 		{ }
 

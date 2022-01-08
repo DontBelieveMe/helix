@@ -263,20 +263,46 @@ namespace MachineDescription
 
             PrintingContext ctx = new PrintingContext(headerFile);
 
+            // Disclaimer/file header
+            {
+                headerFile.AppendLine("/**");
+                headerFile.AppendLine(" * This file is generated from arm.md by the MachineDescription tool");
+                headerFile.AppendLine(" * Do not edit! Any changes will be overwritten by the next invocation");
+                headerFile.AppendLine(" * of the tool.");
+                headerFile.AppendLine(" */");
+            }
+
             headerFile.AppendLine("#pragma once");
             headerFile.AppendLine("");
-            headerFile.AppendLine("#include <stdio.h>");
 
-            headerFile.AppendLine("namespace Helix { class Instruction; class SlotTracker; }");
+            // Includes
+            {
+                headerFile.AppendLine("#include <stdio.h>");
+                headerFile.AppendLine("#include \"opcodes.h\"");
+            }
+
+            // Forward declarations
+            {
+                headerFile.AppendLine("");
+                headerFile.AppendLine("namespace Helix");
+                headerFile.AppendLine("{");
+                headerFile.AppendLine("\tclass Instruction;");
+                headerFile.AppendLine("\tclass SlotTracker;");
+                headerFile.AppendLine("}");
+                headerFile.AppendLine("");
+            }
 
             // Namespace
             {
-                headerFile.AppendLine("namespace Helix::ARMv7 {");
+                headerFile.AppendLine("namespace Helix::ARMv7");
+                headerFile.AppendLine("{");
+
                 ctx.IncreaseIndent(1);
 
                 // Opcode enum
                 {
-                    ctx.PrintIndentedLine("enum Opcode {");
+                    ctx.PrintIndentedLine("enum Opcode : OpcodeType");
+                    ctx.PrintIndentedLine("{");
                     ctx.IncreaseIndent(1);
 
                     foreach (Instruction insn in _desc.Instructions)
@@ -287,6 +313,8 @@ namespace MachineDescription
                     ctx.DecreaseIndent(1);
                     ctx.PrintIndentedLine("};");
                 }
+
+                headerFile.AppendLine("");
 
                 // Function prototypes
                 {
