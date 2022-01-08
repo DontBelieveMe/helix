@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace MachineDescription
@@ -10,6 +11,32 @@ namespace MachineDescription
         public string Name;
         public string OutputFormat;
         public IRInstructionTemplate Template;
+
+        public bool IsTextOnlyDefinition()
+        {
+            return OutputFormat.StartsWith("@");
+        }
+
+        public int CountOperandsInOutputTemplate()
+        {
+            if (IsTextOnlyDefinition())
+                return 0;
+
+            HashSet<char> operands = new HashSet<char>();
+
+            for (int i = 0; i < OutputFormat.Length - 1; ++i)
+            {
+                char cur = OutputFormat[i];
+
+                if (cur == '{')
+                {
+                    char next = OutputFormat[i + 1];
+                    operands.Add(next);
+                }
+            }
+
+            return operands.Count;
+        }
     }
 
     class IROperandTemplate
@@ -288,6 +315,8 @@ namespace MachineDescription
                 headerFile.AppendLine("{");
                 headerFile.AppendLine("\tclass Instruction;");
                 headerFile.AppendLine("\tclass SlotTracker;");
+                headerFile.AppendLine("\tclass MachineInstruction;");
+                headerFile.AppendLine("\tclass Value;");
                 headerFile.AppendLine("}");
                 headerFile.AppendLine("");
             }
@@ -324,6 +353,24 @@ namespace MachineDescription
                 // Function prototypes
                 {
                     ctx.PrintIndentedLine("void Emit(FILE*, Instruction&, SlotTracker&);");
+                    headerFile.AppendLine();
+
+                    foreach (Instruction insn in _desc.Instructions)
+                    {
+                        if (insn.IsTextOnlyDefinition())
+                            continue;
+
+                        int nOperands = insn.CountOperandsInOutputTemplate();
+                        List<string> args = new List<string>();
+
+                        for (int i = 0; i < nOperands; i++)
+                        {
+                            args.Add("Value*");
+                        }
+
+                        string name = Capitalise(insn.Name);
+                        ctx.PrintIndentedLine(string.Format("MachineInstruction* Create{0}({1});", name, string.Join(", ", args)));
+                    }
                 }
 
                 ctx.DecreaseIndent(1);
@@ -353,6 +400,7 @@ namespace MachineDescription
                 ctx.PrintIndentedLine("#include \"../src/instructions.h\"");
                 ctx.PrintIndentedLine("#include \"../src/system.h\"");
                 ctx.PrintIndentedLine("#include \"../src/print.h\"");
+                ctx.PrintIndentedLine("#include \"../src/mir.h\"");
                 ctx.PrintIndentedLine("");
             }
 
@@ -370,6 +418,37 @@ namespace MachineDescription
                 ctx.DecreaseIndent(1);
                 ctx.PrintIndentedLine("}");
             }
+
+            // Create* functions (for creating machine instructions)
+            foreach (Instruction insn in _desc.Instructions)
+            {
+                if (insn.IsTextOnlyDefinition())
+                    continue;
+
+                string name = Capitalise(insn.Name);
+                int nOperands = insn.CountOperandsInOutputTemplate();
+
+                List<string> args = new List<string>();
+
+                for (int i = 0; i < nOperands; i++)
+                {
+                    args.Add("Value* v" + i);
+                }
+
+                ctx.Newline();
+                ctx.PrintIndentedLine(string.Format("Helix::MachineInstruction* Helix::ARMv7::Create{0}({1})", name, string.Join(", ", args)));
+                ctx.PrintIndentedLineThenIndent("{");
+                ctx.PrintIndentedLine("Helix::MachineInstruction* insn = new Helix::MachineInstruction(Helix::ARMv7::" + name + ", " + nOperands + ");");
+
+                for (int i = 0; i < nOperands; i++)
+                {
+                    ctx.PrintIndentedLine("insn->SetOperand(" + i + ", v" + i + ");");
+                }
+
+                ctx.PrintIndentedLine("return insn;");
+                ctx.PrintIndentedLineAfterUnindent("}");
+            }
+
         }
 
         public void Generate(string outputDirectory)
