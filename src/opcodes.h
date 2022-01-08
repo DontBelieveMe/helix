@@ -43,7 +43,7 @@ namespace Helix
 
 	/*********************************************************************************************************************/
 
-	constexpr inline bool IsMachineOpcode(Helix::OpcodeType opc) { return opc > MAX_COUNT_IR_INSNS; }
+	constexpr inline bool IsMachineOpcode(Helix::OpcodeType opc) { return opc >= MAX_COUNT_IR_INSNS; }
 
 	/*********************************************************************************************************************/
 

@@ -305,9 +305,14 @@ namespace MachineDescription
                     ctx.PrintIndentedLine("{");
                     ctx.IncreaseIndent(1);
 
-                    foreach (Instruction insn in _desc.Instructions)
+                    for (int i = 0; i < _desc.Instructions.Count; i++)
                     {
-                        ctx.PrintIndentedLine(Capitalise(insn.Name) + ",");
+                        Instruction insn = _desc.Instructions[i];
+
+                        string name      = Capitalise(insn.Name);
+                        int    enumValue = 1024 + i; /* Range for MIR instructions is 1024 and up.  */
+
+                        ctx.PrintIndentedLine(string.Format("{0} = {1},", name, enumValue));
                     }
 
                     ctx.DecreaseIndent(1);
