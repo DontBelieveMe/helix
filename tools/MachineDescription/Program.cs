@@ -332,10 +332,24 @@ namespace MachineDescription
 
             PrintingContext ctx = new PrintingContext(sourceFile);
 
-            ctx.PrintIndentedLine("#include \"arm-md.h\"");
-            ctx.PrintIndentedLine("#include \"../src/instructions.h\"");
-            ctx.PrintIndentedLine("#include \"../src/system.h\"");
-            ctx.PrintIndentedLine("#include \"../src/print.h\"");
+            // Disclaimer/file header
+            {
+                sourceFile.AppendLine("/**");
+                sourceFile.AppendLine(" * This file is generated from arm.md by the MachineDescription tool");
+                sourceFile.AppendLine(" * Do not edit! Any changes will be overwritten by the next invocation");
+                sourceFile.AppendLine(" * of the tool.");
+                sourceFile.AppendLine(" */");
+            }
+
+            // Includes
+            {
+                ctx.PrintIndentedLine("");
+                ctx.PrintIndentedLine("#include \"arm-md.h\"");
+                ctx.PrintIndentedLine("#include \"../src/instructions.h\"");
+                ctx.PrintIndentedLine("#include \"../src/system.h\"");
+                ctx.PrintIndentedLine("#include \"../src/print.h\"");
+                ctx.PrintIndentedLine("");
+            }
 
             // Emit(FILE*,Instruction&)
             {
@@ -346,6 +360,7 @@ namespace MachineDescription
                 {
                     insn.Template.GenerateCodeToMatchTemplate(ctx);
                 }
+
                 ctx.PrintIndentedLine("helix_unreachable(\"cannot match instruction to assembly, check arm.md\");");
                 ctx.DecreaseIndent(1);
                 ctx.PrintIndentedLine("}");
@@ -384,29 +399,16 @@ namespace MachineDescription
     {
         static void Main(string[] args)
         {
-            bool printTokens = false;
-            bool printAST = false;
+            if (!ProgramOptions.Parse(args))
+                return;
 
-            string outputDirectory = "";
+            string text = File.ReadAllText(ProgramOptions.SourceFile);
 
-            foreach (string arg in args)
-            {
-                if (arg == "-print-tokens")
-                    printTokens = true;
-                else if (arg == "-print-ast")
-                    printAST = true;
-                else if (arg.StartsWith("-output="))
-                    outputDirectory = arg.Split("=")[1];
-            }
-
-            string filepath = args[0];
-            string text = File.ReadAllText(filepath);
-
-            Console.WriteLine(" > Read input machine description file '{0}'", filepath);
+            Console.WriteLine(" > Read input machine description file '{0}'", ProgramOptions.SourceFile);
 
             Tokeniser tokeniser = new Tokeniser(text);
 
-            if (printTokens)
+            if (ProgramOptions.PrintTokens)
             {
                 Console.WriteLine(" > Skipping parsing, dumping tokens to stdout");
 
@@ -426,7 +428,7 @@ namespace MachineDescription
 
             Console.WriteLine(" > Parsing complete, {0} root node(s)", nodes.Count);
 
-            if (printAST)
+            if (ProgramOptions.PrintAST)
             {
                 Console.WriteLine(" > Skipping codegen, dumping AST to stdout");
 
@@ -439,9 +441,11 @@ namespace MachineDescription
                 return;
             }
 
+            string outputDirectory = ProgramOptions.OutputDirectory;
+
             if (!string.IsNullOrWhiteSpace(outputDirectory))
             {
-                string machineName = Path.GetFileNameWithoutExtension(filepath);
+                string machineName = Path.GetFileNameWithoutExtension(ProgramOptions.SourceFile);
 
                 Console.WriteLine(" > Generating code to given directory '{0}'", outputDirectory);
                 new MachineDescriptionCodeGenerator(nodes, machineName).Generate(outputDirectory);
