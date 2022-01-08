@@ -5,7 +5,7 @@
 
 using namespace Helix;
 
-static std::vector<Instruction::OperandFlags> s_fixedOperandsFlags[KInsnCount] =
+static std::vector<Instruction::OperandFlags> s_fixedOperandsFlags[kInsnCount] =
 {
 	#define DEF_INSN_FIXED(code_name,pretty_name, n_operands, ...) { __VA_ARGS__ },
 

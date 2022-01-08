@@ -23,6 +23,8 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	static constexpr size_t MAX_COUNT_IR_INSNS = 1024;
+
 	enum Opcode
 	{
 		#define BEGIN_INSN_CLASS(class_name) kInsnStart_##class_name,
@@ -31,8 +33,10 @@ namespace Helix
 		#define DEF_INSN_DYN(code_name, pretty_name) kInsn_##code_name,
 			#include "insns.def"
 
-		KInsnCount
+		kInsnCount
 	};
+
+	static_assert(kInsnCount < MAX_COUNT_IR_INSNS, "Too many IR instructions!");
 
 #define IMPLEMENT_OPCODE_CATEGORY_IDENTITY(category) \
 	constexpr inline bool Is##category(Opcode opc) \
