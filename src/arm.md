@@ -162,12 +162,38 @@
 ; *****************************************************************************
 
 (define-insn "ldr" [] "ldr {0}, [{1}]")
+(define-insn "ldrh" [] "ldrh {0}, [{1}]")
+(define-insn "ldrb" [] "ldrb {0}, [{1}]")
 
 (define-insn "$ldr_g32"
 	[(kInsn_Load
 		(match_operand:ptr 0 "global")
 		(match_operand:i32 1 "register"))]
 	"*expand_load")
+
+(define-insn "$ldr_g16"
+	[(kInsn_Load
+		(match_operand:ptr 0 "global")
+		(match_operand:i16 1 "register"))]
+	"*expand_load")
+
+(define-insn "$ldr_g8"
+	[(kInsn_Load
+		(match_operand:ptr 0 "global")
+		(match_operand:i8 1 "register"))]
+	"*expand_load")
+
+(define-insn "$store_label32"
+	[(kInsn_Store
+		(match_operand:ptr 0 "global")
+		(match_operand:i32 1 "register"))]
+	"*expand_store")
+
+(define-insn "$store_register32"
+	[(kInsn_Store
+		(match_operand:i32 0 "register")
+		(match_operand:ptr 1 "global"))]
+	"*expand_store")
 
 ;
 ; The movw/movt pair is what GCC likes to emit, and clang sometimes (clang also sometimes

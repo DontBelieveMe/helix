@@ -8,6 +8,44 @@ using namespace Helix;
 
 /*********************************************************************************************************************/
 
+enum MachineMode
+{
+	QImode,
+	HImode,
+	SImode,
+	DImode,
+	
+	UndefinedMode
+};
+
+static MachineMode GetMachineMode(const Type* type)
+{
+	if (type->IsPointer()) {
+		return SImode;
+	}
+
+	if (const IntegerType* int_type = type_cast<IntegerType>(type)) {
+		switch (int_type->GetBitWidth()) {
+		case 8:  return QImode;
+		case 16: return HImode;
+		case 32: return SImode;
+		case 64: return DImode;
+		}
+	}
+
+	helix_unreachable("no machine mode for type");
+	return UndefinedMode;
+}
+
+/*********************************************************************************************************************/
+
+static MachineMode GetMachineMode(Value* value)
+{
+	return GetMachineMode(value->GetType());
+}
+
+/*********************************************************************************************************************/
+
 static BasicBlock::iterator LoadGlobalAddressIntoRegister(Instruction* insn, Value* dest_register, Value* source_global)
 {
 	BasicBlock* bb = insn->GetParent();
@@ -38,7 +76,16 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 	//
 	// #FIXME: Do a bit of an investigation, find out if this is legal (it seems to work?) or even just a bad idea.
 	
-	return ARMv7::CreateLdr(load->GetDst(), load->GetDst());
+	switch (GetMachineMode(load->GetDst())) {
+	case QImode: return ARMv7::CreateLdrb(load->GetDst(), load->GetDst());
+	case HImode: return ARMv7::CreateLdrh(load->GetDst(), load->GetDst());
+	case SImode: return ARMv7::CreateLdr(load->GetDst(), load->GetDst());
+	default:
+		helix_unreachable("cannot natively load values of this machine mode");
+		break;
+	}
+
+	return nullptr;
 }
 
 /*********************************************************************************************************************/
@@ -124,6 +171,38 @@ MachineInstruction* ARMv7::expand_conditional_branch(Instruction* insn)
 	// ... if control flow gets here then it must mean the condition was false, since it didn't branch
 	// to the true target, so instead branch to the false BB target.
 	return ARMv7::CreateBr(conditional_branch->GetFalseTarget());
+}
+
+/*********************************************************************************************************************/
+
+MachineInstruction* ARMv7::expand_store(Instruction* insn)
+{
+	helix_assert(insn->GetOpcode() == kInsn_Store, "instruction is not a store");
+	StoreInsn* store = (StoreInsn*) insn;
+
+	// Use r7 as a temporary/scratch register to store the address of the global
+	// so we can store the value from that temp register to memory.
+	// This is currently reserved by the register allocator for this purpose, but it is
+	// quite a shitty thing to be doing, every little help counts when it comes to register allocation.
+
+	PhysicalRegisterName* r7 = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R7);
+
+	// If the the source is a global variable then store the address to the memory
+	// address given in dst.
+	if (value_isa<GlobalVariable>(store->GetSrc())) {
+		LoadGlobalAddressIntoRegister(store, r7, store->GetSrc());
+		return ARMv7::CreateStrw(r7, store->GetDst());
+	}
+	else if (value_isa<GlobalVariable>(store->GetDst())) {
+		// #FIXME: Support storing types other than i32 (i16 & i8 primarily, i64 support can wait. don't even mention fp).
+		helix_assert(GetMachineMode(store->GetSrc()) == SImode, "unexpected machine mode for store (currently unsupported)");
+
+		LoadGlobalAddressIntoRegister(store, r7, store->GetDst());
+		return ARMv7::CreateStrw(store->GetSrc(), r7);
+	}
+
+	helix_unreachable("cannot expand this form of store");
+	return nullptr;
 }
 
 /*********************************************************************************************************************/
