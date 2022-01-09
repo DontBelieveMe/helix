@@ -85,7 +85,7 @@ namespace MachineDescription
 
         public void GenerateCodeToMatchTemplate(PrintingContext ctx)
         {
-            ctx.PrintIndentedLine(string.Format("if (insn.GetOpcode() == {0}) {{", Opcode));
+            ctx.PrintIndentedLine(string.Format("if (insn->GetOpcode() == {0}) {{", Opcode));
             ctx.IncreaseIndent(1);
 
             if (Operands.Count > 0)
@@ -101,8 +101,8 @@ namespace MachineDescription
                     if (index > 0)
                         line = "&& ";
 
-                    line += "insn.GetOperand(" + index + ")->GetType() == " + typeMap[operand.Type] + "() && ";
-                    line += operand.GenerateCondition("insn.GetOperand(" + index + ")");
+                    line += "insn->GetOperand(" + index + ")->GetType() == " + typeMap[operand.Type] + "() && ";
+                    line += operand.GenerateCondition("insn->GetOperand(" + index + ")");
 
                     ctx.PrintIndentedLine(line);
                     index++;
@@ -120,7 +120,7 @@ namespace MachineDescription
             
             // got a match
             {
-                string outputString = _parent.OutputFormat;
+                /*string outputString = _parent.OutputFormat;
 
                 List<string> outputLines = new List<string>();
 
@@ -166,9 +166,23 @@ namespace MachineDescription
                         ctx.PrintIndentedLine(string.Format("{{const std::string as = fmt::format(\"\\t{0}\\n\", {1});", asmLine, args));
                         ctx.PrintIndentedLine("fprintf(file, \"%s\",as.c_str());}");
                     }
+                }*/
+
+                List<string> formatArgs = new List<string>();
+
+                for (int i = 0; i < Operands.Count; ++i)
+                {
+                    if (Operands[i] is MatchOperand)
+                    {
+                        MatchOperand mo = (MatchOperand)Operands[i];
+
+                        ctx.PrintIndentedLine(string.Format("Value* v{0} = insn->GetOperand({1});", mo.OutputOperandIndex, i));
+                        formatArgs.Add("v" + i);
+                    }
                 }
 
-                ctx.PrintIndentedLine("return;");
+                string name = Capitalise(_parent.Name);
+                ctx.PrintIndentedLine(string.Format("return Helix::ARMv7::Create{0}({1});", name, string.Join(", ", formatArgs)));
             }
 
             ctx.DecreaseIndent(1);
@@ -176,6 +190,19 @@ namespace MachineDescription
             ctx.DecreaseIndent(1);
             ctx.PrintIndentedLine("}");
 
+        }
+
+        private string Capitalise(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                return s;
+
+            if (!char.IsUpper(s[0]))
+            {
+                return char.ToUpper(s[0]) + s.Substring(1);
+            }
+
+            return s;
         }
     }
 
@@ -352,14 +379,12 @@ namespace MachineDescription
 
                 // Function prototypes
                 {
-                    ctx.PrintIndentedLine("void Emit(FILE*, Instruction&, SlotTracker&);");
+                    ctx.PrintIndentedLine("MachineInstruction* Expand(Instruction*);");
+                    ctx.PrintIndentedLine("const char* GetMachineInstructionName(Opcode);");
                     headerFile.AppendLine();
 
                     foreach (Instruction insn in _desc.Instructions)
                     {
-                        if (insn.IsTextOnlyDefinition())
-                            continue;
-
                         int nOperands = insn.CountOperandsInOutputTemplate();
                         List<string> args = new List<string>();
 
@@ -406,7 +431,7 @@ namespace MachineDescription
 
             // Emit(FILE*,Instruction&)
             {
-                ctx.PrintIndentedLine("void Helix::ARMv7::Emit(FILE* file, Instruction& insn, SlotTracker& slots)\n{");
+                ctx.PrintIndentedLine("Helix::MachineInstruction* Helix::ARMv7::Expand(Instruction* insn)\n{");
                 ctx.IncreaseIndent(1);
 
                 foreach(Instruction insn in _desc.Instructions)
@@ -415,16 +440,33 @@ namespace MachineDescription
                 }
 
                 ctx.PrintIndentedLine("helix_unreachable(\"cannot match instruction to assembly, check arm.md\");");
+                ctx.PrintIndentedLine("return nullptr;");
                 ctx.DecreaseIndent(1);
                 ctx.PrintIndentedLine("}");
+            }
+
+            // GetMachineInstructionName(Opcode)
+            {
+                ctx.PrintIndentedLine("const char* Helix::ARMv7::GetMachineInstructionName(Helix::ARMv7::Opcode opc)");
+                ctx.PrintIndentedLineThenIndent("{");
+
+                ctx.PrintIndentedLine("switch(opc) {");
+                
+                foreach (Instruction instruction in _desc.Instructions)
+                {
+                    string name = Capitalise(instruction.Name);
+                    ctx.PrintIndentedLine("case " + name + ": return \"" + instruction.Name + "\";");
+                }
+
+                ctx.PrintIndentedLine("};");
+                
+                ctx.PrintIndentedLine("return nullptr;");
+                ctx.PrintIndentedLineAfterUnindent("}");
             }
 
             // Create* functions (for creating machine instructions)
             foreach (Instruction insn in _desc.Instructions)
             {
-                if (insn.IsTextOnlyDefinition())
-                    continue;
-
                 string name = Capitalise(insn.Name);
                 int nOperands = insn.CountOperandsInOutputTemplate();
 

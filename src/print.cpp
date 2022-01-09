@@ -1,6 +1,7 @@
 #include "print.h"
 #include "helix.h"
 #include "target-info-armv7.h"
+#include "mir.h"
 
 using namespace Helix;
 
@@ -199,14 +200,17 @@ void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Value& value)
 
 void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Instruction& insn)
 {
-	const char* opcodeName =
-		Helix::IsMachineOpcode(insn.GetOpcode())
-			? "arm.?"
-			: Helix::GetOpcodeName((Opcode) insn.GetOpcode());
-
 	// Write out the instruction name/opcode (not technically a keyword??? but is
 	// a reserved identifier so highlight it as a keyword.
-	out.SetColour(kColour_Keyword); out.Write("%s", opcodeName); out.ResetColour();
+	out.SetColour(kColour_Keyword);
+	
+	if (Helix::IsMachineOpcode(insn.GetOpcode())) {
+		out.Write("arm.%s", ARMv7::GetMachineInstructionName((ARMv7::Opcode) insn.GetOpcode()));
+	} else {
+		out.Write("%s", Helix::GetOpcodeName((Opcode) insn.GetOpcode()));
+	}
+	
+	out.ResetColour();
 
 	const size_t nOperands = insn.GetCountOperands();
 

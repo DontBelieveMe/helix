@@ -164,19 +164,30 @@ void ValidationPass::Execute(Module* module) {
 		}
 
 		for (BasicBlock& bb : fn->blocks()) {
-			if (!bb.HasTerminator()) {
-				helix_error(logs::validate, "Basic block in function '{}' does not finish with a terminator insn", name);
-				error |= true;
+			const Instruction* terminator = bb.GetLast();
+
+			if (!Helix::IsMachineOpcode(terminator->GetOpcode())) {
+				if (!Helix::IsTerminator(terminator->GetOpcode())) {
+					helix_error(logs::validate, "Basic block in function '{}' does not finish with a terminator insn", name);
+					error |= true;
+				}
 			}
 
 			for (Instruction& insn : bb.insns()) {
+				/* Machine instructions are excempt from validation rules.  */
+				if (Helix::IsMachineOpcode(insn.GetOpcode())) {
+					continue;
+				}
+
 				switch (insn.GetOpcode()) {
 				CASE_CHECK_INSN(kInsn_Return, RetInsn);
 				CASE_CHECK_INSN(kInsn_IAdd, BinOpInsn);
 				CASE_CHECK_INSN(kInsn_ISub, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_IDiv, BinOpInsn);
+				CASE_CHECK_INSN(kInsn_ISDiv, BinOpInsn);
+				CASE_CHECK_INSN(kInsn_IUDiv, BinOpInsn);
+				CASE_CHECK_INSN(kInsn_ISRem, BinOpInsn);
+				CASE_CHECK_INSN(kInsn_IURem, BinOpInsn);
 				CASE_CHECK_INSN(kInsn_IMul, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_IRem, BinOpInsn);
 				CASE_CHECK_INSN(kInsn_And, BinOpInsn);
 				CASE_CHECK_INSN(kInsn_Or, BinOpInsn);
 				CASE_CHECK_INSN(kInsn_Xor, BinOpInsn);
@@ -196,7 +207,7 @@ void ValidationPass::Execute(Module* module) {
 				CASE_CHECK_INSN(kInsn_IntToPtr, CastInsn);
 				CASE_CHECK_INSN(kInsn_PtrToInt, CastInsn);
 				default: {
-					helix_warn(logs::validate, "instruction '{}' has no validation rules, ignoring", GetOpcodeName(insn.GetOpcode()));
+					helix_warn(logs::validate, "instruction '{}' has no validation rules, ignoring", GetOpcodeName((Opcode) insn.GetOpcode()));
 					break;
 				}
 				}
