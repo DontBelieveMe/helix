@@ -8,11 +8,12 @@ namespace Testify
         private static Dictionary<string, Func<IReportPrinter>> _printers = new Dictionary<string, Func<IReportPrinter>>
         {
             // { "html", () => { return new HtmlPrinter(); } },
+            { "csv-regressions", () => { return new CsvRegressionPrinter(); } }
         };
 
         public static Dictionary<string, Func<Testsuite>> Testsuites = new Dictionary<string, Func<Testsuite>>
         {
-            { "helix",      () => { return new HelixTestsuite(); } },
+            { "helix",           () => { return new HelixTestsuite();       } },
             // { "ctestsuite", () => { return new CTestsuite(); } },
         };
 
@@ -23,12 +24,19 @@ namespace Testify
 
         private static void RunTestsuite(string name)
         {
-            TestRunner runner = new TestRunner(name, Testsuites[name]());
+            Report report;
+            if (!ProgramOptions.ReportOnly)
+            {
+                TestRunner runner = new TestRunner(name, Testsuites[name]());
+                report = runner.RunAll();
 
-            Report report = runner.RunAll();
-
-            // Update the tests JSON history "database"
-            TestsDatabase.Update(report);
+                // Update the tests JSON history "database"
+                TestsDatabase.Update(report);
+            }
+            else
+            {
+                report = TestsDatabase.ReadLastReport(name);
+            }
 
             // Always print a quick summary to the command line
             new SummaryPrinter().Print(report);

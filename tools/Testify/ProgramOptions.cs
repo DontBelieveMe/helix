@@ -23,6 +23,8 @@ namespace Testify
         public static bool SummariseLastRun { get; private set; } = false;
         public static SummaryMode SummaryMode { get; private set; } = SummaryMode.Short;
 
+        public static bool ReportOnly { get; private set; } = false;
+
         public static string[] PositionalArguments { get; private set; } = new string[] { };
 
         public static void Parse(string[] args)
@@ -56,6 +58,10 @@ namespace Testify
                 else if (arg == "-summarise-last")
                 {
                     SummariseLastRun = true;
+                }
+                else if (arg == "-report-only")
+                {
+                    ReportOnly = true;
                 }
                 else if (arg.StartsWith("-summary-mode="))
                 {

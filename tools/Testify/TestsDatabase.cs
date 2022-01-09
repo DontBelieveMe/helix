@@ -6,17 +6,17 @@ using System.Text;
 
 namespace Testify
 {
+    public class Summary
+    {
+        public int Passes;
+        public int Fails;
+        public int Total;
+        public int Skipped;
+        public DateTime When;
+    }
+
     public class TestsDatabase
     {
-        public class Summary
-        {
-            public int Passes;
-            public int Fails;
-            public int Total;
-            public int Skipped;
-            public DateTime When;
-        }
-
         private static string _lastRunSummaryJson;
 
         public static Report ReadLastReport(string testsuiteName)
@@ -26,6 +26,12 @@ namespace Testify
 
             string json = File.ReadAllText(file.FullName);
             return Report.FromJson(json);
+        }
+
+        public static List<Summary> ReadSummaryHistory(string testsuiteName)
+        {
+            string regressionsDataFilepath = ".testify/" + testsuiteName + "-regressions.json";
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<List<Summary>>(File.ReadAllText(regressionsDataFilepath));
         }
 
         public static void Update(Report report)
