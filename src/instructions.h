@@ -183,6 +183,9 @@ namespace Helix
 		BasicBlock* GetFalseBB() const { return value_cast<BlockBranchTarget>(this->GetOperand(1))->GetParent(); }
 		Value*      GetCond() const { return this->GetOperand(2); }
 
+		Value* GetTrueTarget() const { return this->GetOperand(0); }
+		Value* GetFalseTarget() const { return this->GetOperand(1); }
+
 		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
@@ -229,6 +232,10 @@ namespace Helix
 	{
 	public:
 		CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);
+
+		Value* GetLHS() const { return this->GetOperand(0); }
+		Value* GetRHS() const { return this->GetOperand(1); }
+		Value* GetResult() const { return this->GetOperand(2); }
 
 		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};

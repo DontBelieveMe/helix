@@ -112,63 +112,62 @@
 ; to multiple MC instructions here.
 ; *****************************************************************************
 
-(define-insn "icmpeq_r32r32r32"
+(define-insn "cmp"  [] "cmp {0}, {1}")
+(define-insn "cmpi" [] "cmp {0}, #{1}")
+
+(define-insn "$icmpeq"
 	[(kInsn_ICmp_Eq
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}
-	 mov {2}, #0
-	 movweq {2}, #1")
+	"*expand_icmp")
 
-(define-insn "icmpneq_r32r32r32"
+(define-insn "$icmpneq"
 	[(kInsn_ICmp_Neq
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}
-	 mov {2}, #0
-	 movwne {2}, #1")
+	"*expand_icmp")
 
-(define-insn "icmplt_r32r32r32"
+(define-insn "$icmplt"
 	[(kInsn_ICmp_Lt
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}
-	 mov {2}, #0
-	 movwlt {2}, #1")
+	"*expand_icmp")
 
-(define-insn "icmplte_r32r32r32"
+(define-insn "$icmplte"
 	[(kInsn_ICmp_Lte
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}
-	 mov {2}, #0
-	 movwle {2}, #1")	
+	"*expand_icmp")
 
-(define-insn "icmpgt_r32r32r32"
+(define-insn "$icmpgt"
 	[(kInsn_ICmp_Gt
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}
-	 mov {2}, #0
-	 movwgt {2}, #1")
+	"*expand_icmp")
 
-(define-insn "icmpgte_r32r32r32"
+(define-insn "$icmpgte"
 	[(kInsn_ICmp_Gte
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"cmp {0}, {1}
-	 mov {2}, #0
-	 movwge {2}, #1")	
+	"*expand_icmp")
 
 ; *****************************************************************************
 ;                             Memory Operations
 ; *****************************************************************************
+
+(define-insn "ldr" [] "ldr {0}, [{1}]")
+
+(define-insn "$ldr_g32"
+	[(kInsn_Load
+		(match_operand:ptr 0 "global")
+		(match_operand:i32 1 "register"))]
+	"*expand_load")
 
 ;
 ; The movw/movt pair is what GCC likes to emit, and clang sometimes (clang also sometimes
@@ -188,33 +187,6 @@
 ;   >
 ;   > .LC1:
 ;   >     .asciz "Hello World!"
-
-; Load a 32 bit global variable into a register
-(define-insn "ldrw_gptr"
-	[(kInsn_Load
-		(match_operand:ptr 0 "global")
-		(match_operand:i32 1 "register"))]
-	"movw {1}, :lower16:{0}
-	 movt {1}, :upper16:{0}
-	 ldr {1}, [{1}]")
-
-; Load a 16 bit unsigned global variable into a register
-(define-insn "ldrh_gptr"
-	[(kInsn_Load
-		(match_operand:ptr 0 "global")
-		(match_operand:i16 1 "register"))]
-	"movw {1}, :lower16:{0}
-	 movt {1}, :upper16:{0}
-	 ldrh {1}, [{1}]")
-
-; Load a 8 bit unsigned global variable into a register
-(define-insn "ldrb_gptr"
-	[(kInsn_Load
-		(match_operand:ptr 0 "global")
-		(match_operand:i8 1 "register"))]
-	"movw {1}, :lower16:{0}
-	 movt {1}, :upper16:{0}
-	 ldrb {1}, [{1}]")
 
 ; Load a 32 bit value pointed at by a register into another register
 (define-insn "ldrw_r32"
@@ -258,44 +230,24 @@
 		(match_operand:i32 1 "register"))]
 	"strh {0}, [{1}]")
 
-; Store the pointer of a global variable into the memory address
-; given by a register (note that it doesn't load the value pointed to
-; by the global, but the pointer of the global itself!)
-(define-insn "store_gr32"
-	[(kInsn_Store
-		(match_operand:ptr 0 "global")
-		(match_operand:i32 1 "register"))]
-	"movw r7, :lower16:{0}
-	 movt r7, :upper16:{0}
-	 str r7, [{1}]")
-
-(define-insn "store_r32g"
-	[(kInsn_Store
-		(match_operand:i32 0 "register")
-		(match_operand:ptr 1 "global"))]
-	"movw r7, :lower16:{1}
-	 movt r7, :upper16:{1}
-	 str {0}, [r7]")
-
 ; *****************************************************************************
 ;                             Branching Operations
 ; *****************************************************************************
+
+(define-insn "bge" [] "bge {0}")
+
+(define-insn "$cbr"
+	[(kInsn_ConditionalBranch
+		(match_operand:lbl 0 "basic_block")
+		(match_operand:lbl 1 "basic_block")
+		(match_operand:i32 2 "register"))]
+	"*expand_conditional_branch")
 
 ; Unconditional branch to a internal basic block/label.
 (define-insn "br"
 	[(kInsn_UnconditionalBranch
 		(match_operand:lbl 0 "basic_block"))]
 	"b {0}")
-
-(define-insn "cbr"
-	[(kInsn_ConditionalBranch
-		(match_operand:lbl 0 "basic_block")
-		(match_operand:lbl 1 "basic_block")
-		(match_operand:i32 2 "register")
-		)]
-	"cmp {2}, #1
-	 bge {0}
-	 b   {1}")
 
 ; 'ret' here implements the function prologue
 ; This acts as a return from the current instruction, since
@@ -329,3 +281,27 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register"))]
 	"mov {1}, {0}")
+
+; *****************************************************************************
+;                             Move Operations
+; *****************************************************************************
+
+(define-insn "movi" [] "mov {0}, #{1}")
+(define-insn "mov" [] "mov {0}, {1}")
+
+(define-insn "movweqi" [] "movweq {0}, #{1}")
+(define-insn "movwnei" [] "movwne {0}, #{1}")
+(define-insn "movwlti" [] "movwlt {0}, #{1}")
+(define-insn "movwlei" [] "movwle {0}, #{1}")
+(define-insn "movwgti" [] "movwgt {0}, #{1}")
+(define-insn "movwgei" [] "movwge {0}, #{1}")
+
+(define-insn "movweq" [] "movweq {0}, {1}")
+(define-insn "movwne" [] "movwne {0}, {1}")
+(define-insn "movwlt" [] "movwlt {0}, {1}")
+(define-insn "movwle" [] "movwle {0}, {1}")
+(define-insn "movwgt" [] "movwgt {0}, {1}")
+(define-insn "movwge" [] "movwge {0}, {1}")
+
+(define-insn "movw_gl16" [] "movw {0}, :lower16:{1}")
+(define-insn "movt_gu16" [] "movt {0}, :upper16:{1}")

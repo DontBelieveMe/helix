@@ -48,6 +48,7 @@ add_library(HelixCore
 	opcodes.h
 	emit.h
 	emit.cpp
+	arm.cpp
 
 	options.def
 	insns.def

@@ -6,6 +6,7 @@
 #include "validate.h"
 #include "module.h"
 #include "print.h"
+#include "instructions.h"
 
 using namespace Helix;
 

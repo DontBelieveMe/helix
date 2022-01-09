@@ -487,8 +487,8 @@ void LegaliseStructs::CopyStruct(Value* src, Value* dst, const StructType* struc
 
 		BasicBlock* bb = where->GetParent();
 
-		where = bb->InsertAfter(where, Helix::CreateLoadFieldAddress(structType, src, fieldIndex, sourceFieldAddress));
-		where = bb->InsertAfter(where, Helix::CreateLoadFieldAddress(structType, dst, fieldIndex, destFieldAddress));
+		where = bb->InsertAfter(where, Helix::CreateLoadFieldAddress(structType, src, (unsigned) fieldIndex, sourceFieldAddress));
+		where = bb->InsertAfter(where, Helix::CreateLoadFieldAddress(structType, dst, (unsigned) fieldIndex, destFieldAddress));
 		where = bb->InsertAfter(where, Helix::CreateLoad(sourceFieldAddress, value));
 		where = bb->InsertAfter(where, Helix::CreateStore(value, destFieldAddress));
 	}

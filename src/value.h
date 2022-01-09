@@ -228,6 +228,9 @@ namespace Helix
 		static ConstantInt* Create(const Type* ty, Integer value);
 		static ConstantInt* GetMax(const Type* ty);
 
+		static ConstantInt* GetOne(const Type* ty);
+		static ConstantInt* GetZero(const Type* ty);
+
 		inline Integer GetIntegralValue() const { return m_Integer; }
 
 		bool CanFitInType(const IntegerType* ty) const;

@@ -51,9 +51,18 @@ namespace MachineDescription
         public List<IROperandTemplate> Operands = new List<IROperandTemplate>();
         private Instruction _parent;
 
+        public bool NotMatchingTemplate { get; private set; } = false;
+
         public IRInstructionTemplate(SExpression array, Instruction parent)
         {
             _parent = parent;
+
+            if (array == null || array.Children.Count == 0)
+            {
+                NotMatchingTemplate = true;
+                return;
+            }
+
             Opcode = (array.Children[0] as Symbol).Value;
 
             for (int i = 1; i < array.Children.Count; ++i)
@@ -168,21 +177,29 @@ namespace MachineDescription
                     }
                 }*/
 
-                List<string> formatArgs = new List<string>();
-
-                for (int i = 0; i < Operands.Count; ++i)
+                if (_parent.OutputFormat.StartsWith("*"))
                 {
-                    if (Operands[i] is MatchOperand)
-                    {
-                        MatchOperand mo = (MatchOperand)Operands[i];
-
-                        ctx.PrintIndentedLine(string.Format("Value* v{0} = insn->GetOperand({1});", mo.OutputOperandIndex, i));
-                        formatArgs.Add("v" + i);
-                    }
+                    string functionName = _parent.OutputFormat.Substring(1);
+                    ctx.PrintIndentedLine(string.Format("return {0}(insn);", functionName));
                 }
+                else
+                {
+                    List<string> formatArgs = new List<string>();
 
-                string name = Capitalise(_parent.Name);
-                ctx.PrintIndentedLine(string.Format("return Helix::ARMv7::Create{0}({1});", name, string.Join(", ", formatArgs)));
+                    for (int i = 0; i < Operands.Count; ++i)
+                    {
+                        if (Operands[i] is MatchOperand)
+                        {
+                            MatchOperand mo = (MatchOperand)Operands[i];
+
+                            ctx.PrintIndentedLine(string.Format("Value* v{0} = insn->GetOperand({1});", mo.OutputOperandIndex, i));
+                            formatArgs.Add("v" + i);
+                        }
+                    }
+
+                    string name = Capitalise(_parent.Name);
+                    ctx.PrintIndentedLine(string.Format("return Helix::ARMv7::Create{0}({1});", name, string.Join(", ", formatArgs)));
+                }
             }
 
             ctx.DecreaseIndent(1);
@@ -396,6 +413,12 @@ namespace MachineDescription
 
                         string name = Capitalise(insn.Name);
                         ctx.PrintIndentedLine(string.Format("MachineInstruction* Create{0}({1});", name, string.Join(", ", args)));
+
+                        if (insn.OutputFormat.StartsWith("*"))
+                        {
+                            string functionName = insn.OutputFormat.Substring(1);
+                            ctx.PrintIndentedLine("MachineInstruction* " + functionName + "(Instruction*);");
+                        }
                     }
                 }
 
@@ -469,14 +492,25 @@ namespace MachineDescription
                     {
                         List<string> formatArgs = new List<string>();
 
-                        for (int i = 0; i < insn.Template.Operands.Count; ++i)
+                        if (insn.Template.NotMatchingTemplate)
                         {
-                            if (insn.Template.Operands[i] is MatchOperand)
+                            for (int i = 0; i < insn.CountOperandsInOutputTemplate(); ++i)
                             {
-                                MatchOperand mo = (MatchOperand)insn.Template.Operands[i];
+                                ctx.PrintIndentedLine(string.Format("const std::string& s{0} = stringify_operand(insn.GetOperand({1}), slots);", i, i));
+                                formatArgs.Add("s" + i);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < insn.Template.Operands.Count; ++i)
+                            {
+                                if (insn.Template.Operands[i] is MatchOperand)
+                                {
+                                    MatchOperand mo = (MatchOperand)insn.Template.Operands[i];
 
-                                ctx.PrintIndentedLine(string.Format("const std::string& s{0} = stringify_operand(insn.GetOperand({1}), slots);", mo.OutputOperandIndex, i));
-                                formatArgs.Add("s" + mo.OutputOperandIndex);
+                                    ctx.PrintIndentedLine(string.Format("const std::string& s{0} = stringify_operand(insn.GetOperand({1}), slots);", mo.OutputOperandIndex, i));
+                                    formatArgs.Add("s" + mo.OutputOperandIndex);
+                                }
                             }
                         }
 
@@ -507,10 +541,15 @@ namespace MachineDescription
 
                 foreach(Instruction insn in _desc.Instructions)
                 {
+                    if (insn.Template.NotMatchingTemplate)
+                    {
+                        continue;
+                    }
+
                     insn.Template.GenerateCodeToMatchTemplate(ctx);
                 }
 
-                ctx.PrintIndentedLine("helix_unreachable(\"cannot match instruction to assembly, check arm.md\");");
+                ctx.PrintIndentedLine("helix_unreachable(\"cannot expand instruction to machine ir, check arm.md\");");
                 ctx.PrintIndentedLine("return nullptr;");
                 ctx.DecreaseIndent(1);
                 ctx.PrintIndentedLine("}");
