@@ -549,6 +549,10 @@ namespace MachineDescription
                     insn.Template.GenerateCodeToMatchTemplate(ctx);
                 }
 
+                ctx.PrintIndentedLine("char error_buf[256] = {};");
+                ctx.PrintIndentedLine("Helix::TextOutputStream os(error_buf, sizeof(error_buf));");
+                ctx.PrintIndentedLine("Helix::Print(os, *insn);");
+                ctx.PrintIndentedLine("helix_error(logs::general, \"Failed to match instruction '{}'\", error_buf);");
                 ctx.PrintIndentedLine("helix_unreachable(\"cannot expand instruction to machine ir, check arm.md\");");
                 ctx.PrintIndentedLine("return nullptr;");
                 ctx.DecreaseIndent(1);
