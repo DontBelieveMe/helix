@@ -46,6 +46,8 @@ add_library(HelixCore
 	validate.h
 	validate.cpp
 	opcodes.h
+	emit.h
+	emit.cpp
 
 	options.def
 	insns.def

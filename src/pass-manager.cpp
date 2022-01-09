@@ -9,6 +9,7 @@
 #include "regalloc.h"
 #include "match.h"
 #include "validate.h"
+#include "emit.h"
 
 using namespace Helix;
 
@@ -27,7 +28,8 @@ PassManager::PassManager()
 	AddPass<CConv>();
 	AddPass<LowerStructStackAllocation>();
 	AddPass<RegisterAllocator>();
-	AddPass<FinalMatcher>();
+	AddPass<MachineExpander>();
+	AddPass<AssemblyEmitter>();
 }
 
 void PassManager::ValidateModule(ValidationPass& validationPass, Module* module)
@@ -43,6 +45,8 @@ void PassManager::RunPass(const PassData& passData, Module* module)
 	HELIX_PROFILE_ZONE_TEXT(passData.name, strlen(passData.name));
 
 	std::unique_ptr<Pass> pass = passData.create_action();
+
+	helix_trace(logs::pass_manager, "Pass: {}", passData.name);
 
 	if (Options::GetEmitIRPrePass() == passData.name) {
 		Helix::DebugDump(*module);
@@ -76,6 +80,8 @@ void PassManager::Execute(Module* mod)
 
 	for (const PassData& passData : m_Passes) {
 		this->RunPass(passData, mod);
+
+		helix_trace(logs::pass_manager, "Validating pass '{}'", passData.name);
 
 		// Automatically run a validation check after every pass. This is useful to ensure correctness
 		// during development, but will definately slow things down in the long run (esp with bigger

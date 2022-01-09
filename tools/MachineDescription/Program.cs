@@ -381,6 +381,7 @@ namespace MachineDescription
                 {
                     ctx.PrintIndentedLine("MachineInstruction* Expand(Instruction*);");
                     ctx.PrintIndentedLine("const char* GetMachineInstructionName(Opcode);");
+                    ctx.PrintIndentedLine("void Emit(FILE*,Instruction&,SlotTracker&);");
                     headerFile.AppendLine();
 
                     foreach (Instruction insn in _desc.Instructions)
@@ -429,8 +430,78 @@ namespace MachineDescription
                 ctx.PrintIndentedLine("");
             }
 
-            // Emit(FILE*,Instruction&)
+            // Emit(FILE*, Instruction&, SlotTracker&)
             {
+                ctx.PrintIndentedLine("void Helix::ARMv7::Emit(FILE* file, Instruction& insn, SlotTracker& slots)");
+                ctx.PrintIndentedLineThenIndent("{");
+
+                ctx.PrintIndentedLine("switch (insn.GetOpcode()) {");
+                
+                foreach (Instruction insn in _desc.Instructions)
+                {
+                    string name = Capitalise(insn.Name);
+                    ctx.PrintIndentedLine("case " + name + ": {");
+                    ctx.IncreaseIndent(1);
+
+                    List<string> outputLines = new List<string>();
+
+                    {
+                        string[] lines = insn.OutputFormat.Split("\n");
+
+                        foreach (string line in lines)
+                        {
+                            outputLines.Add(line.Trim());
+                        }
+                    }
+
+                    if (insn.IsTextOnlyDefinition())
+                    {
+                        foreach (string asmLine in outputLines)
+                        {
+                            string tmp = asmLine;
+                            if (tmp.StartsWith("@"))
+                                tmp = tmp.Substring(1);
+
+                            ctx.PrintIndentedLine("fprintf(file, \"\\t" + tmp + "\\n\");");
+                        }
+                    }
+                    else
+                    {
+                        List<string> formatArgs = new List<string>();
+
+                        for (int i = 0; i < insn.Template.Operands.Count; ++i)
+                        {
+                            if (insn.Template.Operands[i] is MatchOperand)
+                            {
+                                MatchOperand mo = (MatchOperand)insn.Template.Operands[i];
+
+                                ctx.PrintIndentedLine(string.Format("const std::string& s{0} = stringify_operand(insn.GetOperand({1}), slots);", mo.OutputOperandIndex, i));
+                                formatArgs.Add("s" + mo.OutputOperandIndex);
+                            }
+                        }
+
+                        string args = string.Join(", ", formatArgs);
+
+                        foreach (string asmLine in outputLines)
+                        {
+                            ctx.PrintIndentedLine(string.Format("{{const std::string as = fmt::format(\"\\t{0}\\n\", {1});", asmLine, args));
+                            ctx.PrintIndentedLine("fprintf(file, \"%s\",as.c_str());}");
+                        }
+                    }
+
+                    ctx.PrintIndentedLine("break;");
+                    ctx.PrintIndentedLineAfterUnindent("}");
+                }
+
+                ctx.PrintIndentedLine("}");
+
+                ctx.PrintIndentedLineAfterUnindent("}");
+            }
+
+
+            // Expand(Instruction*)
+            {
+                ctx.Newline();
                 ctx.PrintIndentedLine("Helix::MachineInstruction* Helix::ARMv7::Expand(Instruction* insn)\n{");
                 ctx.IncreaseIndent(1);
 
