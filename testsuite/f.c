@@ -1,26 +1,33 @@
-enum a
-{
-  F_HI = 1,
-  F_NO = F_HI * 2
-};
-
-struct MyStruct
-{
-  int a;
-  int b;
-};
-
-enum a DoThingToStruct(struct MyStruct* s)
-{
-  if (s->a == s->b)
-    return F_HI;
-  else
-    return F_NO;
+int main() {
+  return 10 % 4;
 }
 
-int main()
-{
-  struct MyStruct tmp;
-  tmp.a = tmp.b = 120;
-  return DoThingToStruct(&tmp);
+/*#define xor main
+
+int div() {
+  return 220 / 3;
 }
+
+int mul() {
+  return 5 * 3;
+}
+
+int sub() {
+  return 10 - 3;
+}
+
+int add() {
+  return 10 + 3;
+}
+
+int or() {
+  return 1 | 2;
+}
+
+int and() {
+  return 3 & 2;
+}
+
+int xor() {
+  return 3 ^ 7;
+}*/
