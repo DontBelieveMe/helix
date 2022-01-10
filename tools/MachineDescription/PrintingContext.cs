@@ -41,6 +41,23 @@ namespace MachineDescription
                 Console.WriteLine(line);
         }
 
+        public void PrintLine(string line)
+        {
+            if (_target != null)
+                _target.AppendLine(line);
+            else
+                Console.WriteLine(line);
+        }
+
+        public void PrintIndented(string text)
+        {
+            PrintIndent();
+            if (_target != null)
+                _target.Append(text);
+            else
+                Console.Write(text);
+        }
+
         public void PrintIndentedLineThenIndent(string line, int indentCount = 1)
         {
             PrintIndentedLine(line);

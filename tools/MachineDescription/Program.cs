@@ -17,6 +17,11 @@ namespace MachineDescription
             return OutputFormat.StartsWith("@");
         }
 
+        public bool IsExpansionOnlyRule()
+        {
+            return Name.StartsWith("$");
+        }
+
         public int CountOperandsInOutputTemplate()
         {
             if (IsTextOnlyDefinition())
@@ -94,12 +99,13 @@ namespace MachineDescription
 
         public void GenerateCodeToMatchTemplate(PrintingContext ctx)
         {
+            ctx.PrintIndentedLine("/* " + _parent.Name + " */");
             ctx.PrintIndentedLine(string.Format("if (insn->GetOpcode() == {0}) {{", Opcode));
             ctx.IncreaseIndent(1);
 
             if (Operands.Count > 0)
             {
-                ctx.PrintIndentedLine("if (");
+                ctx.PrintIndented("if (");
                 ctx.IncreaseIndent(1);
                 
                 int index = 0;
@@ -110,10 +116,22 @@ namespace MachineDescription
                     if (index > 0)
                         line = "&& ";
 
-                    line += "insn->GetOperand(" + index + ")->GetType() == " + typeMap[operand.Type] + "() && ";
+                    if (operand.Type != "*")
+                    {
+                        line += "insn->GetOperand(" + index + ")->GetType() == " + typeMap[operand.Type] + "() && ";
+                    }
+
                     line += operand.GenerateCondition("insn->GetOperand(" + index + ")");
 
-                    ctx.PrintIndentedLine(line);
+                    if (index > 0)
+                    {
+                        ctx.PrintIndentedLine(line);
+                    }
+                    else
+                    {
+                        ctx.PrintLine(line);
+                    }
+
                     index++;
                 }
 
@@ -206,7 +224,7 @@ namespace MachineDescription
             ctx.PrintIndentedLine("}");
             ctx.DecreaseIndent(1);
             ctx.PrintIndentedLine("}");
-
+            ctx.Newline();
         }
 
         private string Capitalise(string s)
@@ -382,6 +400,11 @@ namespace MachineDescription
                     {
                         Instruction insn = _desc.Instructions[i];
 
+                        if (insn.IsExpansionOnlyRule())
+                        {
+                            continue;
+                        }
+
                         string name      = Capitalise(insn.Name);
                         int    enumValue = 1024 + i; /* Range for MIR instructions is 1024 and up.  */
 
@@ -401,8 +424,21 @@ namespace MachineDescription
                     ctx.PrintIndentedLine("void Emit(FILE*,Instruction&,SlotTracker&);");
                     headerFile.AppendLine();
 
+                    HashSet<string> customExpansionFunctions = new HashSet<string>();
+
                     foreach (Instruction insn in _desc.Instructions)
                     {
+                        if (insn.OutputFormat.StartsWith("*"))
+                        {
+                            string functionName = insn.OutputFormat.Substring(1);
+                            customExpansionFunctions.Add(functionName);
+                        }
+
+                        if (insn.IsExpansionOnlyRule())
+                        {
+                            continue;
+                        }
+
                         int nOperands = insn.CountOperandsInOutputTemplate();
                         List<string> args = new List<string>();
 
@@ -413,12 +449,11 @@ namespace MachineDescription
 
                         string name = Capitalise(insn.Name);
                         ctx.PrintIndentedLine(string.Format("MachineInstruction* Create{0}({1});", name, string.Join(", ", args)));
+                    }
 
-                        if (insn.OutputFormat.StartsWith("*"))
-                        {
-                            string functionName = insn.OutputFormat.Substring(1);
-                            ctx.PrintIndentedLine("MachineInstruction* " + functionName + "(Instruction*);");
-                        }
+                    foreach(string functionName in customExpansionFunctions)
+                    {
+                        ctx.PrintIndentedLine("MachineInstruction* " + functionName + "(Instruction*);");
                     }
                 }
 
@@ -462,6 +497,11 @@ namespace MachineDescription
                 
                 foreach (Instruction insn in _desc.Instructions)
                 {
+                    if (insn.IsExpansionOnlyRule())
+                    {
+                        continue;
+                    }
+
                     string name = Capitalise(insn.Name);
                     ctx.PrintIndentedLine("case " + name + ": {");
                     ctx.IncreaseIndent(1);
@@ -568,6 +608,11 @@ namespace MachineDescription
                 
                 foreach (Instruction instruction in _desc.Instructions)
                 {
+                    if (instruction.IsExpansionOnlyRule())
+                    {
+                        continue;
+                    }
+
                     string name = Capitalise(instruction.Name);
                     ctx.PrintIndentedLine("case " + name + ": return \"" + instruction.Name + "\";");
                 }
@@ -581,6 +626,11 @@ namespace MachineDescription
             // Create* functions (for creating machine instructions)
             foreach (Instruction insn in _desc.Instructions)
             {
+                if (insn.IsExpansionOnlyRule())
+                {
+                    continue;
+                }
+
                 string name = Capitalise(insn.Name);
                 int nOperands = insn.CountOperandsInOutputTemplate();
 

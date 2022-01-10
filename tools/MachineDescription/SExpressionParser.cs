@@ -122,12 +122,12 @@ namespace MachineDescription
 
                 default:
                     {
-                        if (Char.IsLetter(current) || current == '-' || current == ':' || current == '_')
+                        if (Char.IsLetter(current) || current == '-' || current == ':' || current == '_' || current == '*')
                         {
                             int startIndex = _index;
                             int length = 0;
 
-                            while (Char.IsLetter(current) || current == '-' || current == ':' || current == '_' || Char.IsNumber(current))
+                            while (Char.IsLetter(current) || current == '-' || current == ':' || current == '_' || Char.IsNumber(current) || current == '*')
                             {
                                 length++;
                                 current = NextChar();

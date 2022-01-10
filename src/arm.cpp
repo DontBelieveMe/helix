@@ -68,21 +68,33 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 
 	LoadInsn* load = (LoadInsn*) insn;
 
-	// Load the address of the global into the destination register...
-	BasicBlock::iterator where = LoadGlobalAddressIntoRegister(insn, load->GetDst(), load->GetSrc());
+	if (is_register(load->GetSrc()) && is_register(load->GetDst())) {
+		switch (GetMachineMode(load->GetDst())) {
+		case QImode: return ARMv7::CreateLdrb(load->GetDst(), load->GetSrc());
+		case HImode: return ARMv7::CreateLdrh(load->GetDst(), load->GetSrc());
+		case SImode: return ARMv7::CreateLdr(load->GetDst(), load->GetSrc());
+		default:
+			helix_unreachable("unacceptable machine mode for load value (from mem reg)");
+			break;
+		}
+	}
+	else if (is_global(load->GetSrc()) && is_register(load->GetDst())) {
+		// Load the address of the global into the destination register...
+		BasicBlock::iterator where = LoadGlobalAddressIntoRegister(insn, load->GetDst(), load->GetSrc());
 
-	// ... then load the value stored at the address in the destination register, into the destination register.
-	// This seems like a bit of a hack that allows us to only use one register.
-	//
-	// #FIXME: Do a bit of an investigation, find out if this is legal (it seems to work?) or even just a bad idea.
-	
-	switch (GetMachineMode(load->GetDst())) {
-	case QImode: return ARMv7::CreateLdrb(load->GetDst(), load->GetDst());
-	case HImode: return ARMv7::CreateLdrh(load->GetDst(), load->GetDst());
-	case SImode: return ARMv7::CreateLdr(load->GetDst(), load->GetDst());
-	default:
-		helix_unreachable("cannot natively load values of this machine mode");
-		break;
+		// ... then load the value stored at the address in the destination register, into the destination register.
+		// This seems like a bit of a hack that allows us to only use one register.
+		//
+		// #FIXME: Do a bit of an investigation, find out if this is legal (it seems to work?) or even just a bad idea.
+		
+		switch (GetMachineMode(load->GetDst())) {
+		case QImode: return ARMv7::CreateLdrb(load->GetDst(), load->GetDst());
+		case HImode: return ARMv7::CreateLdrh(load->GetDst(), load->GetDst());
+		case SImode: return ARMv7::CreateLdr(load->GetDst(), load->GetDst());
+		default:
+			helix_unreachable("cannot natively load values of this machine mode (from global)");
+			break;
+		}
 	}
 
 	return nullptr;
@@ -191,14 +203,24 @@ MachineInstruction* ARMv7::expand_store(Instruction* insn)
 	// address given in dst.
 	if (value_isa<GlobalVariable>(store->GetSrc())) {
 		LoadGlobalAddressIntoRegister(store, r7, store->GetSrc());
-		return ARMv7::CreateStrw(r7, store->GetDst());
+		return ARMv7::CreateStr(r7, store->GetDst());
 	}
 	else if (value_isa<GlobalVariable>(store->GetDst())) {
 		// #FIXME: Support storing types other than i32 (i16 & i8 primarily, i64 support can wait. don't even mention fp).
 		helix_assert(GetMachineMode(store->GetSrc()) == SImode, "unexpected machine mode for store (currently unsupported)");
 
 		LoadGlobalAddressIntoRegister(store, r7, store->GetDst());
-		return ARMv7::CreateStrw(store->GetSrc(), r7);
+		return ARMv7::CreateStr(store->GetSrc(), r7);
+	}
+	else if (is_register(store->GetSrc()) && is_register(store->GetDst())) {
+		switch (GetMachineMode(store->GetSrc())) {
+		case QImode: return ARMv7::CreateStrb(store->GetSrc(), store->GetDst());
+		case HImode: return ARMv7::CreateStrh(store->GetSrc(), store->GetDst());
+		case SImode: return ARMv7::CreateStr(store->GetSrc(), store->GetDst());
+		default:
+			helix_unreachable("unacceptable machine mode for store soure value");
+			break;
+		}
 	}
 
 	helix_unreachable("cannot expand this form of store");

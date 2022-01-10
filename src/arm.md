@@ -159,81 +159,63 @@
 ;                             Memory Operations
 ; *****************************************************************************
 
-(define-insn "ldr" [] "ldr {0}, [{1}]")
-(define-insn "ldrh" [] "ldrh {0}, [{1}]")
-(define-insn "ldrb" [] "ldrb {0}, [{1}]")
+(define-insn "ldr"  [] "ldr {0}, [{1}]")  ; Load (32 bit)
+(define-insn "ldrh" [] "ldrh {0}, [{1}]") ; Load (16 bit)
+(define-insn "ldrb" [] "ldrb {0}, [{1}]") ; Load (8 bit)
 
-(define-insn "$ldr_g32"
-	[(kInsn_Load
-		(match_operand:ptr 0 "global")
-		(match_operand:i32 1 "register"))]
-	"*expand_load")
+(define-insn "str"  [] "str {0}, [{1}]")  ; Store (32 bit)
+(define-insn "strh" [] "strh {0}, [{1}]") ; Store (16 bit)
+(define-insn "strb" [] "strb {0}, [{1}]") ; Store (16 bit)
 
-(define-insn "$ldr_g16"
-	[(kInsn_Load
-		(match_operand:ptr 0 "global")
-		(match_operand:i16 1 "register"))]
-	"*expand_load")
+; ******************************
+;      Store (To Memory)
+; ******************************
 
-(define-insn "$ldr_g8"
-	[(kInsn_Load
-		(match_operand:ptr 0 "global")
-		(match_operand:i8 1 "register"))]
-	"*expand_load")
-
-(define-insn "$store_label32"
+; Store the address of a global variable (operand 0) to the memory address
+; specified in the destination register (operand 1).
+;
+; This is a bit of a special case & is a bit funky, sorry about that :-(
+(define-insn "$store_global_address_to_memory"
 	[(kInsn_Store
 		(match_operand:ptr 0 "global")
 		(match_operand:i32 1 "register"))]
 	"*expand_store")
 
-(define-insn "$store_register32"
+; Store 32 bit value in the source register (operand 0) into
+; a global variable (operand 1).
+(define-insn "$store_global"
 	[(kInsn_Store
 		(match_operand:i32 0 "register")
 		(match_operand:ptr 1 "global"))]
 	"*expand_store")
 
-; Load a 32 bit value pointed at by a register into another register
-(define-insn "ldrw_r32"
+; Store the 8/16/32 bit value from the source register (operand 0) to
+; the memory address specified in the destination register (operand 1).
+(define-insn "$store_register"
+	[(kInsn_Store
+		(match_operand:*   0 "register")
+		(match_operand:i32 1 "register"))]
+	"*expand_store")
+
+; ******************************
+;      Load (From Memory)
+; ******************************
+
+; Loading a 8/16/32 bit value from a global variable (operand 0) into the destination
+; register (operand 1).
+(define-insn "$load_global"
+	[(kInsn_Load
+		(match_operand:ptr 0 "global")
+		(match_operand:*   1 "register"))]
+	"*expand_load")
+
+; Load the 8/16/32 bit value stored at the address given in the source
+; register (operand 0) to the destination register (operand 1).
+(define-insn "$load_register"
 	[(kInsn_Load
 		(match_operand:i32 0 "register")
-		(match_operand:i32 1 "register"))]
-	"ldr {1}, [{0}]")
-
-; Load a 16 bit unsigned value pointed at by a register into another register
-(define-insn "ldrh_r32"
-	[(kInsn_Load
-		(match_operand:i32 0 "register")
-		(match_operand:i16 1 "register"))]
-	"ldrh {1}, [{0}]")
-
-; Load a 32 bit value pointed at by a register into another register
-(define-insn "ldrb_r32"
-	[(kInsn_Load
-		(match_operand:i32 0 "register")
-		(match_operand:i8 1 "register"))]
-	"ldrb {1}, [{0}]")
-
-; Store a 32 bit value into the address specified by another register
-(define-insn "strw"
-	[(kInsn_Store
-		(match_operand:i32 0 "register")
-		(match_operand:i32 1 "register"))]
-	"str {0}, [{1}]")
-
-; Store a 8 bit value into the address specified by another register
-(define-insn "strb"
-	[(kInsn_Store
-		(match_operand:i8 0 "register")
-		(match_operand:i32 1 "register"))]
-	"strb {0}, [{1}]")
-
-; Store a 16 bit value into the address specified by another register
-(define-insn "strh"
-	[(kInsn_Store
-		(match_operand:i16 0 "register")
-		(match_operand:i32 1 "register"))]
-	"strh {0}, [{1}]")
+		(match_operand:*   1 "register"))]
+	"*expand_load")
 
 ; *****************************************************************************
 ;                             Branching Operations
