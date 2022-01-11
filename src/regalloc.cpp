@@ -22,6 +22,11 @@ static bool CanTypeFitInNativeRegister(const Type* type)
 		return true;
 	}
 
+	if (type->IsStruct()) {
+		const size_t structSize = ARMv7::TypeSize(type);
+		return structSize <= 4;
+	}
+
 	return false;
 }
 
@@ -77,6 +82,10 @@ static const Type* LowerVirtualRegisterType(const Type* type) {
 	}
 	else if (type->IsIntegral()) {
 		return type;
+	} else if (type->IsStruct()) {
+		if (ARMv7::TypeSize(type) <= 4) {
+			return BuiltinTypes::GetInt32();
+		}
 	}
 
 	helix_unreachable("type cannot be lowered into a single physical register");
@@ -303,7 +312,7 @@ void RegisterAllocator::Execute(Function* fn)
 		//where = head->InsertAfter(where, Helix::CreateIntToPtr(BuiltinTypes::GetInt32(), temp, output_ptr));
 //
 //
-		Instruction* lastInsn = output_ptr->GetUse(0).GetInstruction();
+		//Instruction* lastInsn = output_ptr->GetUse(0).GetInstruction();
 		int c = 0;
 
 		struct T { Use use; PhysicalRegisterName* reg; };
