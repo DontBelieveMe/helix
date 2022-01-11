@@ -27,6 +27,33 @@ namespace Testify
 
         public static string[] PositionalArguments { get; private set; } = new string[] { };
 
+        private static string HelpText =
+@"Usage: Testify [<Options>] Positional...
+
+Optional:
+  -report=?                    Set the output report type (summary report is implicit & default)
+  -testsuite=?                 Set the testsuite (see 'Testsuites')
+
+  -fail-fast                   Abort the test run after the first failure. Runs that terminate early don't
+                               get recorded.
+  -dump-diffs                  For any tests that fail print out the expected & actual output
+  -verbose                     For each run test print out the command line used to run that test
+  -summarise-last              Print out a summary of the previous test run, don't run any new tests.
+  -summary-mode=[long|short]   Used in conjunction with '-summarise-last'. 'long' summary mode means to print
+                               out each run test & it's individual status, 'short' is to just print out a summary.
+                               Default is 'short'.
+  -report-only                 Don't run any tests & just generate a new report based of previous test run.
+  -help                        Print out this help text & exit - but i guess you figured that out already :-)
+
+Testsuites:
+  helix                        Helix compilers own regression & integration tests.
+
+                               An optional positional argument is available, which specifies the subfolder
+                               (in 'testsuite/') to run. If a subfolder is specified test runs are not recorded.
+
+  ctestsuite                   Open source c-testsuite (https://github.com/c-testsuite/c-testsuite)
+";
+
         public static void Parse(string[] args)
         {
             List<string> testsuites = new List<string>();
@@ -62,6 +89,11 @@ namespace Testify
                 else if (arg == "-report-only")
                 {
                     ReportOnly = true;
+                }
+                else if (arg == "-help" || arg == "--help")
+                {
+                    Console.WriteLine(HelpText);
+                    Environment.Exit(0);
                 }
                 else if (arg.StartsWith("-summary-mode="))
                 {
