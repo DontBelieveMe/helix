@@ -273,6 +273,12 @@
 		(match_operand:i32 1 "register"))]
 	"mov {1}, {0}")
 
+(define-insn "$ptrtoint"
+	[(kInsn_PtrToInt
+		(match_operand:ptr 0 "global")
+		(match_operand:i32 1 "register"))]
+	"*expand_global_address_to_register")
+
 ; *****************************************************************************
 ;                             Move Operations
 ; *****************************************************************************

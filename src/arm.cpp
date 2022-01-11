@@ -228,3 +228,16 @@ MachineInstruction* ARMv7::expand_store(Instruction* insn)
 }
 
 /*********************************************************************************************************************/
+
+MachineInstruction* ARMv7::expand_global_address_to_register(Instruction* insn)
+{
+	helix_assert(insn->GetOpcode() == kInsn_PtrToInt, "instruction is not ptrtoint");
+	CastInsn* castInsn = (CastInsn*) insn;
+	helix_assert(is_global(castInsn->GetSrc()), "ptrtoint source must be a global for this transform");
+
+	BasicBlock::iterator where = LoadGlobalAddressIntoRegister(insn, castInsn->GetDst(), castInsn->GetSrc());
+	helix_assert(Helix::IsMachineOpcode(where->GetOpcode()), "insn is not a machine instruction");
+	return (MachineInstruction*) &(*where);
+}
+
+/*********************************************************************************************************************/

@@ -1,3 +1,6 @@
+/* Testing that writing to smaller members doesn't overwrite
+ * subsequent members. */
+
 struct MyStruct
 {
 	char c;

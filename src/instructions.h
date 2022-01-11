@@ -302,8 +302,11 @@ namespace Helix
 			this->SetOperand(1, out);
 		}
 
-		const Type* GetSrcType() const { return this->GetOperand(0)->GetType(); }
-		const Type* GetDstType() const { return this->GetOperand(1)->GetType(); }
+		Value* GetSrc() const { return this->GetOperand(0); }
+		Value* GetDst() const { return this->GetOperand(1); }
+
+		const Type* GetSrcType() const { return this->GetSrc()->GetType(); }
+		const Type* GetDstType() const { return this->GetDst()->GetType(); }
 
 		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
