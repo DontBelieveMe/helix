@@ -14,6 +14,8 @@
 
 using namespace Helix;
 
+/*********************************************************************************************************************/
+
 namespace IR
 {
 	static void ReplaceAllUsesWith(Value* oldValue, Value* newValue)
@@ -60,6 +62,8 @@ namespace IR
 	}
 }
 
+/*********************************************************************************************************************/
+
 void GenericLowering::LowerIRem(BasicBlock& bb, BinOpInsn& insn)
 {
 	// #FIXME: This is really an ARM specific optimisation? Can take advantage of a `mls`
@@ -88,6 +92,8 @@ void GenericLowering::LowerIRem(BasicBlock& bb, BinOpInsn& insn)
 	bb.Delete(bb.Where(&insn));
 }
 
+/*********************************************************************************************************************/
+
 void GenericLowering::LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
 {
 	VirtualRegisterName* ptrint     = VirtualRegisterName::Create(ARMv7::PointerType());
@@ -108,6 +114,8 @@ void GenericLowering::LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
 
 	bb.Delete(bb.Where(&insn));
 }
+
+/*********************************************************************************************************************/
 
 void GenericLowering::LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 {
@@ -136,6 +144,8 @@ void GenericLowering::LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 
 	bb.Delete(bb.Where(&insn));
 }
+
+/*********************************************************************************************************************/
 
 void GenericLowering::Execute(Function* fn)
 {
@@ -181,6 +191,8 @@ void GenericLowering::Execute(Function* fn)
 		}
 	}
 }
+
+/*********************************************************************************************************************/
 
 void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
 {
@@ -230,6 +242,8 @@ void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
 
 	helix_unreachable("cannot legalise store with unsupported value type");
 }
+
+/*********************************************************************************************************************/
 
 void GenericLegalizer::Execute(Function* fn)
 {
@@ -291,6 +305,8 @@ void GenericLegalizer::Execute(Function* fn)
 	} while (dirty);
 }
 
+/*********************************************************************************************************************/
+
 void ReturnCombine::Execute(Function* fn)
 {
 	helix_assert(fn->GetCountBlocks() >= 1, "Function must have at least one basic block");
@@ -351,6 +367,8 @@ void ReturnCombine::Execute(Function* fn)
 	}
 }
 
+/*********************************************************************************************************************/
+
 void CConv::Execute(Function* fn)
 {
 	// #FIXME: Maybe this can be simplified by assuming there is only one return?
@@ -394,6 +412,8 @@ void CConv::Execute(Function* fn)
 	}
 }
 
+/*********************************************************************************************************************/
+
 GlobalVariable* ConstantHoisting::CreateOrGetGlobal(Module* mod, ConstantInt* cint) {
 	auto it = GlobalMap.find(cint);
 
@@ -412,6 +432,8 @@ GlobalVariable* ConstantHoisting::CreateOrGetGlobal(Module* mod, ConstantInt* ci
 
 	return it->second;
 }
+
+/*********************************************************************************************************************/
 
 void ConstantHoisting::Execute(BasicBlock* bb)
 {
