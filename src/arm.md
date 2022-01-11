@@ -159,13 +159,17 @@
 ;                             Memory Operations
 ; *****************************************************************************
 
-(define-insn "ldr"  [] "ldr {0}, [{1}]")  ; Load (32 bit)
-(define-insn "ldrh" [] "ldrh {0}, [{1}]") ; Load (16 bit)
-(define-insn "ldrb" [] "ldrb {0}, [{1}]") ; Load (8 bit)
+(define-insn "ldr"   [] "ldr {0}, [{1}]")   ; Load (32 bits)
 
-(define-insn "str"  [] "str {0}, [{1}]")  ; Store (32 bit)
-(define-insn "strh" [] "strh {0}, [{1}]") ; Store (16 bit)
-(define-insn "strb" [] "strb {0}, [{1}]") ; Store (16 bit)
+(define-insn "ldrsh" [] "ldrsh {0}, [{1}]") ; Load & Sign Extend (16 bits)
+(define-insn "ldrh"  [] "ldrh {0}, [{1}]")  ; Load & Zero Extend (16 bits)
+
+(define-insn "ldrb"  [] "ldrb {0}, [{1}]")  ; Load & Zero Extend (8 bits)
+(define-insn "ldrsb" [] "ldrsb {0}, [{1}]") ; Load & Sign Extend (8 bits)
+
+(define-insn "str"   [] "str {0}, [{1}]")   ; Store (32 bit)
+(define-insn "strh"  [] "strh {0}, [{1}]")  ; Store (16 bit)
+(define-insn "strb"  [] "strb {0}, [{1}]")  ; Store (16 bit)
 
 ; ******************************
 ;      Store (To Memory)
