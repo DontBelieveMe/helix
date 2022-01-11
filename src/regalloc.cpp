@@ -258,10 +258,40 @@ void RegisterAllocator::Execute(Function* fn)
 
 	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::SP);
 
+	// Used when the stack offest > 255 (& cannot fit in an add immediate operand)
+	std::unordered_map<unsigned, GlobalVariable*> globalStackOffsets;
+
+	PhysicalRegisterName* r7 = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R7);
+
 	for (const StackVariable& stack_var : stack_frame.variables) {
 		const unsigned offset = stack_frame.size - stack_var.offset;
+
+		GlobalVariable* global = nullptr;
+		ConstantInt* offset_value_constant = nullptr;
+
+		if (offset > 255) {
+			auto globalIterator = globalStackOffsets.find(offset);
+
+			if (globalIterator == std::end(globalStackOffsets)) {
+				static size_t index = 0;
+				const std::string name = "so" + std::to_string(index);
+				index++;
+
+				offset_value_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
+
+				global = GlobalVariable::Create(name, BuiltinTypes::GetInt32(), offset_value_constant);
+				fn->GetParent()->RegisterGlobalVariable(global);
+
+				globalStackOffsets[offset] = global;
+
+			} else {
+				global = globalIterator->second;
+			}
+		} else {
+			offset_value_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
+		}
+
 		helix_debug(logs::regalloc, "Result Offset: {} (Stack Frame: {}, Var Offset: {})", offset, stack_frame.size, stack_var.offset);
-		ConstantInt*         offset_value = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
 
 		Value*               output_ptr   = stack_var.alloca_insn->GetOutputPtr();
 
@@ -285,9 +315,18 @@ void RegisterAllocator::Execute(Function* fn)
 
 			BasicBlock::iterator where = head->Where(use.GetInstruction());
 
+			Value* offsetValue = nullptr;
+
+			if (global) {
+				head->InsertBefore(where, Helix::CreateLoad(global, r7));
+				offsetValue = r7;
+			} else {
+				offsetValue = offset_value_constant;
+			}
+
 			PhysicalRegisterName* output = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), kAvailableAddressRegisters[c % 2]);  //addressRegisters[use.GetInstruction()->GetOperand(use.GetOperandIndex())];
 			//PhysicalRegisterName* output = addressRegisters[use.GetInstruction()->GetOperand(use.GetOperandIndex())];
-			head->InsertBefore(where, Helix::CreateBinOp(kInsn_IAdd, sp, offset_value, output));
+			head->InsertBefore(where, Helix::CreateBinOp(kInsn_IAdd, sp, offsetValue, output));
 			//use.GetInstruction()->SetOperand(use.GetOperandIndex(), output);
 			c++;
 			worklist.push_back({use, output});
