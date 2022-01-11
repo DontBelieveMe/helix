@@ -76,6 +76,8 @@ void RegisterAllocator::ComputeStackFrame(StackFrame& frame, Function* fn)
 	frame.size = Align(frame.size, 8);
 }
 
+/*********************************************************************************************************************/
+
 static const Type* LowerVirtualRegisterType(const Type* type) {
 	if (type->IsPointer()) {
 		return BuiltinTypes::GetInt32();
@@ -135,13 +137,6 @@ void RegisterAllocator::Execute(Function* fn)
 			}
 		}
 
-		//if (VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(v)) {
-		//	auto it = spills.find(vreg);
-//
-		//	if (it != spills.end())
-		//		return true;
-		//}
-
 		return false;
 	};
 
@@ -162,22 +157,14 @@ void RegisterAllocator::Execute(Function* fn)
 
 	for (BasicBlock& bb : fn->blocks()) {
 		for (Instruction& insn : bb.insns()) {
-			if (insn.GetOpcode() == kInsn_StackAlloc/* || insn.GetOpcode() == kInsn_Load ||
-			    insn.GetOpcode() == kInsn_Store*/) {
+			if (insn.GetOpcode() == kInsn_StackAlloc) {
 				continue;
 			}
 
 			std::vector<size_t> operands;
 
-			//if (insn.GetOpcode() == kInsn_Load) {
-			//	operands.push_back(1);
-			//} else if (insn.GetOpcode() == kInsn_Store) {
-			//	operands.push_back(0);
-			//} else
-			{
-				for (size_t operandIndex = 0; operandIndex < insn.GetCountOperands(); ++operandIndex) {
-					operands.push_back(operandIndex);
-				}
+			for (size_t operandIndex = 0; operandIndex < insn.GetCountOperands(); ++operandIndex) {
+				operands.push_back(operandIndex);
 			}
 
 			for (size_t operandIndex : operands) {
@@ -187,13 +174,13 @@ void RegisterAllocator::Execute(Function* fn)
 					helix_assert(CanTypeFitInNativeRegister(vreg->GetType()), "type is too big for native regiser (e.g. 32 bits)");
 
 					const Type* preg_type = LowerVirtualRegisterType(vreg->GetType());
-					PhysicalRegisterName* physical_register = PhysicalRegisters::GetRegister(preg_type, kPhysicalRegisterIDs[nextAvailablePhysicalRegister]);
+
+					PhysicalRegisterName* physical_register
+						= PhysicalRegisters::GetRegister(preg_type, kPhysicalRegisterIDs[nextAvailablePhysicalRegister]);
+
 					nextAvailablePhysicalRegister++;
 
 					if (IsStackAllocation(vreg)) {
-						//insn.SetOperand(operandIndex, PhysicalRegisters::GetRegister(PhysicalRegisters::R10));
-						//addressRegisters[(Value*)vreg] = PhysicalRegisters::GetRegister(kAvailableAddressRegisters[nextAvailableAddressRegister]);
-						//nextAvailableAddressRegister++;
 						continue;
 					}
 
@@ -227,18 +214,14 @@ void RegisterAllocator::Execute(Function* fn)
 
 	for (SpillInstance& load : loads) {
 		BasicBlock::iterator where = load.bb.Where(&load.insn);
-		//PhysicalRegisterName* output = addressRegisters[load.spill_ref->mem_addr];
 		auto i = Helix::CreateLoad(load.spill_ref->mem_addr, load.physical_reg);
-		//auto i = Helix::CreateLoad(output, load.physical_reg);
 		i->SetComment("restore");
 		load.bb.InsertBefore(where, i);
 	}
 
 	for (SpillInstance& store : stores) {
 		BasicBlock::iterator where = store.bb.Where(&store.insn);
-		//PhysicalRegisterName* output = addressRegisters[store.spill_ref->mem_addr];
 		auto i = Helix::CreateStore(store.physical_reg, store.spill_ref->mem_addr);
-		//auto i = Helix::CreateLoad(output, store.physical_reg);
 		i->SetComment("spill");
 		store.bb.InsertAfter(where, i);
 	}
@@ -302,20 +285,10 @@ void RegisterAllocator::Execute(Function* fn)
 
 		helix_debug(logs::regalloc, "Result Offset: {} (Stack Frame: {}, Var Offset: {})", offset, stack_frame.size, stack_var.offset);
 
-		Value*               output_ptr   = stack_var.alloca_insn->GetOutputPtr();
-
-		///*BasicBlock::iterator where = head->Where(stack_var.alloca_insn);
-//
-		//VirtualRegisterName* temp         = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
-//
-		//where = head->InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, sp, offset_value, temp));
-		//where = head->InsertAfter(where, Helix::CreateIntToPtr(BuiltinTypes::GetInt32(), temp, output_ptr));
-//
-//
-		//Instruction* lastInsn = output_ptr->GetUse(0).GetInstruction();
-		int c = 0;
-
 		struct T { Use use; PhysicalRegisterName* reg; };
+
+		Value* output_ptr = stack_var.alloca_insn->GetOutputPtr();
+		int c = 0;
 		std::vector<T> worklist;
 
 		for (Use& use : output_ptr->uses()) {
@@ -333,10 +306,8 @@ void RegisterAllocator::Execute(Function* fn)
 				offsetValue = offset_value_constant;
 			}
 
-			PhysicalRegisterName* output = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), kAvailableAddressRegisters[c % 2]);  //addressRegisters[use.GetInstruction()->GetOperand(use.GetOperandIndex())];
-			//PhysicalRegisterName* output = addressRegisters[use.GetInstruction()->GetOperand(use.GetOperandIndex())];
+			PhysicalRegisterName* output = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), kAvailableAddressRegisters[c % 2]);
 			head->InsertBefore(where, Helix::CreateBinOp(kInsn_IAdd, sp, offsetValue, output));
-			//use.GetInstruction()->SetOperand(use.GetOperandIndex(), output);
 			c++;
 			worklist.push_back({use, output});
 		}
@@ -355,42 +326,5 @@ void RegisterAllocator::Execute(Function* fn)
 
 	tail->InsertBefore(tail->Where(tail->GetLast()), Helix::CreateBinOp(kInsn_IAdd, sp, stack_size_constant, sp));
 }
-
-/*********************************************************************************************************************/
-
-/*
-void LowerStackAllocations::Execute(Function* fn)
-{
-	StackFrame stack_frame;
-	this->ComputeStackFrame(stack_frame, fn);
-
-	BasicBlock* head = fn->GetHeadBlock();
-	BasicBlock* tail = fn->GetTailBlock();
-
-	helix_assert(head && tail, "requires head & tail blocks");
-
-	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(PhysicalRegisters::SP);
-
-	for (const StackVariable& stack_var : stack_frame.variables) {
-		const unsigned offset = stack_frame.size - stack_var.offset;
-
-		BasicBlock::iterator where = head->Where(stack_var.alloca_insn);
-
-		ConstantInt*         offset_value = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
-		VirtualRegisterName* temp         = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
-		Value*               output_ptr   = stack_var.alloca_insn->GetOutputPtr();
-
-		where = head->InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, sp, offset_value, temp));
-		where = head->InsertAfter(where, Helix::CreateIntToPtr(BuiltinTypes::GetInt32(), temp, output_ptr));
-
-		head->Remove(head->Where(stack_var.alloca_insn));
-	}
-
-	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), stack_frame.size);
-
-	head->InsertBefore(head->begin(), Helix::CreateBinOp(kInsn_ISub, sp, stack_size_constant, sp));
-	tail->InsertBefore(tail->begin(), Helix::CreateBinOp(kInsn_IAdd, sp, stack_size_constant, sp));
-}
-*/
 
 /*********************************************************************************************************************/
