@@ -41,14 +41,16 @@ blocks = [
     BasicBlock(), # 1
     BasicBlock(), # 2
     BasicBlock(), # 3
-    BasicBlock(), # 4
-    BasicBlock()  # 5, EXIT (empty)
+    BasicBlock(), # 4,
+    BasicBlock(), # 5
+    BasicBlock()  # 6, EXIT (empty)
 ]
 
 blocks[1].successors = {blocks[2], blocks[3]}
 blocks[2].successors = {blocks[4]}
 blocks[3].successors = {blocks[4]}
 blocks[4].successors = {blocks[5]}
+blocks[5].successors = {blocks[6]}
 
 blocks[1].add_op(Operation(['b'], [])) # define 'b'
 blocks[1].add_op(Operation(['a'], [])) # define 'a'
@@ -64,6 +66,9 @@ blocks[3].add_op(Operation([], ['d'])) # use 'd'
 
 blocks[4].add_op(Operation([], ['b'])) # use 'b'
 blocks[4].add_op(Operation([], ['a'])) # use 'a'
+blocks[4].add_op(Operation(['e'], [])) # define 'e'
+
+blocks[5].add_op(Operation([], ['e'])) # use 'e'
 
 def annotate_block_index(index):
     if index == 0:
