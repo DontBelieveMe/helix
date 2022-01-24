@@ -1,6 +1,9 @@
 # Barney Wilks (18.1.2022)
 # Liveness Analysis Experiments
 
+import string
+
+
 class Operation:
     def __init__(self, defs, uses):
         self.defs = defs
@@ -14,25 +17,46 @@ class BasicBlock:
     def add_op(self, op):
         self.ops.append(op)
 
+    def print_ops(self, prefix):
+        for op in self.ops:
+            s = ', '.join(op.defs)
+            s += " = "
+            s += ', '.join(op.uses)
+            print(prefix + s)
+
     """ Set of variables whose values may be used in this
         block prior to any definitions of those variables. """
     def calc_uses(self):
-        uses = set()
+        uses         = set()
+        defined_vars = set()
 
         for op in self.ops:
+            for var in op.defs:
+                defined_vars.add(var)
+
             for var in op.uses:
-                uses.add(var)
+                # Only want variables that have not already
+                # been defined in this block.
+                if not var in defined_vars:
+                    uses.add(var)
 
         return uses
 
     """ Set of variables which are definately assigned values in
         in block prior to any use of those variables (in this block). """
     def calc_defs(self):
-        defs = set()
+        defs      = set()
+        used_vars = set()
 
         for op in self.ops:
+            for var in op.uses:
+                used_vars.add(var)
+
             for var in op.defs:
-                defs.add(var)
+                # Only want definitions that have not already
+                # been used in this block.
+                if not var in used_vars:
+                    defs.add(var)
 
         return defs
 
@@ -43,32 +67,52 @@ blocks = [
     BasicBlock(), # 3
     BasicBlock(), # 4,
     BasicBlock(), # 5
-    BasicBlock()  # 6, EXIT (empty)
+    BasicBlock(), # 6
+    BasicBlock()  # 7, EXIT (empty)
 ]
 
-blocks[1].successors = {blocks[2], blocks[3]}
-blocks[2].successors = {blocks[4]}
-blocks[3].successors = {blocks[4]}
-blocks[4].successors = {blocks[5]}
+#blocks[0].successors = {blocks[1]} # ENTRY
+#blocks[6].successors = {blocks[7]} # EXIT
+
+blocks[1].successors = {blocks[2]}
+blocks[2].successors = {blocks[3]}
+blocks[3].successors = {blocks[4],blocks[5]}
+blocks[4].successors = {blocks[6]}
 blocks[5].successors = {blocks[6]}
 
-blocks[1].add_op(Operation(['b'], [])) # define 'b'
-blocks[1].add_op(Operation(['a'], [])) # define 'a'
-blocks[1].add_op(Operation(['c'], [])) # define 'c'
-blocks[1].add_op(Operation(['d'], [])) # define 'd'
-blocks[1].add_op(Operation([], ['d'])) # use 'd'
+# e = d + a
+blocks[1].add_op(Operation([], ['h']))
+blocks[1].add_op(Operation(['e'], ['d', 'a']))
 
-blocks[2].add_op(Operation([], ['b'])) # use 'b'
+blocks[2].add_op(Operation(['f'], ['b', 'c']))
 
-blocks[2].add_op(Operation([], ['c'])) # use 'c'
+blocks[3].add_op(Operation(['f'], ['f', 'b']))
 
-blocks[3].add_op(Operation([], ['d'])) # use 'd'
+blocks[4].add_op(Operation(['d'], ['e', 'f']))
 
-blocks[4].add_op(Operation([], ['b'])) # use 'b'
-blocks[4].add_op(Operation([], ['a'])) # use 'a'
-blocks[4].add_op(Operation(['e'], [])) # define 'e'
+blocks[5].add_op(Operation(['d'], ['e', 'f']))
 
-blocks[5].add_op(Operation([], ['e'])) # use 'e'
+blocks[6].add_op(Operation(['g'], ['d']))
+blocks[6].add_op(Operation([], ['g']))
+
+# blocks[1].add_op(Operation(['b'], [])) # define 'b'
+# blocks[1].add_op(Operation(['a'], [])) # define 'a'
+# blocks[1].add_op(Operation(['c'], [])) # define 'c'
+# blocks[1].add_op(Operation(['d'], [])) # define 'd'
+# blocks[1].add_op(Operation([], ['d'])) # use 'd'
+# 
+# blocks[2].add_op(Operation([], ['b'])) # use 'b'
+# blocks[2].add_op(Operation([], ['c'])) # use 'c'
+# blocks[2].add_op(Operation([], ['a'])) # use 'a'
+# 
+# blocks[3].add_op(Operation([], ['d'])) # use 'd'
+# blocks[3].add_op(Operation([], ['a'])) # use 'a'
+# 
+# blocks[4].add_op(Operation([], ['b'])) # use 'b'
+# blocks[4].add_op(Operation([], ['a'])) # use 'a'
+# blocks[4].add_op(Operation(['e'], [])) # define 'e'
+# 
+# blocks[5].add_op(Operation([], ['e'])) # use 'e'
 
 def annotate_block_index(index):
     if index == 0:
@@ -145,6 +189,7 @@ while True:
     # (4) for (each basic block B other than exit)
     for bb in blocks:
         if bb != exit_block: # 'other than exit'
+
             # (5) Compute OUT[bb]
             live_out[bb] = compute_live_out(bb)
 
@@ -176,7 +221,191 @@ print()
 for i in range(0, len(blocks)):
     s = annotate_block_index(i)
     print("Basic Block " + str(i) + s + ":")
-    print("\tIN  = " + str(live_in[blocks[i]]))
-    print("\tOUT = " + str(live_out[blocks[i]]))
+    blocks[i].print_ops('\t> ')
     print()
+    print("\tIN  = " + str(sorted(live_in[blocks[i]])))
+    print("\tOUT = " + str(sorted(live_out[blocks[i]])))
+    print()
+
+
+# Live Interval Analysis
+
+# Algorithm:
+#   http://web.cs.ucla.edu/~palsberg/course/cs132/linearscan.pdf
+#
+# Paper is vauge on specifcs of how live interval analysis is done, just
+# that given live variable information, it can be computed "easily" in one
+# pass... Well i'll show them how hard i can make it!
+#
+# INPUT:
+#   LIVE_IN  -> Variables that are live on entry to each basic block
+#   LIVE_OUT -> Variables that are live on exit of each basic block
+#
+# OUTPUT:
+#   Interval[] -> Array of intervals for each variable
+#
+# ALGORITHM:
+#
+#  
+
+class OpIndex:
+    def __init__(self, block_index, operation_index):
+        self.block_index     = block_index
+        self.operation_index = operation_index
+
+def stringify_opindex(opindex):
+    if opindex == None:
+        return "?"
+
+    return str(opindex.block_index) + ":" + str(opindex.operation_index)
+
+class Interval:
+    def __init__(self, var, start, end):
+        self.var   = var
+        self.start = start
+        self.end   = end
+
+intervals = {}
+
+for block_index in range(0, len(blocks)):
+    block = blocks[block_index]
+
+    uses = {}
+
+    for i in range(0, len(block.ops)):
+        insn = block.ops[i]
+
+        for d in insn.uses:
+            if not d in live_in[block] and not d in live_out[block]:
+                uses[d] = Interval(d, None, OpIndex(block_index, i))
+
+    for i in range(0, len(block.ops)):
+        insn = block.ops[i]
+
+        for d in insn.defs:
+            if d in uses:
+                if not d in live_in[block] and not d in live_out[block]:
+                    uses[d].start = OpIndex(block_index, i)
+                    intervals[d] = uses[d]
+
+    # Handle live in variables
+    for variable in live_in[block]:
+        if not variable in intervals:
+            start = OpIndex(block_index, 0)
+            end = None
+
+            intervals[variable] = Interval(variable, start, end)
+
+    for variable in live_in[block]:
+        if not variable in live_out[block]:
+            end = OpIndex(block_index, -1)
+
+            for i in range(0, len(block.ops)):
+                insn = block.ops[i]
+
+                if variable in insn.uses:
+                    end.operation_index = i
+
+            intervals[variable].end = end
+
+    for variable in live_out[block]:
+        if not variable in live_in[block] and not variable in intervals:
+            start = OpIndex(block_index, -1)
+
+            for i in range(0, len(block.ops)):
+                insn = block.ops[i]
+
+                if variable in insn.defs:
+                    start.operation_index = i
+
+            end = None
+
+            intervals[variable] = Interval(variable, start, end)
+        else:
+            end = OpIndex(block_index, -1)
+
+            for i in range(0, len(block.ops)):
+                insn = block.ops[i]
+
+                if variable in insn.uses:
+                    end.operation_index = i
+
+            intervals[variable].end = end
+
+for bi in range(0, len(blocks)):
+    block = blocks[bi]
+
+    block.print_ops("(" + str(bi) + ") ")
+
+print()
+
+for variable in intervals:
+    interval = intervals[variable]
+    print(variable + " = " + stringify_opindex(interval.start) + " -> " + stringify_opindex(interval.end))
+
+
+print()
+print("  ", end='')
+
+l=0
+
+for bi in range(0, len(blocks) - 1):
+    block = blocks[bi]
+
+    for oi in range(0, len(block.ops)):
+        op = block.ops[oi]
+
+        if oi == 0:
+            print(str(bi), end='')
+        else:
+            print(' ', end='')
+
+        l += 1
+
+        if oi < len(block.ops) - 1:
+            l += 1
+            print(' ', end='')
+
+    print(" | ", end='')
+
+    l += 3
+
+print("")
+
+print("  "  + ("-" * l))
+
+for variable in intervals:
+    interval = intervals[variable]
+
+    print(variable + ":", end='')
+
+    for bi in range(0, len(blocks) - 1):
+        block = blocks[bi]
+
+        for oi in range(0, len(block.ops)):
+            op = block.ops[oi]
+
+            LIVE_CHAR = 'x'
+            DEAD_CHAR = '-'
+
+            c = DEAD_CHAR
+
+            if bi == interval.start.block_index and oi >= interval.start.operation_index:
+                c = LIVE_CHAR
+            elif bi == interval.end.block_index and oi <= interval.end.operation_index:
+                c = LIVE_CHAR
+            elif bi > interval.start.block_index and bi < interval.end.block_index:
+                c = LIVE_CHAR
+
+            print(c, end='')
+
+            if oi < len(block.ops) - 1:
+                print (' ', end='')
+
+        print(" | ", end='')
+
+    print("")
+
+print()    
+
 
