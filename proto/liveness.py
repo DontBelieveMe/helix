@@ -1,9 +1,8 @@
 # Barney Wilks (18.1.2022)
 # Liveness Analysis Experiments
 
-import string
+import time
 from functools import cmp_to_key
-
 
 def print_intervals_table_header(cell_width):
     print(" " * cell_width, end = '')
@@ -122,6 +121,8 @@ class BasicBlock:
 
         return defs
 
+perf_stats = {}
+
 blocks = [
     BasicBlock(), # 0, ENTRY (empty)
     BasicBlock(), # 1
@@ -201,6 +202,8 @@ print()
 
 # Liveness Analysis Algorithm
 
+liveness_analysis_start = time.perf_counter()
+
 # IN[?]
 #   key   = basic block,
 #   value = set of variables live on entry to that block
@@ -279,6 +282,9 @@ while True:
     if not dirty:
         break
 
+liveness_analysis_end = time.perf_counter()
+perf_stats['liveness_analysis'] = liveness_analysis_end - liveness_analysis_start
+
 # Output Results
 
 print("Computed in " + str(count_iterations) + " iterations")
@@ -332,6 +338,8 @@ class Interval:
         self.end   = end
         self.reg   = '??'
         self.loc   = 'xx'
+
+interval_analysis_start = time.perf_counter()
 
 intervals = {}
 
@@ -399,6 +407,10 @@ for block_index in range(0, len(blocks)):
                     end.operation_index = i
 
             intervals[variable].end = end
+
+interval_analysis_end = time.perf_counter()
+
+perf_stats['interval_analysis'] = interval_analysis_end - interval_analysis_start
 
 for bi in range(0, len(blocks)):
     block = blocks[bi]
@@ -472,6 +484,7 @@ def compare_interval_end_start(a, b):
         else:
             return 0
 
+linear_scan_start = time.perf_counter()
 
 intervals_sorted = [intervals[v] for v in intervals]
 intervals_sorted.sort(key = cmp_to_key(compare_interval_start))
@@ -575,6 +588,9 @@ for interval in intervals_sorted:
         active.append(interval)
         active.sort(key = cmp_to_key(compare_interval_end))
 
+linear_scan_end = time.perf_counter()
+perf_stats['linear_scan'] = linear_scan_end - linear_scan_start
+
 # ========== Debug Dump ==========
 
 print()
@@ -605,5 +621,18 @@ print_intervals_table(
     get_interval_live_char,
     lambda _: '--'
 )
+
+print()
+
+w = 0
+for stat in perf_stats:
+    w = max(len(stat) + 2, w)
+
+for stat in perf_stats:
+    s = perf_stats[stat]
+    us = s * 1000000
+
+    o = ' ' * (w - len(stat))
+    print(stat + ":" + o + format(us, '.2f') + "us")
 
 print()
