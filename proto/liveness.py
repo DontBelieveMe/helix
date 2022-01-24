@@ -372,7 +372,6 @@ for block_index in range(0, len(blocks)):
 
             intervals[variable] = Interval(variable, start, end)
 
-    for variable in live_in[block]:
         if not variable in live_out[block]:
             end = OpIndex(block_index, -1)
 
