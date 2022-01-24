@@ -2,7 +2,69 @@
 # Liveness Analysis Experiments
 
 import string
+from functools import cmp_to_key
 
+
+def print_intervals_table_header(cell_width):
+    print(" " * cell_width, end = '')
+
+    seperator_length = 0
+
+    for block_index in range(0, len(blocks) - 1):
+        block = blocks[block_index]
+
+        for op_index in range(0, len(block.ops)):
+            op = block.ops[op_index]
+
+            if op_index == 0:
+                print(str(block_index) + (' ' * (cell_width - 1)), end = '')
+            else:
+                print(' ' * cell_width, end = '')
+
+            seperator_length += cell_width
+
+            if op_index < len(block.ops) - 1:
+                seperator_length += 1
+                print(' ', end = '')
+
+        print(' | ', end = '')
+        seperator_length += 3
+
+    print()
+    print("  "  + ("-" * seperator_length))
+
+def print_intervals_table_body(intervals, get_live_char, get_dead_char):
+    for interval in intervals:
+        print(interval.var + ':', end = '')
+
+        for bi in range(0, len(blocks) - 1):
+            block = blocks[bi]
+
+            for oi in range(0, len(block.ops)):
+                LIVE_CHAR = get_live_char(interval)
+                DEAD_CHAR = get_dead_char(interval)
+
+                c = DEAD_CHAR
+
+                if bi == interval.start.block_index and oi >= interval.start.operation_index:
+                    c = LIVE_CHAR
+                elif bi == interval.end.block_index and oi <= interval.end.operation_index:
+                    c = LIVE_CHAR
+                elif bi > interval.start.block_index and bi < interval.end.block_index:
+                    c = LIVE_CHAR
+
+                print(c, end = '')
+
+                if oi < len(block.ops) - 1:
+                    print (' ', end = '')
+
+            print(' | ', end = '')
+
+        print('')
+
+def print_intervals_table(cell_width, intervals, get_live_char, get_dead_char):
+    print_intervals_table_header(cell_width)
+    print_intervals_table_body(intervals, get_live_char, get_dead_char)
 
 class Operation:
     def __init__(self, defs, uses):
@@ -268,8 +330,8 @@ class Interval:
         self.var   = var
         self.start = start
         self.end   = end
-        self.reg   = '?'
-        self.loc   = 'x'
+        self.reg   = '??'
+        self.loc   = 'xx'
 
 intervals = {}
 
@@ -350,69 +412,15 @@ for variable in intervals:
     print(variable + " = " + stringify_opindex(interval.start) + " -> " + stringify_opindex(interval.end))
 
 print()
-print("  ", end='')
 
-l=0
-
-for bi in range(0, len(blocks) - 1):
-    block = blocks[bi]
-
-    for oi in range(0, len(block.ops)):
-        op = block.ops[oi]
-
-        if oi == 0:
-            print(str(bi), end='')
-        else:
-            print(' ', end='')
-
-        l += 1
-
-        if oi < len(block.ops) - 1:
-            l += 1
-            print(' ', end='')
-
-    print(" | ", end='')
-
-    l += 3
-
-print("")
-
-print("  "  + ("-" * l))
-
-for variable in intervals:
-    interval = intervals[variable]
-
-    print(variable + ":", end='')
-
-    for bi in range(0, len(blocks) - 1):
-        block = blocks[bi]
-
-        for oi in range(0, len(block.ops)):
-            op = block.ops[oi]
-
-            LIVE_CHAR = 'x'
-            DEAD_CHAR = '-'
-
-            c = DEAD_CHAR
-
-            if bi == interval.start.block_index and oi >= interval.start.operation_index:
-                c = LIVE_CHAR
-            elif bi == interval.end.block_index and oi <= interval.end.operation_index:
-                c = LIVE_CHAR
-            elif bi > interval.start.block_index and bi < interval.end.block_index:
-                c = LIVE_CHAR
-
-            print(c, end='')
-
-            if oi < len(block.ops) - 1:
-                print (' ', end='')
-
-        print(" | ", end='')
-
-    print("")
+print_intervals_table(
+    1,
+    [intervals[v] for v in intervals],
+    lambda _: 'x',
+    lambda _: '-'
+)
 
 print()    
-
 
 ########################################################
 # Linear Scan Register Allocation
@@ -464,55 +472,73 @@ def compare_interval_end_start(a, b):
         else:
             return 0
 
-from functools import cmp_to_key
 
-intervals_sorted = []
-
-for variable in intervals:
-    intervals_sorted.append(intervals[variable])
-
+intervals_sorted = [intervals[v] for v in intervals]
 intervals_sorted.sort(key = cmp_to_key(compare_interval_start))
-
-COUNT_REGS = 8
 
 # 2) Let's go!
 
+# List of active intervals, normally sorted by endpoint
 active = []
 
+# Used to allocate new stack location
 stack_counter = 0
 
+# Set of all currently free registers
+free_registers = {'r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7'}
+
+# Total number of registers (that coulld be allocated at once)
+# Note that the length of free_registers will change as different
+# registers get allocated to active intervals, but this should be
+# constant (defined in terms of the length of free_registers for conveniance
+# in practice this is fixed)
+COUNT_REGS = len(free_registers)
+
+# Allocate a new stack location for a spill
 def new_stack_location():
     global stack_counter
-
     s = "s" + str(stack_counter) + ""
     stack_counter += 1
     return s
 
-free_registers = {'r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7'}
-
 def spill_at_interval(interval):
     spill = active[len(active) - 1]
 
-    if compare_interval_end(spill, interval) < 0:
+    # Take the furthest away interval and see if it ends after this
+    # given interval.
+    # In that case it is preferable to spill that interval to the
+    # stack and use that register for the given interval.
+    if compare_interval_end(spill, interval) > 0:
         interval.reg = spill.reg
-        spill.loc = new_stack_location()
+        spill.loc    = new_stack_location()
 
+        # Remove the variable we've just spilled from the active list
+        # and add the given interval...
         active.remove(spill)
         active.append(interval)
+
+        # ... ensuring that the active list is still sorted by
+        # increasing end point
         active.sort(key = cmp_to_key(compare_interval_end))
     else:
+        # Otherwise just allocate a new stack location for this variable
         interval.loc = new_stack_location()
 
 def expire_old_intervals(interval):
-    keep = []
-
     global active
 
-    for j in active:
-        c = compare_interval_end_start(j, interval)
+    # List of intervals that are still active once we've
+    # found any that need to be expired
+    keep = []
 
-        if c >= 0:
-            keep.append(j)
+    for active_interval in active:
+        comparison = compare_interval_end_start(active_interval, interval)
+
+        # If this (currently active) interval ends after the current interval
+        # then it is still active (so keep it), otherwise it needs to be
+        # expired
+        if comparison >= 0:
+            keep.append(active_interval)
 
             # STUPID BUG ALERT!
             # 
@@ -528,15 +554,19 @@ def expire_old_intervals(interval):
             # expired. changing 'return' to 'continue' fixed this.)
             # FIXME: Investigate this!
             continue
-
-        free_registers.add(j.reg)
+        
+        # This interval has expired so add its register back to the free list
+        free_registers.add(active_interval.reg)
 
     active = keep
+
+    # Ensure the active interval list is sorted by increasing endpoint
     active.sort(key = cmp_to_key(compare_interval_end))
 
 for interval in intervals_sorted:
     expire_old_intervals(interval)
 
+    # Worst case senario \/
     if len(active) >= COUNT_REGS:
         spill_at_interval(interval)
     else:
@@ -545,80 +575,35 @@ for interval in intervals_sorted:
         active.append(interval)
         active.sort(key = cmp_to_key(compare_interval_end))
 
+# ========== Debug Dump ==========
+
 print()
 
+# Print each interval & it's assigned register/stack location
 for interval in intervals_sorted:
-    print(interval.var + " = " + stringify_opindex(interval.start) + " -> " + stringify_opindex(interval.end)
-          + "(" + interval.reg + ", " + interval.loc +")")
+    print("{} = {} -> {} ({}, {})".format(
+        interval.var,
+        stringify_opindex(interval.start),
+        stringify_opindex(interval.end),
+        interval.reg,
+        interval.loc
+    ))
 
 print()
 
-print("  ", end='')
+def get_interval_live_char(interval):
+    if interval.reg == '??':
+        return interval.loc
 
-l=0
+    return interval.reg
 
-for bi in range(0, len(blocks) - 1):
-    block = blocks[bi]
+# Print a table showing each interval & it's assigned register
+# over it's range
+print_intervals_table(
+    2,
+    intervals_sorted,
+    get_interval_live_char,
+    lambda _: '--'
+)
 
-    for oi in range(0, len(block.ops)):
-        op = block.ops[oi]
-
-        if oi == 0:
-            print(str(bi) + " ", end='')
-        else:
-            print('  ', end='')
-
-        l += 2
-
-        if oi < len(block.ops) - 1:
-            l += 1
-            print(' ', end='')
-
-    print(" | ", end='')
-
-    l += 3
-
-print("")
-
-print("  "  + ("-" * l))
-
-for variable in intervals:
-    interval = intervals[variable]
-
-    print(variable + ":", end='')
-
-    for bi in range(0, len(blocks) - 1):
-        block = blocks[bi]
-
-        for oi in range(0, len(block.ops)):
-            op = block.ops[oi]
-
-            LIVE_CHAR = interval.reg # if interval.loc != 'x' else interval.loc
-
-            if interval.loc != 'x':
-                LIVE_CHAR = interval.loc
-
-            DEAD_CHAR = '--'
-
-            c = DEAD_CHAR
-
-            if interval.start.block_index == interval.end.block_index == bi:
-                if oi >= interval.start.operation_index and oi <= interval.end.operation_index:
-                    c = LIVE_CHAR
-            elif bi == interval.start.block_index and oi >= interval.start.operation_index:
-                c = LIVE_CHAR
-            elif bi == interval.end.block_index and oi <= interval.end.operation_index:
-                c = LIVE_CHAR
-            elif bi > interval.start.block_index and bi < interval.end.block_index:
-                c = LIVE_CHAR
-
-            print(c, end='')
-
-            if oi < len(block.ops) - 1:
-                print (' ', end='')
-
-        print(" | ", end='')
-
-    print("")
-
-print()   
+print()
