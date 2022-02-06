@@ -6,6 +6,7 @@
 #include "match.h"
 #include "module.h"
 #include "mir.h"
+#include "print.h"
 
 using namespace Helix;
 
@@ -18,7 +19,14 @@ void MachineExpander::Execute(Module* mod)
 			BasicBlock::iterator it = bb.begin();
 
 			while (it != bb.end()) {
-				Instruction*        old  = &(*it);
+				Instruction* old = &(*it);
+
+				if (old->GetOpcode() == kInsn_StackAlloc) {
+					it = bb.Where((Instruction*) old->get_next());
+					continue;
+				}
+
+				helix_debug(logs::match, "{}", GetOpcodeName((Opcode) old->GetOpcode()));
 				MachineInstruction* insn = ARMv7::Expand(old);
 
 				it = bb.Where((Instruction*) it->get_next());

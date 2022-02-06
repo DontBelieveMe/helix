@@ -11,6 +11,7 @@
 #include "validate.h"
 #include "emit.h"
 #include "genlower.h"
+#include "regalloc2.h"
 
 using namespace Helix;
 
@@ -28,8 +29,12 @@ PassManager::PassManager()
 	AddPass<ConstantHoisting>();
 	AddPass<CConv>();
 	AddPass<LowerStructStackAllocation>();
-	AddPass<RegisterAllocator>();
+	
+	/* regalloc2 now should run after IR -> MIR expansion */
+	/* AddPass<RegisterAllocator>(); */
+
 	AddPass<MachineExpander>();
+	AddPass<RegisterAllocator2>();
 	AddPass<AssemblyEmitter>();
 }
 

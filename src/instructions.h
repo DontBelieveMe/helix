@@ -386,7 +386,8 @@ namespace Helix
 
 	inline bool is_register(Value* v)
 	{
-		return value_isa<PhysicalRegisterName>(v);
+		/* #FIXME: does this really make sense? */
+		return value_isa<PhysicalRegisterName>(v) || value_isa<VirtualRegisterName>(v);
 	}
 
 	inline bool is_basic_block(Value* v)

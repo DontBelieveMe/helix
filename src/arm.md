@@ -198,7 +198,7 @@
 (define-insn "$store_register"
 	[(kInsn_Store
 		(match_operand:*   0 "register")
-		(match_operand:i32 1 "register"))]
+		(match_operand:ptr 1 "register"))]
 	"*expand_store")
 
 ; ******************************
@@ -217,7 +217,7 @@
 ; register (operand 0) to the destination register (operand 1).
 (define-insn "$load_register"
 	[(kInsn_Load
-		(match_operand:i32 0 "register")
+		(match_operand:ptr 0 "register")
 		(match_operand:*   1 "register"))]
 	"*expand_load")
 

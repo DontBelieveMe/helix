@@ -51,6 +51,8 @@ add_library(HelixCore
 	arm.cpp
 	genlower.h
 	genlower.cpp
+	regalloc2.h
+	regalloc2.cpp
 
 	options.def
 	insns.def
