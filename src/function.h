@@ -48,6 +48,8 @@ namespace Helix
 			return fn;
 		}
 
+		void RunLivenessAnalysis();
+
 		iterator InsertBefore(iterator where, BasicBlock* bb);
 		iterator InsertAfter(iterator where, BasicBlock* bb);
 

@@ -88,3 +88,58 @@ const Instruction* BasicBlock::GetTerminator() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::set<VirtualRegisterName*> BasicBlock::CalculateDefs()
+{
+	std::set<VirtualRegisterName*> definedVariables;
+	std::set<VirtualRegisterName*> usedVariables;
+
+	for (Instruction& insn : this->Instructions) {
+		for (size_t i = 0; i < insn.GetCountOperands(); ++i) {
+			if (VirtualRegisterName* operand = value_cast<VirtualRegisterName>(insn.GetOperand(i))) {
+				if (insn.OperandHasFlags(i, Instruction::OP_READ)) {
+					usedVariables.insert(operand);
+				}
+				else if (insn.OperandHasFlags(i, Instruction::OP_WRITE)) {
+					auto it = usedVariables.find(operand);
+
+					if (it != usedVariables.end()) {
+						definedVariables.insert(operand);
+					}
+				}
+			}
+		}
+	}
+
+	return definedVariables;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::set<VirtualRegisterName*> BasicBlock::CalculateUses()
+{
+	std::set<VirtualRegisterName*> usedVariables;
+	std::set<VirtualRegisterName*> definedVariables;
+
+	for (Instruction& insn : this->Instructions) {
+		for (size_t i = 0; i < insn.GetCountOperands(); ++i) {
+			if (VirtualRegisterName* operand = value_cast<VirtualRegisterName>(insn.GetOperand(i))) {
+				if (insn.OperandHasFlags(i, Instruction::OP_WRITE)) {
+					definedVariables.insert(operand);
+				}
+				else if (insn.OperandHasFlags(i, Instruction::OP_READ)) {
+					auto it = definedVariables.find(operand);
+
+					if (it != definedVariables.end()) {
+						usedVariables.insert(operand);
+					}
+				}
+			}
+		}
+	}
+
+	return usedVariables;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 

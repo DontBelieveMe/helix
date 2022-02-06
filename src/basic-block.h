@@ -33,6 +33,7 @@
 #pragma once
 
 #include <string>
+#include <set>
 
 #include <stddef.h>
 
@@ -98,9 +99,15 @@ namespace Helix
 			Instructions.replace(original, newValue);
 		}
 
+		std::set<VirtualRegisterName*>& GetLiveIn() { return LiveIn; }
+		std::set<VirtualRegisterName*>& GetLiveOut() { return LiveOut; }
+
 		void Remove(iterator where) { where->SetParent(nullptr); Instructions.remove(where); }
 
 		bool CanDelete() const;
+
+		std::set<VirtualRegisterName*> CalculateUses();
+		std::set<VirtualRegisterName*> CalculateDefs();
 
 		iterator_range<iterator> insns() { return iterator_range(begin(), end()); }
 
@@ -123,5 +130,8 @@ namespace Helix
 		BlockBranchTarget BranchTarget;
 		std::string       Comment;
 		Function*         Parent = nullptr;
+
+		std::set<VirtualRegisterName*> LiveIn;
+		std::set<VirtualRegisterName*> LiveOut;
 	};
 }
