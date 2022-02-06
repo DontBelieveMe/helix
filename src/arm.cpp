@@ -241,3 +241,4 @@ MachineInstruction* ARMv7::expand_global_address_to_register(Instruction* insn)
 }
 
 /*********************************************************************************************************************/
+

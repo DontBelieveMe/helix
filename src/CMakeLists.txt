@@ -49,6 +49,8 @@ add_library(HelixCore
 	emit.h
 	emit.cpp
 	arm.cpp
+	genlower.h
+	genlower.cpp
 
 	options.def
 	insns.def

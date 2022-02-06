@@ -10,6 +10,7 @@
 #include "match.h"
 #include "validate.h"
 #include "emit.h"
+#include "genlower.h"
 
 using namespace Helix;
 
