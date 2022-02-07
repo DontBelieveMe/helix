@@ -1,7 +1,6 @@
 #include "mir.h"
 #include "system.h"
 #include "basic-block.h"
-
 using namespace Helix;
 
 //#pragma optimize("", off)
@@ -242,3 +241,17 @@ MachineInstruction* ARMv7::expand_global_address_to_register(Instruction* insn)
 
 /*********************************************************************************************************************/
 
+bool Helix::IsMachineTerminator(OpcodeType opc)
+{
+	switch (opc) {
+	case ARMv7::Bge:
+	case ARMv7::Br:
+	case ARMv7::Ret:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+/*********************************************************************************************************************/

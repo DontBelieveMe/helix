@@ -8,6 +8,7 @@
 #include "basic-block.h"
 #include "instructions.h"
 #include "types.h"
+#include "mir.h"
 
 using namespace Helix;
 
@@ -74,7 +75,16 @@ bool BasicBlock::HasTerminator() const
 		return false;
 
 	const Instruction& insn = Instructions.back();
-	return Helix::IsTerminator(insn.GetOpcode());
+	
+	if (Helix::IsTerminator(insn.GetOpcode())) {
+		return true;
+	}
+
+	if (Helix::IsMachineTerminator(insn.GetOpcode())) {
+		return true;
+	}
+
+	return false;
 }
 
 /*********************************************************************************************************************/
@@ -91,6 +101,16 @@ const Instruction* BasicBlock::GetTerminator() const
 
 std::set<VirtualRegisterName*> BasicBlock::CalculateDefs()
 {
+	// The 'def' set of a basic block (B) is defined as:
+	//
+	//   > "The set of variables defined (i.e., definitely assigned values) in B
+	//   > prior to any use of that variable in B"...
+	//
+	// Compilers: Principles, Techniques, & Tools (2nd ed.). Pearson.
+	//     Aho, A. V., Lam, M. S., Sethi, R., & Ullman, J. D. (2007).
+	//
+ 	// (Page 634 [PDF], Page 609 [Headings])
+
 	std::set<VirtualRegisterName*> definedVariables;
 	std::set<VirtualRegisterName*> usedVariables;
 
@@ -118,6 +138,17 @@ std::set<VirtualRegisterName*> BasicBlock::CalculateDefs()
 
 std::set<VirtualRegisterName*> BasicBlock::CalculateUses()
 {
+	// The 'use' set of a basic block (B) is defined as:
+	//
+	//   > "The set of variables whose values may be used in B prior to any
+	//   > definition of the variable"
+	//
+	// Compilers: Principles, Techniques, & Tools (2nd ed.). Pearson.
+	//     Aho, A. V., Lam, M. S., Sethi, R., & Ullman, J. D. (2007).
+	//
+	// (Page 634 [PDF], Page 609 [Headings])
+
+
 	std::set<VirtualRegisterName*> usedVariables;
 	std::set<VirtualRegisterName*> definedVariables;
 
@@ -139,6 +170,25 @@ std::set<VirtualRegisterName*> BasicBlock::CalculateUses()
 	}
 
 	return usedVariables;
+}
+
+/*********************************************************************************************************************/
+
+std::vector<BasicBlock*> BasicBlock::GetSuccessors() const
+{
+	std::vector<BasicBlock*> successors;
+
+	for (const Instruction& insn : Instructions) {
+		if (Helix::IsTerminator(insn.GetOpcode()) || Helix::IsMachineTerminator(insn.GetOpcode())) {
+			for (size_t i = 0; i < insn.GetCountOperands(); ++i) {
+				if (BlockBranchTarget* v = value_cast<BlockBranchTarget>(insn.GetOperand(i))) {
+					successors.push_back(v->GetParent());
+				}
+			}
+		}
+	}
+
+	return successors;
 }
 
 /*********************************************************************************************************************/

@@ -23,6 +23,7 @@ ARGUMENT(bool,        false, EnableExperimentalRegisterAllocator, "experimental-
 ARGUMENT(bool,        false, CompileOnly,                         "c",                     "Don't link, only compile input source to an object file"                         )
 ARGUMENT(std::string, "",    DumpBase,                            "dumpbase",              "Base directory in which to dump intermediate output files"                       )
 ARGUMENT(bool,        false, SaveTemps,                           "save-temps",            "Save temporary files & don't delete them at the end of compilation"              )
+ARGUMENT(std::string, "",    StopAfterPass,                       "stop-after-pass",       "Stop after the given pass has finished running"                                  )
 
 ARGUMENT_LIST(std::string, EnabledLog, "log", "Print all logs for the given channel to stdout")
 

@@ -5,6 +5,8 @@
 
 using namespace Helix;
 
+#pragma optimize("", off)
+
 /*********************************************************************************************************************/
 
 Function::iterator Function::InsertBefore(iterator where, BasicBlock* what)
@@ -57,38 +59,94 @@ using LiveMap = std::unordered_map<BasicBlock*, std::set<VirtualRegisterName*>>;
 
 /*********************************************************************************************************************/
 
-static void ComputeLiveInForBlock(BasicBlock* bb)
+// Return true if the IN set changes for this basic block
+static bool ComputeLiveInForBlock(BasicBlock* bb)
 {
-	std::set<VirtualRegisterName*>& blockLiveOut = bb->GetLiveOut();
+	// IN[B] = B.Uses UNION (OUT[B] DIFFERENCE B.Defs)
 
+	const std::set<VirtualRegisterName*>& blockLiveOut = bb->GetLiveOut();
+	std::set<VirtualRegisterName*>&       blockLiveIn  = bb->GetLiveIn();
+
+	// 1) Calculate the 'use' set for B
 	const std::set<VirtualRegisterName*> uses = bb->CalculateUses();
+
+	// 2) Calculate the 'def' set for B
 	const std::set<VirtualRegisterName*> defs = bb->CalculateDefs();
 
+	// 3) Then do the OUT[B] DIFFERENCE B.Defs operation
+	//    (calculating the difference between the OUT set for B and 'def' set for B)
 	std::set<VirtualRegisterName*> difference;
-
 	std::set_difference(blockLiveOut.begin(), blockLiveOut.end(),
 	                   defs.begin(), defs.end(),
 					   std::inserter(difference, difference.begin()));
 
-	blockLiveOut.clear();
+	// #FIXME (bwilks): To check if the set changes we make a copy of the IN set
+	//                  before the union so we can compare it to the IN set after the
+	//                  union. This seems really quite poor...
+	const std::set<VirtualRegisterName*> old = blockLiveIn;
 
+	// 4) Finalize the IN set for B (clear first so that we're overwriting
+	//    the old IN set with the new values)
+	blockLiveIn.clear();
 	std::set_union(uses.begin(), uses.end(),
 	               difference.begin(), difference.end(),
-				   std::inserter(blockLiveOut, blockLiveOut.begin()));
+				   std::inserter(blockLiveIn, blockLiveIn.begin()));
+
+	return blockLiveIn != old;
 }
 
 /*********************************************************************************************************************/
 
-static std::set<VirtualRegisterName*> ComputeLiveOut(BasicBlock* bb)
+static void ComputeLiveOutForBlock(BasicBlock* bb)
 {
-	
+	// OUT[B] = UNION of the IN set for each successor of B
+
+	std::set<VirtualRegisterName*>& blockLiveOut = bb->GetLiveOut();
+	blockLiveOut.clear();
+
+	const std::vector<BasicBlock*> successors = bb->GetSuccessors();
+
+	for (BasicBlock* successor : successors) {
+		const std::set<VirtualRegisterName*>& successorLiveIn = successor->GetLiveIn();
+
+		std::set_union(blockLiveOut.begin(), blockLiveOut.end(),
+		               successorLiveIn.begin(), successorLiveIn.end(),
+		               std::inserter(blockLiveOut, blockLiveOut.begin()));
+	}
 }
 
 /*********************************************************************************************************************/
 
 void Function::RunLivenessAnalysis()
 {
+	BasicBlock* exitBlock = GetTailBlock();
 
+	// Continuously iterate while there are changes to IN[bb]
+	for (;;) {
+		bool dirty = false;
+
+		// For each block...
+		for (BasicBlock& bb : m_Blocks) {
+			// ... except the exit block...
+			if (&bb == exitBlock) {
+				continue;
+			}
+
+			// Compute OUT[bb]
+			ComputeLiveOutForBlock(&bb);
+
+			// Compute IN[bb] and if IN[bb] changes then we need to
+			// run another iteration (since OUT[bb] is dependent on IN[bb]
+			// we'll need to recompute it when IN[bb] changes)
+			if (ComputeLiveInForBlock(&bb)) {
+				dirty = true;
+			}
+		}
+
+		if (!dirty) {
+			break;
+		}
+	}
 }
 
 /*********************************************************************************************************************/

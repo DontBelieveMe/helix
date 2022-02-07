@@ -102,6 +102,11 @@ namespace Helix
 		std::set<VirtualRegisterName*>& GetLiveIn() { return LiveIn; }
 		std::set<VirtualRegisterName*>& GetLiveOut() { return LiveOut; }
 
+		const std::set<VirtualRegisterName*>& GetLiveIn() const { return LiveIn;  }
+		const std::set<VirtualRegisterName*>& GetLiveOut() const { return LiveOut; }
+
+		std::vector<BasicBlock*> GetSuccessors() const;
+
 		void Remove(iterator where) { where->SetParent(nullptr); Instructions.remove(where); }
 
 		bool CanDelete() const;

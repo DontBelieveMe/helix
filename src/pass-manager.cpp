@@ -90,10 +90,15 @@ void PassManager::Execute(Module* mod)
 		helix_trace(logs::pass_manager, "Validating pass '{}'", passData.name);
 
 		// Automatically run a validation check after every pass. This is useful to ensure correctness
-		// during development, but will definately slow things down in the long run (esp with bigger
+		// during development, but will definitely slow things down in the long run (esp with bigger
 		// source files). Maybe hide this behind a flag (--always-validate or something?)
 		// #FIXME
 		this->ValidateModule(validationPass, mod);
+
+		if (Options::GetStopAfterPass() == passData.name) {
+			helix_warn(logs::pass_manager, "Aborting, due to --stop-after-pass={}", Options::GetStopAfterPass());
+			break;
+		}
 	}
 }
 	

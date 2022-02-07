@@ -117,6 +117,20 @@ namespace Helix
 			m_BlockSlots.clear();
 		}
 
+		void CacheFunction(const Function* fn)
+		{
+			for (const BasicBlock& bb : fn->blocks()) {
+				GetBasicBlockSlot(&bb);
+
+				for (const Instruction& insn : bb) {
+					for (size_t i = 0; i < insn.GetCountOperands(); ++i) {
+						const Value* v = insn.GetOperand(i);
+						GetValueSlot(v);
+					}
+				}
+			}
+		}
+
 	private:
 		std::unordered_map<const Value*, size_t>      m_ValueSlots;
 		std::unordered_map<const BasicBlock*, size_t> m_BlockSlots;

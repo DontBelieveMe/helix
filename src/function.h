@@ -68,6 +68,7 @@ namespace Helix
 		const_iterator Where(BasicBlock* bb) const { return const_iterator(bb); }
 
 		iterator_range<block_iterator> blocks() { return iterator_range(begin(), end()); }
+		iterator_range<const_block_iterator> blocks() const { return iterator_range(begin(), end()); }
 
 		void SetParent(Module* parent) { Parent = parent; }
 		Module* GetParent() const { return Parent; }

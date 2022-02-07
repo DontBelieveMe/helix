@@ -23,4 +23,6 @@ namespace Helix
 		MachineInstruction(OpcodeType opcode, size_t nOperands)
 			: Instruction(opcode, nOperands) { }
 	};
+
+	bool IsMachineTerminator(OpcodeType opc);
 }
