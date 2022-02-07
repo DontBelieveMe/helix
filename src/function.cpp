@@ -5,11 +5,15 @@
 
 using namespace Helix;
 
+/*********************************************************************************************************************/
+
 Function::iterator Function::InsertBefore(iterator where, BasicBlock* what)
 {
 	what->SetParent(this);
 	return m_Blocks.insert_before(where, what);
 }
+
+/*********************************************************************************************************************/
 
 Function::iterator Function::InsertAfter(iterator where, BasicBlock* what)
 {
@@ -17,11 +21,15 @@ Function::iterator Function::InsertAfter(iterator where, BasicBlock* what)
 	return m_Blocks.insert_after(where, what);
 }
 
+/*********************************************************************************************************************/
+
 void Function::Remove(iterator where)
 {
 	where->SetParent(nullptr);
 	m_Blocks.remove(where);
 }
+
+/*********************************************************************************************************************/
 
 BasicBlock* Function::GetTailBlock()
 {
@@ -46,6 +54,8 @@ BasicBlock* Function::GetHeadBlock()
 /*********************************************************************************************************************/
 
 using LiveMap = std::unordered_map<BasicBlock*, std::set<VirtualRegisterName*>>;
+
+/*********************************************************************************************************************/
 
 static void ComputeLiveInForBlock(BasicBlock* bb)
 {
