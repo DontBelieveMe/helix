@@ -5,7 +5,7 @@
 
 using namespace Helix;
 
-static std::vector<Instruction::OperandFlags> s_fixedOperandsFlags[kInsnCount] =
+static std::vector<Instruction::OperandFlags> s_fixedOperandsFlags[HLIR::kInsnCount] =
 {
 	#define DEF_INSN_FIXED(code_name,pretty_name, n_operands, ...) { __VA_ARGS__ },
 
@@ -23,28 +23,28 @@ static std::vector<Instruction::OperandFlags> s_fixedOperandsFlags[kInsnCount] =
 
 CastInsn* Helix::CreateSExt(Value* input, Value* output)
 {
-	return new CastInsn(kInsn_SExt, input, output);
+	return new CastInsn(HLIR::SExt, input, output);
 }
 
 /*********************************************************************************************************************/
 
 CastInsn* Helix::CreateZExt(Value* input, Value* output)
 {
-	return new CastInsn(kInsn_ZExt, input, output);
+	return new CastInsn(HLIR::ZExt, input, output);
 }
 
 /*********************************************************************************************************************/
 
 CastInsn* Helix::CreatePtrToInt(Value* inputPtr, Value* outputInt)
 {
-	return new CastInsn(kInsn_PtrToInt, inputPtr, outputInt);
+	return new CastInsn(HLIR::PtrToInt, inputPtr, outputInt);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CastInsn* Helix::CreateIntToPtr(Value* inputInt, Value* outputPtr)
 {
-	return new CastInsn(kInsn_IntToPtr, inputInt, outputPtr);
+	return new CastInsn(HLIR::IntToPtr, inputInt, outputPtr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,14 +77,14 @@ CallInsn* Helix::CreateCall(Function* fn, Value* returnValue, const ParameterLis
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CompareInsn* Helix::CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result)
+CompareInsn* Helix::CreateCompare(HLIR::Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result)
 {
 	return new CompareInsn(cmpOpcode, lhs, rhs, result);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BinOpInsn* Helix::CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, Value* result)
+BinOpInsn* Helix::CreateBinOp(HLIR::Opcode opcode, Value* lhs, Value* rhs, Value* result)
 {
 	return new BinOpInsn(opcode, lhs, rhs, result);
 }
@@ -158,7 +158,7 @@ void Instruction::SetOperand(size_t index, Value* value)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CallInsn::CallInsn(Function* function, Value* ret, const ParameterList& params)
-	: Instruction(kInsn_Call)
+	: Instruction(HLIR::Call)
 {
 	m_Operands.resize(params.size() + 2, nullptr);
 
@@ -173,7 +173,7 @@ CallInsn::CallInsn(Function* function, Value* ret, const ParameterList& params)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ConditionalBranchInsn::ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* falseBB, Value* cond)
-	: Instruction(kInsn_ConditionalBranch, 3)
+	: Instruction(HLIR::ConditionalBranch, 3)
 {
 	this->SetOperand(0, trueBB->GetBranchTarget());
 	this->SetOperand(1, falseBB->GetBranchTarget());
@@ -183,14 +183,14 @@ ConditionalBranchInsn::ConditionalBranchInsn(BasicBlock* trueBB, BasicBlock* fal
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 UnconditionalBranchInsn::UnconditionalBranchInsn(BasicBlock* bb)
-	: Instruction(kInsn_UnconditionalBranch, 1)
+	: Instruction(HLIR::UnconditionalBranch, 1)
 {
 	this->SetOperand(0, bb->GetBranchTarget());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BinOpInsn::BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, Value* result)
+BinOpInsn::BinOpInsn(HLIR::Opcode opcode, Value* lhs, Value* rhs, Value* result)
 	: Instruction(opcode, 3)
 {
 	this->SetOperand(0, lhs);
@@ -201,7 +201,7 @@ BinOpInsn::BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, Value* result)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 StoreInsn::StoreInsn(Value* src, Value* dst)
-	: Instruction(kInsn_Store, 2)
+	: Instruction(HLIR::Store, 2)
 {
 	this->SetOperand(0, src);
 	this->SetOperand(1, dst);
@@ -210,7 +210,7 @@ StoreInsn::StoreInsn(Value* src, Value* dst)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 LoadInsn::LoadInsn(Value* src, Value* dst)
-	: Instruction(kInsn_Load, 2)
+	: Instruction(HLIR::Load, 2)
 {
 	this->SetOperand(0, src);
 	this->SetOperand(1, dst);
@@ -219,14 +219,14 @@ LoadInsn::LoadInsn(Value* src, Value* dst)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 StackAllocInsn::StackAllocInsn(Value* dst, const Type* type)
-	: Instruction(kInsn_StackAlloc, 1), m_Type(type)
+	: Instruction(HLIR::StackAlloc, 1), m_Type(type)
 {
 	this->SetOperand(0, dst);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CompareInsn::CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result)
+CompareInsn::CompareInsn(HLIR::Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result)
 	: Instruction(cmpOpcode, 3)
 {
 	this->SetOperand(0, lhs);
@@ -237,7 +237,7 @@ CompareInsn::CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RetInsn::RetInsn(Value* value)
-	: Instruction(kInsn_Return, 1)
+	: Instruction(HLIR::Return, 1)
 {
 	this->SetOperand(0, value);
 }
@@ -245,7 +245,7 @@ RetInsn::RetInsn(Value* value)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RetInsn::RetInsn()
-	: Instruction(kInsn_Return, 0)
+	: Instruction(HLIR::Return, 0)
 { }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,5 +364,5 @@ bool Instruction::IsTerminator() const
 	if (Helix::IsMachineOpcode(m_Opcode))
 		return false;
 
-	return Helix::IsTerminator((Opcode) m_Opcode);
+	return HLIR::IsTerminator((HLIR::Opcode) m_Opcode);
 }

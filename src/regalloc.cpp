@@ -53,7 +53,7 @@ void RegisterAllocator::ComputeStackFrame(StackFrame& frame, Function* fn)
 	BasicBlock* head = fn->GetHeadBlock();
 
 	for (Instruction& insn : head->insns()) {
-		if (insn.GetOpcode() == kInsn_StackAlloc) {
+		if (insn.GetOpcode() == HLIR::StackAlloc) {
 			StackAllocInsn& stack_alloc = (StackAllocInsn&) insn;
 
 			const Type*  allocated_type = stack_alloc.GetAllocatedType();
@@ -132,7 +132,7 @@ void RegisterAllocator::Execute(Function* fn)
 
 	auto IsStackAllocation = [fn, &spills](Value* v) -> bool {
 		for (Use& use : v->uses()) {
-			if (use.GetInstruction()->GetOpcode() == kInsn_StackAlloc) {
+			if (use.GetInstruction()->GetOpcode() == HLIR::StackAlloc) {
 				return true;
 			}
 		}
@@ -157,7 +157,7 @@ void RegisterAllocator::Execute(Function* fn)
 
 	for (BasicBlock& bb : fn->blocks()) {
 		for (Instruction& insn : bb.insns()) {
-			if (insn.GetOpcode() == kInsn_StackAlloc) {
+			if (insn.GetOpcode() == HLIR::StackAlloc) {
 				continue;
 			}
 
@@ -307,7 +307,7 @@ void RegisterAllocator::Execute(Function* fn)
 			}
 
 			PhysicalRegisterName* output = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), kAvailableAddressRegisters[c % 2]);
-			head->InsertBefore(where, Helix::CreateBinOp(kInsn_IAdd, sp, offsetValue, output));
+			head->InsertBefore(where, Helix::CreateBinOp(HLIR::IAdd, sp, offsetValue, output));
 			c++;
 			worklist.push_back({use, output});
 		}
@@ -322,9 +322,9 @@ void RegisterAllocator::Execute(Function* fn)
 
 	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), stack_frame.size);
 
-	head->InsertBefore(head->begin(), Helix::CreateBinOp(kInsn_ISub, sp, stack_size_constant, sp));
+	head->InsertBefore(head->begin(), Helix::CreateBinOp(HLIR::ISub, sp, stack_size_constant, sp));
 
-	tail->InsertBefore(tail->Where(tail->GetLast()), Helix::CreateBinOp(kInsn_IAdd, sp, stack_size_constant, sp));
+	tail->InsertBefore(tail->Where(tail->GetLast()), Helix::CreateBinOp(HLIR::IAdd, sp, stack_size_constant, sp));
 }
 
 /*********************************************************************************************************************/

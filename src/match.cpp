@@ -21,12 +21,12 @@ void MachineExpander::Execute(Module* mod)
 			while (it != bb.end()) {
 				Instruction* old = &(*it);
 
-				if (old->GetOpcode() == kInsn_StackAlloc) {
+				if (old->GetOpcode() == HLIR::StackAlloc) {
 					it = bb.Where((Instruction*) old->get_next());
 					continue;
 				}
 
-				helix_debug(logs::match, "{}", GetOpcodeName((Opcode) old->GetOpcode()));
+				helix_debug(logs::match, "{}", GetOpcodeName((HLIR::Opcode) old->GetOpcode()));
 				MachineInstruction* insn = ARMv7::Expand(old);
 
 				it = bb.Where((Instruction*) it->get_next());

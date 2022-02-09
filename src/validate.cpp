@@ -127,7 +127,7 @@ bool CheckCastInsn(Function*,BasicBlock&,CastInsn& cast) {
 			  Eventually regalloc should get rid of ptr -> int & int -> ptr casts
 			  when they become i32 -> i32, since that is redundant.  */
 
-	if (cast.GetOpcode() == Helix::kInsn_PtrToInt) {
+	if (cast.GetOpcode() == Helix::HLIR::PtrToInt) {
 #if 0
 		if (!cast.GetSrcType()->IsPointer()) {
 			helix_error(logs::validate, "bad ptrtoint, source type is not a pointer");
@@ -141,7 +141,7 @@ bool CheckCastInsn(Function*,BasicBlock&,CastInsn& cast) {
 		}
 #endif
 	}
-	else if (cast.GetOpcode() == Helix::kInsn_IntToPtr) {
+	else if (cast.GetOpcode() == Helix::HLIR::IntToPtr) {
 #if 0
 		if (!cast.GetSrcType()->IsIntegral()) {
 			helix_error(logs::validate, "bad inttoptr, source type is not an integer");
@@ -185,40 +185,40 @@ void ValidationPass::Execute(Module* module) {
 			}
 
 			for (Instruction& insn : bb.insns()) {
-				/* Machine instructions are excempt from validation rules.  */
+				/* Machine instructions are exempt from validation rules.  */
 				if (Helix::IsMachineOpcode(insn.GetOpcode())) {
 					continue;
 				}
 
 				switch (insn.GetOpcode()) {
-				CASE_CHECK_INSN(kInsn_Return, RetInsn);
-				CASE_CHECK_INSN(kInsn_IAdd, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_ISub, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_ISDiv, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_IUDiv, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_ISRem, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_IURem, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_IMul, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_And, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_Or, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_Xor, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_Shl, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_Shr, BinOpInsn);
-				CASE_CHECK_INSN(kInsn_StackAlloc, StackAllocInsn);
-				CASE_CHECK_INSN(kInsn_Store, StoreInsn);
-				CASE_CHECK_INSN(kInsn_Load, LoadInsn);
-				CASE_CHECK_INSN(kInsn_ConditionalBranch, ConditionalBranchInsn);
-				CASE_CHECK_INSN(kInsn_UnconditionalBranch, UnconditionalBranchInsn);
-				CASE_CHECK_INSN(kInsn_ICmp_Eq, CompareInsn);
-				CASE_CHECK_INSN(kInsn_ICmp_Neq, CompareInsn);
-				CASE_CHECK_INSN(kInsn_ICmp_Gt, CompareInsn);
-				CASE_CHECK_INSN(kInsn_ICmp_Lt, CompareInsn);
-				CASE_CHECK_INSN(kInsn_ICmp_Gte, CompareInsn);
-				CASE_CHECK_INSN(kInsn_ICmp_Lte, CompareInsn);
-				CASE_CHECK_INSN(kInsn_IntToPtr, CastInsn);
-				CASE_CHECK_INSN(kInsn_PtrToInt, CastInsn);
+				CASE_CHECK_INSN(HLIR::Return, RetInsn);
+				CASE_CHECK_INSN(HLIR::IAdd, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::ISub, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::ISDiv, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::IUDiv, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::ISRem, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::IURem, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::IMul, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::And, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::Or, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::Xor, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::Shl, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::Shr, BinOpInsn);
+				CASE_CHECK_INSN(HLIR::StackAlloc, StackAllocInsn);
+				CASE_CHECK_INSN(HLIR::Store, StoreInsn);
+				CASE_CHECK_INSN(HLIR::Load, LoadInsn);
+				CASE_CHECK_INSN(HLIR::ConditionalBranch, ConditionalBranchInsn);
+				CASE_CHECK_INSN(HLIR::UnconditionalBranch, UnconditionalBranchInsn);
+				CASE_CHECK_INSN(HLIR::ICmp_Eq, CompareInsn);
+				CASE_CHECK_INSN(HLIR::ICmp_Neq, CompareInsn);
+				CASE_CHECK_INSN(HLIR::ICmp_Gt, CompareInsn);
+				CASE_CHECK_INSN(HLIR::ICmp_Lt, CompareInsn);
+				CASE_CHECK_INSN(HLIR::ICmp_Gte, CompareInsn);
+				CASE_CHECK_INSN(HLIR::ICmp_Lte, CompareInsn);
+				CASE_CHECK_INSN(HLIR::IntToPtr, CastInsn);
+				CASE_CHECK_INSN(HLIR::PtrToInt, CastInsn);
 				default: {
-					helix_warn(logs::validate, "instruction '{}' has no validation rules, ignoring", GetOpcodeName((Opcode) insn.GetOpcode()));
+					helix_warn(logs::validate, "instruction '{}' has no validation rules, ignoring", GetOpcodeName((HLIR::Opcode) insn.GetOpcode()));
 					break;
 				}
 				}

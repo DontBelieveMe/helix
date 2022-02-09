@@ -25,12 +25,12 @@ void GenericLowering::LowerIRem(BasicBlock& bb, BinOpInsn& insn)
 
 	BasicBlock::iterator where = bb.Where(&insn);
 
-	const Opcode divop
-		= insn.GetOpcode() == kInsn_ISRem ? kInsn_ISDiv : kInsn_IUDiv;
+	const HLIR::Opcode divop
+		= insn.GetOpcode() == HLIR::ISRem ? HLIR::ISDiv : HLIR::IUDiv;
 
 	where = bb.InsertAfter(where, Helix::CreateBinOp(divop, lhs, rhs, t0));
-	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IMul, t0, rhs, t1));
-	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_ISub, lhs, t1, dst));
+	where = bb.InsertAfter(where, Helix::CreateBinOp(HLIR::IMul, t0, rhs, t1));
+	where = bb.InsertAfter(where, Helix::CreateBinOp(HLIR::ISub, lhs, t1, dst));
 
 	bb.Delete(bb.Where(&insn));
 }
@@ -49,8 +49,8 @@ void GenericLowering::LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
 	BasicBlock::iterator where = bb.Where(&insn);
 	
 	where = bb.InsertAfter(where, Helix::CreatePtrToInt(insn.GetInputPtr(), ptrint));
-	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IMul, insn.GetIndex(), typeSize, offset));
-	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, ptrint, offset, newAddress));
+	where = bb.InsertAfter(where, Helix::CreateBinOp(HLIR::IMul, insn.GetIndex(), typeSize, offset));
+	where = bb.InsertAfter(where, Helix::CreateBinOp(HLIR::IAdd, ptrint, offset, newAddress));
 	where = bb.InsertAfter(where, Helix::CreateIntToPtr(newAddress, intptr));
 
 	IR::ReplaceAllUsesWith(insn.GetOutputPtr(), intptr);
@@ -80,7 +80,7 @@ void GenericLowering::LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 	BasicBlock::iterator where = bb.Where(&insn);
 
 	where = bb.InsertAfter(where, Helix::CreatePtrToInt(insn.GetInputPtr(), inputInteger));
-	where = bb.InsertAfter(where, Helix::CreateBinOp(kInsn_IAdd, inputInteger, offset, newAddress));
+	where = bb.InsertAfter(where, Helix::CreateBinOp(HLIR::IAdd, inputInteger, offset, newAddress));
 	where = bb.InsertAfter(where, Helix::CreateIntToPtr(newAddress, resultPointer));
 
 	IR::ReplaceAllUsesWith(insn.GetOutputPtr(), resultPointer);
@@ -99,10 +99,10 @@ void GenericLowering::Execute(Function* fn)
 	for (BasicBlock& bb : fn->blocks()) {
 		for (Instruction& insn : bb.insns()) {
 			switch (insn.GetOpcode()) {
-			case kInsn_LoadElementAddress:
-			case kInsn_LoadFieldAddress:
-			case kInsn_IURem:
-			case kInsn_ISRem:
+			case HLIR::LoadElementAddress:
+			case HLIR::LoadFieldAddress:
+			case HLIR::IURem:
+			case HLIR::ISRem:
 				worklist.push_back({&insn, &bb});
 				break;
 
@@ -116,16 +116,16 @@ void GenericLowering::Execute(Function* fn)
 
 	for (const WorkPair& workload : worklist) {
 		switch (workload.insn->GetOpcode()) {
-		case kInsn_LoadElementAddress:
+		case HLIR::LoadElementAddress:
 			this->LowerLea(*workload.bb, *static_cast<LoadEffectiveAddressInsn*>(workload.insn));
 			break;
 
-		case kInsn_LoadFieldAddress:
+		case HLIR::LoadFieldAddress:
 			this->LowerLfa(*workload.bb, *static_cast<LoadFieldAddressInsn*>(workload.insn));
 			break;
 
-		case kInsn_ISRem:
-		case kInsn_IURem:
+		case HLIR::ISRem:
+		case HLIR::IURem:
 			this->LowerIRem(*workload.bb, *static_cast<BinOpInsn*>(workload.insn));
 			break;
 

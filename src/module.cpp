@@ -28,7 +28,7 @@ void Module::RegisterGlobalVariable(GlobalVariable* gvar)
 
 static void PrintBasicBlockNode(SlotTracker& fnSlots, FILE* file, BasicBlock& bb)
 {
-	const size_t slot = fnSlots.GetBasicBlockSlot(&bb);
+	//const size_t slot = fnSlots.GetBasicBlockSlot(&bb);
 	//fprintf(file, "\".%zu\"", slot);
 //	fprintf(file, "\"0x%p\"", &bb);
 
@@ -90,7 +90,7 @@ void Module::DumpControlFlowGraphToFile(const std::string& filepath)
 			PrintBasicBlockNode(slots, file, bb);
 
 			switch (term->GetOpcode()) {
-			case kInsn_ConditionalBranch: {
+			case HLIR::ConditionalBranch: {
 				const ConditionalBranchInsn* cbr = (const ConditionalBranchInsn*) term;
 
 				fprintf(file, " -> ");
@@ -102,7 +102,7 @@ void Module::DumpControlFlowGraphToFile(const std::string& filepath)
 				break;
 			}
 
-			case kInsn_UnconditionalBranch: {
+			case HLIR::UnconditionalBranch: {
 				const UnconditionalBranchInsn* cbr = (const UnconditionalBranchInsn*)term;
 				fprintf(file, " -> ");
 				PrintBasicBlockNode(slots, file, *cbr->GetBB());

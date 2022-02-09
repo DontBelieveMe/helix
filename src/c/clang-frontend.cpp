@@ -590,29 +590,29 @@ Helix::Value* CodeGenerator::DoCompoundAssignOp(clang::CompoundAssignOperator* a
 
 	Value* rhs = this->DoExpr(assignmentOp->getRHS());
 
-	Opcode opc = kInsn_Undefined;
+	HLIR::Opcode opc = HLIR::Undefined;
 
 	switch (assignmentOp->getOpcode()) {
-	case clang::BO_AddAssign: opc = kInsn_IAdd; break;
-	case clang::BO_SubAssign: opc = kInsn_ISub; break;
-	case clang::BO_MulAssign: opc = kInsn_IMul; break;
-	case clang::BO_AndAssign: opc = kInsn_And;  break;
-	case clang::BO_OrAssign:  opc = kInsn_Or;   break;
-	case clang::BO_XorAssign: opc = kInsn_Xor;  break;
+	case clang::BO_AddAssign: opc = HLIR::IAdd; break;
+	case clang::BO_SubAssign: opc = HLIR::ISub; break;
+	case clang::BO_MulAssign: opc = HLIR::IMul; break;
+	case clang::BO_AndAssign: opc = HLIR::And;  break;
+	case clang::BO_OrAssign:  opc = HLIR::Or;   break;
+	case clang::BO_XorAssign: opc = HLIR::Xor;  break;
 	case clang::BO_RemAssign: {
 		if (assignmentOp->getType()->hasUnsignedIntegerRepresentation()) {
-			opc = Helix::kInsn_IURem;
+			opc = Helix::HLIR::IURem;
 		} else {
-			opc = Helix::kInsn_ISRem;
+			opc = Helix::HLIR::ISRem;
 		}
 		break;
 	}
 
 	case clang::BO_DivAssign: {
 		if (assignmentOp->getType()->hasUnsignedIntegerRepresentation()) {
-			opc = Helix::kInsn_IUDiv;
+			opc = Helix::HLIR::IUDiv;
 		} else {
-			opc = Helix::kInsn_ISDiv;
+			opc = Helix::HLIR::ISDiv;
 		}
 		break;
 	}
@@ -990,7 +990,7 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 		Value* v = this->DoExpr(subExpr);
 		VirtualRegisterName* result = VirtualRegisterName::Create(v->GetType());
 		Value* max = ConstantInt::GetMax(v->GetType());
-		this->EmitInsn(Helix::CreateBinOp(kInsn_Xor, v, max, result));
+		this->EmitInsn(Helix::CreateBinOp(HLIR::Xor, v, max, result));
 		return result;
 	}
 
@@ -1015,9 +1015,9 @@ Helix::Value* CodeGenerator::DoUnaryOperator(clang::UnaryOperator* unaryOperator
 		ConstantInt* one = ConstantInt::Create(subExprType, 1);
 
 		if (unaryOperator->isIncrementOp()) {
-			this->EmitInsn(Helix::CreateBinOp(kInsn_IAdd, v, one, result));
+			this->EmitInsn(Helix::CreateBinOp(HLIR::IAdd, v, one, result));
 		} else if (unaryOperator->isDecrementOp()) {
-			this->EmitInsn(Helix::CreateBinOp(kInsn_ISub, v, one, result));
+			this->EmitInsn(Helix::CreateBinOp(HLIR::ISub, v, one, result));
 		}
 
 		this->EmitInsn(Helix::CreateStore(result, ptr));
@@ -1425,42 +1425,44 @@ Helix::Value* CodeGenerator::DoIntegerLiteral(clang::IntegerLiteral* integerLite
 
 Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 {
+	using namespace Helix;
+
 	if (binOp->getOpcode() == clang::BO_Assign) {
 		return this->DoAssignment(binOp);
 	}
 
-	Helix::Value* lhs = this->DoExpr(binOp->getLHS());
-	Helix::Value* rhs = this->DoExpr(binOp->getRHS());
+	Value* lhs = this->DoExpr(binOp->getLHS());
+	Value* rhs = this->DoExpr(binOp->getRHS());
 
-	Helix::Opcode opc = Helix::kInsn_Undefined;
+	HLIR::Opcode opc = HLIR::Undefined;
 
 	switch (binOp->getOpcode()) {
-	case clang::BO_Add: opc = Helix::kInsn_IAdd; break;
-	case clang::BO_Sub: opc = Helix::kInsn_ISub; break;
-	case clang::BO_Mul: opc = Helix::kInsn_IMul; break;
-	case clang::BO_LT:  opc = Helix::kInsn_ICmp_Lt; break;
-	case clang::BO_GT:  opc = Helix::kInsn_ICmp_Gt; break;
-	case clang::BO_LE:  opc = Helix::kInsn_ICmp_Lte; break;
-	case clang::BO_GE:  opc = Helix::kInsn_ICmp_Gte; break;
-	case clang::BO_EQ:  opc = Helix::kInsn_ICmp_Eq; break;
-	case clang::BO_NE:  opc = Helix::kInsn_ICmp_Neq; break;
-	case clang::BO_And: opc = Helix::kInsn_And; break;
-	case clang::BO_Or:  opc = Helix::kInsn_Or; break;
-	case clang::BO_Xor: opc = Helix::kInsn_Xor; break;
+	case clang::BO_Add: opc = HLIR::IAdd; break;
+	case clang::BO_Sub: opc = HLIR::ISub; break;
+	case clang::BO_Mul: opc = HLIR::IMul; break;
+	case clang::BO_LT:  opc = HLIR::ICmp_Lt; break;
+	case clang::BO_GT:  opc = HLIR::ICmp_Gt; break;
+	case clang::BO_LE:  opc = HLIR::ICmp_Lte; break;
+	case clang::BO_GE:  opc = HLIR::ICmp_Gte; break;
+	case clang::BO_EQ:  opc = HLIR::ICmp_Eq; break;
+	case clang::BO_NE:  opc = HLIR::ICmp_Neq; break;
+	case clang::BO_And: opc = HLIR::And; break;
+	case clang::BO_Or:  opc = HLIR::Or; break;
+	case clang::BO_Xor: opc = HLIR::Xor; break;
 	case clang::BO_Rem: {
 		if (binOp->getType()->hasUnsignedIntegerRepresentation()) {
-			opc = Helix::kInsn_IURem;
+			opc = HLIR::IURem;
 		} else {
-			opc = Helix::kInsn_ISRem;
+			opc = HLIR::ISRem;
 		}
 		break;
 	}
 
 	case clang::BO_Div: {
 		if (binOp->getType()->hasUnsignedIntegerRepresentation()) {
-			opc = Helix::kInsn_IUDiv;
+			opc = HLIR::IUDiv;
 		} else {
-			opc = Helix::kInsn_ISDiv;
+			opc = HLIR::ISDiv;
 		}
 		break;
 	}
@@ -1469,12 +1471,12 @@ Helix::Value* CodeGenerator::DoBinOp(clang::BinaryOperator* binOp)
 		break;
 	}
 
-	const Helix::Type* resultType = this->ConvertType(binOp->getType());
+	const Type* resultType = this->ConvertType(binOp->getType());
 
-	Helix::VirtualRegisterName* result = Helix::VirtualRegisterName::Create(resultType);
-	Helix::Instruction* insn = nullptr;
+	VirtualRegisterName* result = VirtualRegisterName::Create(resultType);
+	Instruction* insn = nullptr;
 
-	if (Helix::IsCompare(opc)) {
+	if (Helix::HLIR::IsCompare(opc)) {
 		insn = Helix::CreateCompare(opc, lhs, rhs, result);
 	} else {
 		insn = Helix::CreateBinOp(opc, lhs, rhs, result);

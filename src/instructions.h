@@ -107,7 +107,7 @@ namespace Helix
 
 	protected:
 		BasicBlock* m_Parent = nullptr;
-		OpcodeType  m_Opcode = kInsn_Undefined;
+		OpcodeType  m_Opcode = HLIR::Undefined;
 		OperandList m_Operands;
 		std::string m_DebugComment;
 	};
@@ -117,7 +117,7 @@ namespace Helix
 	class BinOpInsn : public Instruction
 	{
 	public:
-		BinOpInsn(Opcode opcode, Value* lhs, Value* rhs, Value* result);
+		BinOpInsn(HLIR::Opcode opcode, Value* lhs, Value* rhs, Value* result);
 
 		Value* GetLHS()                  const { return this->GetOperand(0);                                  }
 		Value* GetRHS()                  const { return this->GetOperand(1);                                  }
@@ -231,7 +231,7 @@ namespace Helix
 	class CompareInsn : public Instruction
 	{
 	public:
-		CompareInsn(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);
+		CompareInsn(HLIR::Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);
 
 		Value* GetLHS() const { return this->GetOperand(0); }
 		Value* GetRHS() const { return this->GetOperand(1); }
@@ -246,7 +246,7 @@ namespace Helix
 	{
 	public:
 		LoadEffectiveAddressInsn(const Type* baseType, Value* inputPtr, Value* index, Value* outputPtr)
-			: Instruction(kInsn_LoadElementAddress, 3), m_Type(baseType)
+			: Instruction(HLIR::LoadElementAddress, 3), m_Type(baseType)
 		{
 			this->SetOperand(0, inputPtr);
 			this->SetOperand(1, index);
@@ -271,7 +271,7 @@ namespace Helix
 	{
 	public:
 		LoadFieldAddressInsn(const StructType* baseType, Value* inputPtr, unsigned int index, Value* outputPtr)
-			: Instruction(kInsn_LoadFieldAddress, 2), m_BaseType(baseType), m_Index(index)
+			: Instruction(HLIR::LoadFieldAddress, 2), m_BaseType(baseType), m_Index(index)
 		{
 			this->SetOperand(0, inputPtr);
 			this->SetOperand(1, outputPtr);
@@ -295,7 +295,7 @@ namespace Helix
 	class CastInsn : public Instruction
 	{
 	public:
-		CastInsn(Opcode opc, Value* in, Value* out)
+		CastInsn(HLIR::Opcode opc, Value* in, Value* out)
 			: Instruction(opc, 2)
 		{
 			this->SetOperand(0, in);
@@ -315,7 +315,7 @@ namespace Helix
 
 	/// Create a comparison instruction that compares 'lhs' and 'rhs' and stores the result to the given
 	/// 'result' register.
-	CompareInsn* CreateCompare(Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);
+	CompareInsn* CreateCompare(HLIR::Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);
 
 	/// Create a conditional branch that, if the given 'cond' value evaluates to true
 	/// jumps to the basic block 'trueBB', and if it's false jump to falseBB.
@@ -335,7 +335,7 @@ namespace Helix
 	RetInsn* CreateRet(Value* value);
 
 	/// Create a binary operation such that `<op> <lhs>, <rhs>, <result>`
-	BinOpInsn* CreateBinOp(Opcode opcode, Value* lhs, Value* rhs, Value* result);
+	BinOpInsn* CreateBinOp(HLIR::Opcode opcode, Value* lhs, Value* rhs, Value* result);
 
 	/// Create a store instruction that stores value 'src' at memory location
 	/// given by 'dst' (`store <src>, <dst>`)

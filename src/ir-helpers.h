@@ -25,7 +25,7 @@ namespace Helix::IR
 	};
 
 	template <typename T>
-	static void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, Opcode opcode)
+	static void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, OpcodeType opcode)
 	{
 		for (BasicBlock& bb : fn->blocks()) {
 			for (Instruction& insn : bb.insns()) {
@@ -37,7 +37,7 @@ namespace Helix::IR
 	}
 
 	template <typename T>
-	static T* FindFirstInstructionOfType(BasicBlock& bb, Opcode opcode) {
+	static T* FindFirstInstructionOfType(BasicBlock& bb, OpcodeType opcode) {
 		for (Instruction& insn : bb) {
 			if (insn.GetOpcode() == opcode) {
 				return static_cast<T*>(&insn);

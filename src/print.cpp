@@ -13,13 +13,13 @@ static const char* kColour_Typename = Helix::TextOutputStream::kColour_Red;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* Helix::GetOpcodeName(Opcode opcode)
+const char* Helix::GetOpcodeName(HLIR::Opcode opcode)
 {
 	switch (opcode) {
 		#define BEGIN_INSN_CLASS(_)
 		#define END_INSN_CLASS(_)
-		#define DEF_INSN_FIXED(code_name,pretty_name, n_operands, ...) case kInsn_##code_name: return pretty_name;
-		#define DEF_INSN_DYN(code_name,pretty_name) case kInsn_##code_name: return pretty_name;
+		#define DEF_INSN_FIXED(code_name,pretty_name, n_operands, ...) case HLIR::##code_name: return pretty_name;
+		#define DEF_INSN_DYN(code_name,pretty_name) case HLIR::##code_name: return pretty_name;
 			#include "insns.def"
 
 	default:
@@ -207,7 +207,7 @@ void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Instruction& 
 	if (Helix::IsMachineOpcode(insn.GetOpcode())) {
 		out.Write("arm.%s", ARMv7::GetMachineInstructionName((ARMv7::Opcode) insn.GetOpcode()));
 	} else {
-		out.Write("%s", Helix::GetOpcodeName((Opcode) insn.GetOpcode()));
+		out.Write("%s", Helix::GetOpcodeName((HLIR::Opcode) insn.GetOpcode()));
 	}
 	
 	out.ResetColour();
@@ -218,7 +218,7 @@ void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Instruction& 
 		out.Write(" ");
 	}
 
-	if (insn.GetOpcode() == kInsn_StackAlloc) {
+	if (insn.GetOpcode() == HLIR::StackAlloc) {
 		const StackAllocInsn& stackAlloc = static_cast<const StackAllocInsn&>(insn);
 		const std::string typeName = [&stackAlloc]() -> std::string {
 			// #FIXME(bwilks): This special formatting is to keep compatibility when ArrayType
@@ -242,19 +242,19 @@ void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Instruction& 
 
 		out.Write("%s, ", typeName.c_str());
 	}
-	else if (insn.GetOpcode() == kInsn_LoadElementAddress) {
+	else if (insn.GetOpcode() == HLIR::LoadElementAddress) {
 		const LoadEffectiveAddressInsn& lea = static_cast<const LoadEffectiveAddressInsn&>(insn);
 
 		const char* baseTypeName = Helix::GetTypeName(lea.GetBaseType());
 		out.Write("[%s*], ", baseTypeName);
 	}
-	else if (insn.GetOpcode() == kInsn_LoadFieldAddress) {
+	else if (insn.GetOpcode() == HLIR::LoadFieldAddress) {
 		const LoadFieldAddressInsn& lfa = static_cast<const LoadFieldAddressInsn&>(insn);
 
 		const char* baseTypeName = Helix::GetTypeName(lfa.GetBaseType());
 		out.Write("[%s:%u], ", baseTypeName, lfa.GetFieldIndex());
 	}
-	else if (Helix::IsCast((Opcode) insn.GetOpcode())) {
+	else if (HLIR::IsCast((HLIR::Opcode) insn.GetOpcode())) {
 		const CastInsn& castInsn = static_cast<const CastInsn&>(insn);
 
 		out.Write("[%s -> %s], ", GetTypeName(castInsn.GetSrcType()), GetTypeName(castInsn.GetDstType()));

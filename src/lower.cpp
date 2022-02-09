@@ -84,7 +84,7 @@ void GenericLegalizer::Execute(Function* fn)
 		for (BasicBlock& bb : fn->blocks()) {
 			for (Instruction& insn : bb.insns()) {
 				switch (insn.GetOpcode()) {
-				case kInsn_Store: {
+				case HLIR::Store: {
 					StoreInsn& store = static_cast<StoreInsn&>(insn);
 
 					if (value_isa<ConstantArray>(store.GetSrc()) || value_isa<ConstantStruct>(store.GetSrc())) {
@@ -93,7 +93,7 @@ void GenericLegalizer::Execute(Function* fn)
 
 					break;
 				}
-				case kInsn_StackAlloc: {
+				case HLIR::StackAlloc: {
 					// Don't want to move stack_allocs that are already in the
 					// first basic block of the function 
 					if (fn->Where(&bb) == fn->begin()) {
@@ -137,7 +137,7 @@ void ReturnCombine::Execute(Function* fn)
 	// Build this list before so it doesn't get interfered with by
 	// the transforms we have do do first.
 	std::vector<IR::ParentedInsn<RetInsn>> returns;
-	IR::BuildWorklist(returns, fn, kInsn_Return);
+	IR::BuildWorklist(returns, fn, HLIR::Return);
 
 	// First always create a tail block - even if there is only
 	// one BB in the function (therefore only one ret) it is still useful
@@ -203,7 +203,7 @@ void CConv::Execute(Function* fn)
 	if (!tailBlock)
 		return;
 
-	RetInsn* ret = IR::FindFirstInstructionOfType<RetInsn>(*tailBlock, kInsn_Return);
+	RetInsn* ret = IR::FindFirstInstructionOfType<RetInsn>(*tailBlock, HLIR::Return);
 	helix_assert(ret, "cannot find a return instruction in the tail block");
 
 	if (!ret)
@@ -302,7 +302,7 @@ void LowerStructStackAllocation::Execute(Function* fn)
 	BasicBlock* head = fn->GetHeadBlock();
 
 	for (Instruction& insn : head->insns()) {
-		if (insn.GetOpcode() == kInsn_StackAlloc) {
+		if (insn.GetOpcode() == HLIR::StackAlloc) {
 			StackAllocInsn& stack_alloc = (StackAllocInsn&) insn;
 	
 			if (stack_alloc.GetAllocatedType()->IsStruct()) {
@@ -353,7 +353,7 @@ void LegaliseStructs::Execute(Function* fn)
 
 	for (BasicBlock& bb : fn->blocks()) {
 		for (Instruction& insn : bb.insns()) {
-			if (insn.GetOpcode() == kInsn_Load) {
+			if (insn.GetOpcode() == HLIR::Load) {
 				LoadInsn& load = (LoadInsn&) insn;
 				Value* dst = load.GetDst();
 
@@ -366,12 +366,12 @@ void LegaliseStructs::Execute(Function* fn)
 					for (const Use& use : dst->uses()) {
 						Instruction* use_insn = use.GetInstruction();
 
-						if (use_insn->GetOpcode() == kInsn_Store) {
+						if (use_insn->GetOpcode() == HLIR::Store) {
 							StoreInsn* store = (StoreInsn*) use_insn;
 							ls.stores.push_back(store);
 						}
 
-						if (use_insn->GetOpcode() == kInsn_Return) {
+						if (use_insn->GetOpcode() == HLIR::Return) {
 							usedInRet = true;
 						}
 					}

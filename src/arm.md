@@ -21,7 +21,7 @@
 ;         add. We might need additional logic to split the immediate
 ;         if required?
 (define-insn "add_r32i32"
-	[(kInsn_IAdd
+	[(HLIR::IAdd
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "int")
 		(match_operand:i32 2 "register"))]
@@ -33,7 +33,7 @@
 ;         to use as an immediate here. See comment on "add_r32i32" for
 ;         more details.
 (define-insn "sub_r32i32"
-	[(kInsn_ISub
+	[(HLIR::ISub
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "int")
 		(match_operand:i32 2 "register"))]
@@ -45,7 +45,7 @@
 
 ; 32 bit Register/Register Addition
 (define-insn "add_r32r32"
-	[(kInsn_IAdd
+	[(HLIR::IAdd
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
@@ -53,14 +53,14 @@
 
 ; 32 bit Register/Register Signed Division
 (define-insn "sdiv_r32r32"
-	[(kInsn_ISDiv
+	[(HLIR::ISDiv
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"sdiv {2}, {0}, {1}")
 
 (define-insn "udiv_r32r32"
-	[(kInsn_IUDiv
+	[(HLIR::IUDiv
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
@@ -68,7 +68,7 @@
 
 ; 32 bit Register/Register Subtraction
 (define-insn "sub_r32r32"
-	[(kInsn_ISub
+	[(HLIR::ISub
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
@@ -76,7 +76,7 @@
 
 ; 32 bit Register/Register Multiplication
 (define-insn "mul_r32r32"
-	[(kInsn_IMul
+	[(HLIR::IMul
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
@@ -84,7 +84,7 @@
 
 ; 32 bit Register/Register Bitwise Or
 (define-insn "or_r32r32"
-	[(kInsn_Or
+	[(HLIR::Or
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
@@ -92,7 +92,7 @@
 
 ; 32 bit Register/Register Bitwise And
 (define-insn "and_r32r32"
-	[(kInsn_And
+	[(HLIR::And
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
@@ -100,7 +100,7 @@
 
 ; 32 bit Register/Register Bitwise Exclusive Or
 (define-insn "xor_r32r32"
-	[(kInsn_Xor
+	[(HLIR::Xor
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
@@ -114,42 +114,42 @@
 (define-insn "cmpi" [] "cmp {0}, #{1}")
 
 (define-insn "$icmpeq"
-	[(kInsn_ICmp_Eq
+	[(HLIR::ICmp_Eq
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"*expand_icmp")
 
 (define-insn "$icmpneq"
-	[(kInsn_ICmp_Neq
+	[(HLIR::ICmp_Neq
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"*expand_icmp")
 
 (define-insn "$icmplt"
-	[(kInsn_ICmp_Lt
+	[(HLIR::ICmp_Lt
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"*expand_icmp")
 
 (define-insn "$icmplte"
-	[(kInsn_ICmp_Lte
+	[(HLIR::ICmp_Lte
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"*expand_icmp")
 
 (define-insn "$icmpgt"
-	[(kInsn_ICmp_Gt
+	[(HLIR::ICmp_Gt
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"*expand_icmp")
 
 (define-insn "$icmpgte"
-	[(kInsn_ICmp_Gte
+	[(HLIR::ICmp_Gte
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
@@ -180,7 +180,7 @@
 ;
 ; This is a bit of a special case & is a bit funky, sorry about that :-(
 (define-insn "$store_global_address_to_memory"
-	[(kInsn_Store
+	[(HLIR::Store
 		(match_operand:ptr 0 "global")
 		(match_operand:i32 1 "register"))]
 	"*expand_store")
@@ -188,7 +188,7 @@
 ; Store 32 bit value in the source register (operand 0) into
 ; a global variable (operand 1).
 (define-insn "$store_global"
-	[(kInsn_Store
+	[(HLIR::Store
 		(match_operand:i32 0 "register")
 		(match_operand:ptr 1 "global"))]
 	"*expand_store")
@@ -196,7 +196,7 @@
 ; Store the 8/16/32 bit value from the source register (operand 0) to
 ; the memory address specified in the destination register (operand 1).
 (define-insn "$store_register"
-	[(kInsn_Store
+	[(HLIR::Store
 		(match_operand:*   0 "register")
 		(match_operand:ptr 1 "register"))]
 	"*expand_store")
@@ -208,7 +208,7 @@
 ; Loading a 8/16/32 bit value from a global variable (operand 0) into the destination
 ; register (operand 1).
 (define-insn "$load_global"
-	[(kInsn_Load
+	[(HLIR::Load
 		(match_operand:ptr 0 "global")
 		(match_operand:*   1 "register"))]
 	"*expand_load")
@@ -216,7 +216,7 @@
 ; Load the 8/16/32 bit value stored at the address given in the source
 ; register (operand 0) to the destination register (operand 1).
 (define-insn "$load_register"
-	[(kInsn_Load
+	[(HLIR::Load
 		(match_operand:ptr 0 "register")
 		(match_operand:*   1 "register"))]
 	"*expand_load")
@@ -228,7 +228,7 @@
 (define-insn "bge" [] "bge {0}")
 
 (define-insn "$cbr"
-	[(kInsn_ConditionalBranch
+	[(HLIR::ConditionalBranch
 		(match_operand:lbl 0 "basic_block")
 		(match_operand:lbl 1 "basic_block")
 		(match_operand:i32 2 "register"))]
@@ -236,7 +236,7 @@
 
 ; Unconditional branch to a internal basic block/label.
 (define-insn "br"
-	[(kInsn_UnconditionalBranch
+	[(HLIR::UnconditionalBranch
 		(match_operand:lbl 0 "basic_block"))]
 	"b {0}")
 
@@ -247,7 +247,7 @@
 ; Here we just pop the link register directly into the program counter (PC)
 ; instead of going through a branch instruction
 (define-insn "ret"
-	[(kInsn_Return)]
+	[(HLIR::Return)]
 	"@pop {r11, pc}")
 
 ; *****************************************************************************
@@ -262,19 +262,19 @@
 ;         Ideally this should be removed by an earlier pass in the compiler
 ;         and should never get this far.
 (define-insn "inttoptr"
-	[(kInsn_IntToPtr
+	[(HLIR::IntToPtr
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register"))]
 	"mov {1}, {0}")
 
 (define-insn "ptrtoint"
-	[(kInsn_PtrToInt
+	[(HLIR::PtrToInt
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register"))]
 	"mov {1}, {0}")
 
 (define-insn "$ptrtoint"
-	[(kInsn_PtrToInt
+	[(HLIR::PtrToInt
 		(match_operand:ptr 0 "global")
 		(match_operand:i32 1 "register"))]
 	"*expand_global_address_to_register")

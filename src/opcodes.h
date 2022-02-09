@@ -14,7 +14,7 @@
 /*********************************************************************************************************************/
 
 #define IMPLEMENT_OPCODE_CATEGORY_IDENTITY(category) \
-	constexpr inline bool Is##category(Helix::Opcode opc) \
+	constexpr inline bool Is##category(Helix::HLIR::Opcode opc) \
 	{ \
 		return opc > kInsnStart_##category && opc < kInsnEnd_##category; \
 	}
@@ -25,29 +25,36 @@ namespace Helix
 {
 	using OpcodeType = unsigned;
 
-	static constexpr size_t MAX_COUNT_IR_INSNS = 1024;
+	static constexpr size_t MAX_COUNT_HLIR_INSNS = 1024;
 
-	enum Opcode : OpcodeType
+	namespace HLIR
 	{
-		#define BEGIN_INSN_CLASS(class_name) kInsnStart_##class_name,
-		#define END_INSN_CLASS(class_name) kInsnEnd_##class_name,
-		#define DEF_INSN_FIXED(code_name, pretty_name,n_operands, ...) kInsn_##code_name,
-		#define DEF_INSN_DYN(code_name, pretty_name) kInsn_##code_name,
+		enum Opcode : OpcodeType
+		{
+			#define BEGIN_INSN_CLASS(class_name) kInsnStart_##class_name,
+			#define END_INSN_CLASS(class_name) kInsnEnd_##class_name,
+			#define DEF_INSN_FIXED(code_name, pretty_name,n_operands, ...) code_name,
+			#define DEF_INSN_DYN(code_name, pretty_name) code_name,
 			#include "insns.def"
 
-		kInsnCount
-	};
+			kInsnCount
+		};
 
-	#define BEGIN_INSN_CLASS(class_name) IMPLEMENT_OPCODE_CATEGORY_IDENTITY(class_name)
+		static_assert(kInsnCount < MAX_COUNT_HLIR_INSNS, "Too many IR instructions (must not exceed MAX_COUNT_IR_INSNS)");
+
+		#define BEGIN_INSN_CLASS(class_name) IMPLEMENT_OPCODE_CATEGORY_IDENTITY(class_name)
 		#include "insns.def"
+	}
 
 	/*********************************************************************************************************************/
 
-	constexpr inline bool IsMachineOpcode(Helix::OpcodeType opc) { return opc >= MAX_COUNT_IR_INSNS; }
+	constexpr inline bool IsHLIROpcode(Helix::OpcodeType opc) { return opc < MAX_COUNT_HLIR_INSNS;  }
+	constexpr inline bool IsLLIROpcode(Helix::OpcodeType opc) { return opc >= MAX_COUNT_HLIR_INSNS; }
+
+	/* Alias for IsLLIROpcode */
+	constexpr inline bool IsMachineOpcode(Helix::OpcodeType opc) { return IsLLIROpcode(opc); }
 
 	/*********************************************************************************************************************/
-
-	static_assert(kInsnCount < MAX_COUNT_IR_INSNS, "Too many IR instructions (must not exceed MAX_COUNT_IR_INSNS)");
 }
 
 /*********************************************************************************************************************/

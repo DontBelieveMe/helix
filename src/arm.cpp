@@ -63,7 +63,7 @@ static BasicBlock::iterator LoadGlobalAddressIntoRegister(Instruction* insn, Val
 
 MachineInstruction* ARMv7::expand_load(Instruction* insn)
 {
-	helix_assert(insn->GetOpcode() == kInsn_Load, "cannot expand load instruction that doesn't have kInsn_Load opcode");
+	helix_assert(insn->GetOpcode() == HLIR::Load, "cannot expand load instruction that doesn't have kInsn_Load opcode");
 
 	LoadInsn* load = (LoadInsn*) insn;
 
@@ -104,7 +104,7 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 MachineInstruction* ARMv7::expand_icmp(Instruction* insn)
 {
 	helix_assert(!Helix::IsMachineOpcode(insn->GetOpcode()), "Can't expand LLIR instruction");
-	helix_assert(Helix::IsCompare((Helix::Opcode) insn->GetOpcode()), "instruction is not a comparison");
+	helix_assert(HLIR::IsCompare((HLIR::Opcode) insn->GetOpcode()), "instruction is not a comparison");
 
 	CompareInsn* compare = (CompareInsn*) insn;
 
@@ -137,12 +137,12 @@ MachineInstruction* ARMv7::expand_icmp(Instruction* insn)
 	// ... finally generate the conditional move that sets the result register to true (1)
 	// if the comparison was true (based on flags from cmp operation before.)
 	switch (compare->GetOpcode()) {
-	case kInsn_ICmp_Eq:  cmov = ARMv7::CreateMovweqi(result, one); break;
-	case kInsn_ICmp_Neq: cmov = ARMv7::CreateMovwnei(result, one); break;
-	case kInsn_ICmp_Gt:  cmov = ARMv7::CreateMovwgti(result, one); break;
-	case kInsn_ICmp_Gte: cmov = ARMv7::CreateMovwgei(result, one); break;
-	case kInsn_ICmp_Lt:  cmov = ARMv7::CreateMovwlti(result, one); break;
-	case kInsn_ICmp_Lte: cmov = ARMv7::CreateMovwlei(result, one); break;
+	case HLIR::ICmp_Eq:  cmov = ARMv7::CreateMovweqi(result, one); break;
+	case HLIR::ICmp_Neq: cmov = ARMv7::CreateMovwnei(result, one); break;
+	case HLIR::ICmp_Gt:  cmov = ARMv7::CreateMovwgti(result, one); break;
+	case HLIR::ICmp_Gte: cmov = ARMv7::CreateMovwgei(result, one); break;
+	case HLIR::ICmp_Lt:  cmov = ARMv7::CreateMovwlti(result, one); break;
+	case HLIR::ICmp_Lte: cmov = ARMv7::CreateMovwlei(result, one); break;
 	default:
 		helix_unreachable("unknown comparison opcode");
 		break;
@@ -155,7 +155,7 @@ MachineInstruction* ARMv7::expand_icmp(Instruction* insn)
 
 MachineInstruction* ARMv7::expand_conditional_branch(Instruction* insn)
 {
-	helix_assert(insn->GetOpcode() == kInsn_ConditionalBranch, "instruction is not a conditional branch");
+	helix_assert(insn->GetOpcode() == HLIR::ConditionalBranch, "instruction is not a conditional branch");
 
 	ConditionalBranchInsn* conditional_branch = (ConditionalBranchInsn*) insn;
 
@@ -189,7 +189,7 @@ MachineInstruction* ARMv7::expand_conditional_branch(Instruction* insn)
 
 MachineInstruction* ARMv7::expand_store(Instruction* insn)
 {
-	helix_assert(insn->GetOpcode() == kInsn_Store, "instruction is not a store");
+	helix_assert(insn->GetOpcode() == HLIR::Store, "instruction is not a store");
 	StoreInsn* store = (StoreInsn*) insn;
 
 	// Use r7 as a temporary/scratch register to store the address of the global
@@ -231,7 +231,7 @@ MachineInstruction* ARMv7::expand_store(Instruction* insn)
 
 MachineInstruction* ARMv7::expand_global_address_to_register(Instruction* insn)
 {
-	helix_assert(insn->GetOpcode() == kInsn_PtrToInt, "instruction is not ptrtoint");
+	helix_assert(insn->GetOpcode() == HLIR::PtrToInt, "instruction is not ptrtoint");
 	CastInsn* castInsn = (CastInsn*) insn;
 	helix_assert(is_global(castInsn->GetSrc()), "ptrtoint source must be a global for this transform");
 

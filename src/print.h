@@ -138,7 +138,7 @@ namespace Helix
 
 	/// For a given opcode return a statically allocated string representing
 	/// the name of the instruction. If the opcode is unknown "?" is returned.
-	const char* GetOpcodeName(Opcode opcode);
+	const char* GetOpcodeName(HLIR::Opcode opcode);
 
 	/// For a given type ID return a statically allocated string representing that type
 	/// (e.g. the name of the type). If the type is unknown "?" is returned.
