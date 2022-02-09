@@ -14,7 +14,7 @@
 /*********************************************************************************************************************/
 
 #define IMPLEMENT_OPCODE_CATEGORY_IDENTITY(category) \
-	constexpr inline bool Is##category(Helix::OpcodeType opc) \
+	constexpr inline bool Is##category(Helix::Opcode opc) \
 	{ \
 		return opc > kInsnStart_##category && opc < kInsnEnd_##category; \
 	}

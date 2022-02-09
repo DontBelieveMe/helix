@@ -358,3 +358,11 @@ void Instruction::DeleteFromParent()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Instruction::IsTerminator() const
+{
+	if (Helix::IsMachineOpcode(m_Opcode))
+		return false;
+
+	return Helix::IsTerminator((Opcode) m_Opcode);
+}

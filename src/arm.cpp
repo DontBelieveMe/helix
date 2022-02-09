@@ -103,7 +103,8 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 
 MachineInstruction* ARMv7::expand_icmp(Instruction* insn)
 {
-	helix_assert(Helix::IsCompare(insn->GetOpcode()), "instruction is not a comparison");
+	helix_assert(!Helix::IsMachineOpcode(insn->GetOpcode()), "Can't expand LLIR instruction");
+	helix_assert(Helix::IsCompare((Helix::Opcode) insn->GetOpcode()), "instruction is not a comparison");
 
 	CompareInsn* compare = (CompareInsn*) insn;
 

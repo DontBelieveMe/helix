@@ -254,7 +254,7 @@ void Helix::Print(SlotTracker& slots, TextOutputStream& out, const Instruction& 
 		const char* baseTypeName = Helix::GetTypeName(lfa.GetBaseType());
 		out.Write("[%s:%u], ", baseTypeName, lfa.GetFieldIndex());
 	}
-	else if (Helix::IsCast(insn.GetOpcode())) {
+	else if (Helix::IsCast((Opcode) insn.GetOpcode())) {
 		const CastInsn& castInsn = static_cast<const CastInsn&>(insn);
 
 		out.Write("[%s -> %s], ", GetTypeName(castInsn.GetSrcType()), GetTypeName(castInsn.GetDstType()));

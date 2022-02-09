@@ -1204,7 +1204,7 @@ void CodeGenerator::DoIfStmt(clang::IfStmt* ifStmt)
 		m_InstructionIterator = thenBB->begin();
 		this->DoStmt(ifStmt->getThen());
 
-		if (!Helix::IsTerminator(m_InstructionIterator->GetOpcode())) {
+		if (!m_InstructionIterator->IsTerminator()) {
 			this->EmitInsn(Helix::CreateUnconditionalBranch(tailBB));
 		}
 	}
@@ -1215,7 +1215,7 @@ void CodeGenerator::DoIfStmt(clang::IfStmt* ifStmt)
 		m_InstructionIterator = elseBB->begin();
 		this->DoStmt(ifStmt->getElse());
 
-		if (!Helix::IsTerminator(m_InstructionIterator->GetOpcode())) {
+		if (!m_InstructionIterator->IsTerminator()) {
 			this->EmitInsn(Helix::CreateUnconditionalBranch(tailBB));
 		}
 	}

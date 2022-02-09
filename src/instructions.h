@@ -87,7 +87,7 @@ namespace Helix
 
 		inline bool        HasComment()             const { return m_DebugComment.length() > 0; }
 
-		bool IsTerminator() const { return Helix::IsTerminator(m_Opcode); }
+		bool IsTerminator() const;
 
 		void Clear()
 		{

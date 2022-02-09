@@ -76,15 +76,7 @@ bool BasicBlock::HasTerminator() const
 
 	const Instruction& insn = Instructions.back();
 	
-	if (Helix::IsTerminator(insn.GetOpcode())) {
-		return true;
-	}
-
-	if (Helix::IsMachineTerminator(insn.GetOpcode())) {
-		return true;
-	}
-
-	return false;
+	return insn.IsTerminator();
 }
 
 /*********************************************************************************************************************/
@@ -179,7 +171,7 @@ std::vector<BasicBlock*> BasicBlock::GetSuccessors() const
 	std::vector<BasicBlock*> successors;
 
 	for (const Instruction& insn : Instructions) {
-		if (Helix::IsTerminator(insn.GetOpcode()) || Helix::IsMachineTerminator(insn.GetOpcode())) {
+		if (insn.IsTerminator()) {
 			for (size_t i = 0; i < insn.GetCountOperands(); ++i) {
 				if (BlockBranchTarget* v = value_cast<BlockBranchTarget>(insn.GetOperand(i))) {
 					successors.push_back(v->GetParent());

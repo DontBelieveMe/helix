@@ -178,7 +178,7 @@ void ValidationPass::Execute(Module* module) {
 			const Instruction* terminator = bb.GetLast();
 
 			if (!Helix::IsMachineOpcode(terminator->GetOpcode())) {
-				if (!Helix::IsTerminator(terminator->GetOpcode())) {
+				if (!terminator->IsTerminator()) {
 					helix_error(logs::validate, "Basic block in function '{}' does not finish with a terminator insn", name);
 					error |= true;
 				}
