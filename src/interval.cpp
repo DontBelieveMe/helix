@@ -34,43 +34,21 @@ bool Interval::operator==(const Interval& other) const
 
 bool IntervalStartComparator::operator()(const Interval& a, const Interval& b) const
 {
-	if (a.start.block_index < b.start.block_index) {
-		return true;
-	}
-	else if (a.start.block_index == b.start.block_index) {
-		return a.start.instruction_index < b.start.instruction_index;
-	}
-
-	return false;
+	return a.start < b.start;
 }
 
 /*********************************************************************************************************************/
 
 bool IntervalEndComparator::operator()(const Interval& a, const Interval& b) const
 {
-	if (a.end.block_index < b.end.block_index) {
-		return true;
-	}
-	else if (a.end.block_index == b.end.block_index) {
-		return a.end.instruction_index < b.end.instruction_index;
-	}
-
-	return false;
+	return a.end < b.end;
 }
 
 /*********************************************************************************************************************/
 
 bool IntervalEndStartComparator::operator()(const Interval& a, const Interval& b) const
 {
-	if (a.end.block_index < b.start.block_index) {
-		return true;
-	}
-	else if (a.end.block_index > b.start.block_index) {
-		return false;
-	}
-	else {
-		return a.end.instruction_index < b.start.instruction_index;
-	}
+	return a.end < b.start;
 }
 
 /*********************************************************************************************************************/
