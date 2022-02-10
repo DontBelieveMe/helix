@@ -36,7 +36,7 @@ namespace MachineDescription
             PrintIndent();
 
             if (_target != null)
-                _target.AppendLine(line);
+                _target.Append(line + "\n");
             else
                 Console.WriteLine(line);
         }
@@ -44,7 +44,7 @@ namespace MachineDescription
         public void PrintLine(string line)
         {
             if (_target != null)
-                _target.AppendLine(line);
+                _target.Append(line + "\n");
             else
                 Console.WriteLine(line);
         }
@@ -66,7 +66,7 @@ namespace MachineDescription
 
         public void Newline()
         {
-            _target.AppendLine();
+            _target.Append("\n");
         }
 
         public void PrintIndentedLineAfterUnindent(string line, int indentCount = 1)
