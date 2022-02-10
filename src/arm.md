@@ -10,6 +10,22 @@
 ;                             Binary Operations
 ; *****************************************************************************
 
+; #FIXME(bwilks):
+;
+;    Note how the read/write flags for binary operations is often done in
+;    the order:
+;        (0 read) (1 read) (2 write)
+;    when in actual fact the ARM instructions operands are in the order
+;        write, read, read.
+;
+;   we have to do it this way due to a percularity in the generator where
+;   the operands are added into the LLIR instruction in the same order as
+;   the HLIR and doesn't take into account reordering that might be in the
+;   assembly string (e.g. ARM add {2}, {0}, {1}).
+;
+;   This is _really_ confusing and probably going to cause more issues down the
+;   line so heed this & hopefully fix this at some point.
+
 ; ******************************
 ;      Register/Immediate
 ; ******************************
@@ -26,7 +42,7 @@
 		(match_operand:i32 1 "int")
 		(match_operand:i32 2 "register"))]
 	"add {2}, {0}, #{1}"
-	[(0 write) (1 read) (2 read)])
+	[(0 read) (1 read) (2 write)])
 
 ; 32 bit Register/Immediate Subtraction
 ;
@@ -39,7 +55,7 @@
 		(match_operand:i32 1 "int")
 		(match_operand:i32 2 "register"))]
 	"sub {2}, {0}, #{1}"
-	[(0 write) (1 read) (1 read)])
+	[(0 read) (1 read) (2 write)])
 
 ; ******************************
 ;      Register/Register
@@ -52,7 +68,7 @@
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"add {2}, {0}, {1}"
-	[(0 write) (1 read) (2 read)])
+	[(0 read) (1 read) (2 write)])
 
 ; 32 bit Register/Register Signed Division
 (define-insn "sdiv_r32r32"
@@ -61,7 +77,7 @@
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"sdiv {2}, {0}, {1}"
-	[(0 write) (1 read) (2 read)])
+	[(0 read) (1 read) (2 write)])
 
 (define-insn "udiv_r32r32"
 	[(HLIR::IUDiv
@@ -69,7 +85,7 @@
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"udiv {2}, {0}, {1}"
-	[(0 write) (1 read) (2 read)])
+	[(0 read) (1 read) (2 write)])
 
 ; 32 bit Register/Register Subtraction
 (define-insn "sub_r32r32"
@@ -78,7 +94,7 @@
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"sub {2}, {0}, {1}"
-	[(0 write) (1 read) (2 read)])
+	[(0 read) (1 read) (2 write)])
 
 ; 32 bit Register/Register Multiplication
 (define-insn "mul_r32r32"
@@ -87,7 +103,7 @@
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"mul {2}, {0}, {1}"
-	[(0 write) (1 read) (2 read)])
+	[(0 read) (1 read) (2 write)])
 
 ; 32 bit Register/Register Bitwise Or
 (define-insn "or_r32r32"
@@ -96,7 +112,7 @@
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"orr {2}, {0}, {1}"
-	[(0 write) (1 read) (2 read)])
+	[(0 read) (1 read) (2 write)])
 
 ; 32 bit Register/Register Bitwise And
 (define-insn "and_r32r32"
@@ -105,7 +121,7 @@
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"and {2}, {0}, {1}"
-	[(0 write) (1 read) (2 read)])
+	[(0 read) (1 read) (2 write)])
 
 ; 32 bit Register/Register Bitwise Exclusive Or
 (define-insn "xor_r32r32"
@@ -114,7 +130,7 @@
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
 	"eor {2}, {0}, {1}"
-	[(0 write) (1 read) (2 read)])
+	[(0 read) (1 read) (2 write)])
 
 ; *****************************************************************************
 ;                             Comparison Operations
