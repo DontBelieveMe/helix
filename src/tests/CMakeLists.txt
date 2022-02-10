@@ -6,11 +6,15 @@ add_executable(HelixCoreTests
 	test-function.cpp
 	test-constant-int.cpp
 	test-instructions.cpp
+	test-instruction-index.cpp
 	main.cpp
 	catch.hpp
 )
 
-target_link_libraries(HelixCoreTests HelixCore)
+# FIXME(bwilks): Need to link against HelixClangFrontend since that is where
+#                the CLI input options are implemented... not great :(
+
+target_link_libraries(HelixCoreTests HelixCore HelixClangFrontend)
 set_target_properties(HelixCoreTests PROPERTIES OUTPUT_NAME libhelix-tests)
 
 set_target_properties(HelixCoreTests PROPERTIES FOLDER "Tests")

@@ -27,24 +27,24 @@ TEST_CASE("Operand flags", "[Instruction]")
 	BasicBlock* bb0 = BasicBlock::Create();
 	BasicBlock* bb1 = BasicBlock::Create();
 
-	SECTION("kInsn_IAdd") {
-		BinOpInsn* binop = Helix::CreateBinOp(kInsn_IAdd, a, b, reg);
+	SECTION("HLIR::IAdd") {
+		BinOpInsn* binop = Helix::CreateBinOp(HLIR::IAdd, a, b, reg);
 
 		REQUIRE(binop->OperandHasFlags(0, Instruction::OP_READ));
 		REQUIRE(binop->OperandHasFlags(1, Instruction::OP_READ));
 		REQUIRE(binop->OperandHasFlags(2, Instruction::OP_WRITE));
 	}
 
-	SECTION("kInsn_And") {
-		BinOpInsn* binop = Helix::CreateBinOp(kInsn_And, a, b, reg);
+	SECTION("HLIR::And") {
+		BinOpInsn* binop = Helix::CreateBinOp(HLIR::And, a, b, reg);
 
 		REQUIRE(binop->OperandHasFlags(0, Instruction::OP_READ));
 		REQUIRE(binop->OperandHasFlags(1, Instruction::OP_READ));
 		REQUIRE(binop->OperandHasFlags(2, Instruction::OP_WRITE));
 	}
 
-	SECTION("kInsn_Compare") {
-		CompareInsn* compare = Helix::CreateCompare(kInsn_ICmp_Gt, a, b, reg);
+	SECTION("HLIR::Compare") {
+		CompareInsn* compare = Helix::CreateCompare(HLIR::ICmp_Gt, a, b, reg);
 
 		REQUIRE(compare->GetOperandFlags(0) == Instruction::OP_READ);
 		REQUIRE(compare->GetOperandFlags(1) == Instruction::OP_READ);
@@ -52,19 +52,19 @@ TEST_CASE("Operand flags", "[Instruction]")
 		REQUIRE(compare->GetOperandFlags(3) == Instruction::OP_NONE);
 	}
 
-	SECTION("kInsn_Ret (With Return Value)") {
+	SECTION("HLIR::Ret (With Return Value)") {
 		RetInsn* ret = Helix::CreateRet(a);
 
 		REQUIRE(ret->OperandHasFlags(0, Instruction::OP_READ));
 	}
 
-	SECTION("kInsn_Ret (Without Return Value)") {
+	SECTION("HLIR::Ret (Without Return Value)") {
 		RetInsn* ret = Helix::CreateRet();
 
 		REQUIRE(ret->GetOperandFlags(0) == Instruction::OP_NONE);
 	}
 
-	SECTION("kInsn_StackAlloc") {
+	SECTION("HLIR::StackAlloc") {
 		StackAllocInsn* stack_alloc = Helix::CreateStackAlloc(reg, BuiltinTypes::GetInt32());
 
 		REQUIRE(stack_alloc->GetOperandFlags(0) == Instruction::OP_WRITE);
@@ -72,7 +72,7 @@ TEST_CASE("Operand flags", "[Instruction]")
 		REQUIRE(stack_alloc->GetOperandFlags(1024) == Instruction::OP_NONE);
 	}
 
-	SECTION("kInsn_Cbr") {
+	SECTION("HLIR::Cbr") {
 		ConditionalBranchInsn* cbr = Helix::CreateConditionalBranch(bb0, bb1, reg);
 
 		REQUIRE(cbr->GetOperandFlags(0) == Instruction::OP_READ);
@@ -81,7 +81,7 @@ TEST_CASE("Operand flags", "[Instruction]")
 		REQUIRE(cbr->GetOperandFlags(3) == Instruction::OP_NONE);
 	}
 
-	SECTION("kInsn_Call (With Parameters)") {
+	SECTION("HLIR::Call (With Parameters)") {
 		CallInsn* call = Helix::CreateCall(fnWithNoParameters, {});
 
 		REQUIRE(call->OperandHasFlags(0, Instruction::OP_WRITE));
@@ -91,7 +91,7 @@ TEST_CASE("Operand flags", "[Instruction]")
 		REQUIRE(call->GetOperandFlags(3) == Instruction::OP_NONE);
 	}
 
-	SECTION("kInsn_Call (With Parameters)") {
+	SECTION("HLIR::Call (With Parameters)") {
 		CallInsn* call = Helix::CreateCall(fnWithParameters, { a });
 
 		REQUIRE(call->OperandHasFlags(0, Instruction::OP_WRITE));

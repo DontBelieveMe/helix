@@ -24,7 +24,7 @@ TEST_CASE("Non empty basic block", "[Bytecode]")
 	Value* rhs = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
 
 	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
-	Instruction* fcmp = Helix::CreateCompare(kInsn_ICmp_Gt, lhs, rhs, result);
+	Instruction* fcmp = Helix::CreateCompare(HLIR::ICmp_Gt, lhs, rhs, result);
 	bb->InsertAfter(bb->begin(), fcmp);
 
 	REQUIRE(!bb->IsEmpty());
@@ -34,19 +34,19 @@ TEST_CASE("Non empty basic block", "[Bytecode]")
 
 TEST_CASE("Verify opcode categories", "[Bytecode]")
 {
-	REQUIRE(IsCompare(kInsn_ICmp_Eq));
-	REQUIRE(IsCompare(kInsn_ICmp_Lte));
-	REQUIRE(!IsCompare(kInsn_IAdd));
-	REQUIRE(IsBinaryOp(kInsn_IAdd));
+	REQUIRE(IsCompare(HLIR::ICmp_Eq));
+	REQUIRE(IsCompare(HLIR::ICmp_Lte));
+	REQUIRE(!IsCompare(HLIR::IAdd));
+	REQUIRE(IsBinaryOp(HLIR::IAdd));
 
-	REQUIRE(IsTerminator(kInsn_ConditionalBranch));
-	REQUIRE(IsBranch(kInsn_ConditionalBranch));
+	REQUIRE(IsTerminator(HLIR::ConditionalBranch));
+	REQUIRE(IsBranch(HLIR::ConditionalBranch));
 
-	REQUIRE(IsTerminator(kInsn_Return));
-	REQUIRE(IsBranch(kInsn_Return));
+	REQUIRE(IsTerminator(HLIR::Return));
+	REQUIRE(IsBranch(HLIR::Return));
 
-	REQUIRE(!IsTerminator(kInsn_Call));
-	REQUIRE(IsBranch(kInsn_Call));
+	REQUIRE(!IsTerminator(HLIR::Call));
+	REQUIRE(IsBranch(HLIR::Call));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ TEST_CASE("Creating a floating point compare", "[Bytecode]")
 
 	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
 
-	Instruction* fcmp = Helix::CreateCompare(kInsn_ICmp_Gt, lhs, rhs, result);
+	Instruction* fcmp = Helix::CreateCompare(HLIR::ICmp_Gt, lhs, rhs, result);
 
 	REQUIRE(fcmp->GetOperand(0) == lhs);
 	REQUIRE(fcmp->GetOperand(1) == rhs);
@@ -84,7 +84,7 @@ TEST_CASE("Creating a integral compare", "[Bytecode]")
 	Value* v = ConstantInt::Create(BuiltinTypes::GetInt32(), 454);
 	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
 
-	Instruction* fcmp = Helix::CreateCompare(kInsn_ICmp_Eq, v, v, result);
+	Instruction* fcmp = Helix::CreateCompare(HLIR::ICmp_Eq, v, v, result);
 
 	REQUIRE(fcmp->GetOperand(0) == v);
 	REQUIRE(fcmp->GetOperand(1) == v);
@@ -134,8 +134,8 @@ TEST_CASE("Inserting an instruction into a basic block", "[Bytecode]")
 	VirtualRegisterName* result = VirtualRegisterName::Create(i32, "temp");
 	VirtualRegisterName* result2 = VirtualRegisterName::Create(i32, "temp2");
 
-	Instruction* add = Helix::CreateBinOp(kInsn_IAdd, lhs, rhs, result);
-	Instruction* sub = Helix::CreateBinOp(kInsn_ISub, result, rhs, result2);
+	Instruction* add = Helix::CreateBinOp(HLIR::IAdd, lhs, rhs, result);
+	Instruction* sub = Helix::CreateBinOp(HLIR::ISub, result, rhs, result2);
 
 	BasicBlock *bb = BasicBlock::Create("head");
 
@@ -178,7 +178,7 @@ TEST_CASE("CreateBinOp Register/Register/Register", "[Bytecode]")
 	VirtualRegisterName* output = VirtualRegisterName::Create(i32, "output");
 
 	BinOpInsn* add = Helix::CreateBinOp(
-		kInsn_IAdd,
+		HLIR::IAdd,
 		lhs,
 		rhs,
 		output	
@@ -200,7 +200,7 @@ TEST_CASE("CreateBinOp ConstantInt/ConstantInt/Register", "[Bytecode]")
 	VirtualRegisterName* output = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "output");
 
 	BinOpInsn* add = Helix::CreateBinOp(
-		kInsn_IAdd,
+		HLIR::IAdd,
 		lhs,
 		rhs,
 		output	
