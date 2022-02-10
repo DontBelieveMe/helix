@@ -2,6 +2,7 @@
 #include "basic-block.h"
 #include "function.h"
 #include "print.h"
+#include "mir.h"
 
 using namespace Helix;
 
@@ -362,7 +363,7 @@ void Instruction::DeleteFromParent()
 bool Instruction::IsTerminator() const
 {
 	if (Helix::IsMachineOpcode(m_Opcode))
-		return false;
+		return Helix::IsMachineTerminator(m_Opcode);
 
 	return HLIR::IsTerminator((HLIR::Opcode) m_Opcode);
 }

@@ -25,7 +25,8 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "int")
 		(match_operand:i32 2 "register"))]
-	"add {2}, {0}, #{1}")
+	"add {2}, {0}, #{1}"
+	[(0 write) (1 read) (2 read)])
 
 ; 32 bit Register/Immediate Subtraction
 ;
@@ -37,7 +38,8 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "int")
 		(match_operand:i32 2 "register"))]
-	"sub {2}, {0}, #{1}")
+	"sub {2}, {0}, #{1}"
+	[(0 write) (1 read) (1 read)])
 
 ; ******************************
 ;      Register/Register
@@ -49,7 +51,8 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"add {2}, {0}, {1}")
+	"add {2}, {0}, {1}"
+	[(0 write) (1 read) (2 read)])
 
 ; 32 bit Register/Register Signed Division
 (define-insn "sdiv_r32r32"
@@ -57,14 +60,16 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"sdiv {2}, {0}, {1}")
+	"sdiv {2}, {0}, {1}"
+	[(0 write) (1 read) (2 read)])
 
 (define-insn "udiv_r32r32"
 	[(HLIR::IUDiv
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"udiv {2}, {0}, {1}")
+	"udiv {2}, {0}, {1}"
+	[(0 write) (1 read) (2 read)])
 
 ; 32 bit Register/Register Subtraction
 (define-insn "sub_r32r32"
@@ -72,7 +77,8 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"sub {2}, {0}, {1}")
+	"sub {2}, {0}, {1}"
+	[(0 write) (1 read) (2 read)])
 
 ; 32 bit Register/Register Multiplication
 (define-insn "mul_r32r32"
@@ -80,7 +86,8 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"mul {2}, {0}, {1}")
+	"mul {2}, {0}, {1}"
+	[(0 write) (1 read) (2 read)])
 
 ; 32 bit Register/Register Bitwise Or
 (define-insn "or_r32r32"
@@ -88,7 +95,8 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"orr {2}, {0}, {1}")
+	"orr {2}, {0}, {1}"
+	[(0 write) (1 read) (2 read)])
 
 ; 32 bit Register/Register Bitwise And
 (define-insn "and_r32r32"
@@ -96,7 +104,8 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"and {2}, {0}, {1}")
+	"and {2}, {0}, {1}"
+	[(0 write) (1 read) (2 read)])
 
 ; 32 bit Register/Register Bitwise Exclusive Or
 (define-insn "xor_r32r32"
@@ -104,14 +113,15 @@
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register")
 		(match_operand:i32 2 "register"))]
-	"eor {2}, {0}, {1}")
+	"eor {2}, {0}, {1}"
+	[(0 write) (1 read) (2 read)])
 
 ; *****************************************************************************
 ;                             Comparison Operations
 ; *****************************************************************************
 
-(define-insn "cmp"  [] "cmp {0}, {1}")
-(define-insn "cmpi" [] "cmp {0}, #{1}")
+(define-insn "cmp"  [] "cmp {0}, {1}"  [(0 read) (1 read)])
+(define-insn "cmpi" [] "cmp {0}, #{1}" [(0 read) (1 read)])
 
 (define-insn "$icmpeq"
 	[(HLIR::ICmp_Eq
@@ -159,17 +169,17 @@
 ;                             Memory Operations
 ; *****************************************************************************
 
-(define-insn "ldr"   [] "ldr {0}, [{1}]")   ; Load (32 bits)
+(define-insn "ldr"   [] "ldr {0}, [{1}]"   [(0 write) (1 read)])   ; Load (32 bits)
 
-(define-insn "ldrsh" [] "ldrsh {0}, [{1}]") ; Load & Sign Extend (16 bits)
-(define-insn "ldrh"  [] "ldrh {0}, [{1}]")  ; Load & Zero Extend (16 bits)
+(define-insn "ldrsh" [] "ldrsh {0}, [{1}]" [(0 write) (1 read)]) ; Load & Sign Extend (16 bits)
+(define-insn "ldrh"  [] "ldrh {0}, [{1}]"  [(0 write) (1 read)])  ; Load & Zero Extend (16 bits)
 
-(define-insn "ldrb"  [] "ldrb {0}, [{1}]")  ; Load & Zero Extend (8 bits)
-(define-insn "ldrsb" [] "ldrsb {0}, [{1}]") ; Load & Sign Extend (8 bits)
+(define-insn "ldrb"  [] "ldrb {0}, [{1}]"  [(0 write) (1 read)])  ; Load & Zero Extend (8 bits)
+(define-insn "ldrsb" [] "ldrsb {0}, [{1}]" [(0 write) (1 read)]) ; Load & Sign Extend (8 bits)
 
-(define-insn "str"   [] "str {0}, [{1}]")   ; Store (32 bit)
-(define-insn "strh"  [] "strh {0}, [{1}]")  ; Store (16 bit)
-(define-insn "strb"  [] "strb {0}, [{1}]")  ; Store (16 bit)
+(define-insn "str"   [] "str {0}, [{1}]"   [(0 read) (1 read)])   ; Store (32 bit)
+(define-insn "strh"  [] "strh {0}, [{1}]"  [(0 read) (1 read)])  ; Store (16 bit)
+(define-insn "strb"  [] "strb {0}, [{1}]"  [(0 read) (1 read)])  ; Store (16 bit)
 
 ; ******************************
 ;      Store (To Memory)
@@ -225,7 +235,7 @@
 ;                             Branching Operations
 ; *****************************************************************************
 
-(define-insn "bge" [] "bge {0}")
+(define-insn "bge" [] "bge {0}" [(0 read)])
 
 (define-insn "$cbr"
 	[(HLIR::ConditionalBranch
@@ -238,7 +248,8 @@
 (define-insn "br"
 	[(HLIR::UnconditionalBranch
 		(match_operand:lbl 0 "basic_block"))]
-	"b {0}")
+	"b {0}"
+	[(0 read)])
 
 ; 'ret' here implements the function prologue
 ; This acts as a return from the current instruction, since
@@ -248,7 +259,8 @@
 ; instead of going through a branch instruction
 (define-insn "ret"
 	[(HLIR::Return)]
-	"@pop {r11, pc}")
+	"@pop {r11, pc}"
+	[])
 
 ; *****************************************************************************
 ;                             Cast Operations
@@ -265,13 +277,15 @@
 	[(HLIR::IntToPtr
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register"))]
-	"mov {1}, {0}")
+	"mov {1}, {0}"
+	[(0 write) (1 read)])
 
 (define-insn "ptrtoint"
 	[(HLIR::PtrToInt
 		(match_operand:i32 0 "register")
 		(match_operand:i32 1 "register"))]
-	"mov {1}, {0}")
+	"mov {1}, {0}"
+	[(0 write) (1 read)])
 
 (define-insn "$ptrtoint"
 	[(HLIR::PtrToInt
@@ -283,22 +297,22 @@
 ;                             Move Operations
 ; *****************************************************************************
 
-(define-insn "movi" [] "mov {0}, #{1}")
-(define-insn "mov" [] "mov {0}, {1}")
+(define-insn "movi" [] "mov {0}, #{1}" [(0 write) (1 read)])
+(define-insn "mov"  [] "mov {0}, {1}"  [(0 write) (1 read)])
 
-(define-insn "movweqi" [] "movweq {0}, #{1}")
-(define-insn "movwnei" [] "movwne {0}, #{1}")
-(define-insn "movwlti" [] "movwlt {0}, #{1}")
-(define-insn "movwlei" [] "movwle {0}, #{1}")
-(define-insn "movwgti" [] "movwgt {0}, #{1}")
-(define-insn "movwgei" [] "movwge {0}, #{1}")
+(define-insn "movweqi" [] "movweq {0}, #{1}" [(0 write) (1 read)])
+(define-insn "movwnei" [] "movwne {0}, #{1}" [(0 write) (1 read)])
+(define-insn "movwlti" [] "movwlt {0}, #{1}" [(0 write) (1 read)])
+(define-insn "movwlei" [] "movwle {0}, #{1}" [(0 write) (1 read)])
+(define-insn "movwgti" [] "movwgt {0}, #{1}" [(0 write) (1 read)])
+(define-insn "movwgei" [] "movwge {0}, #{1}" [(0 write) (1 read)])
 
-(define-insn "movweq" [] "movweq {0}, {1}")
-(define-insn "movwne" [] "movwne {0}, {1}")
-(define-insn "movwlt" [] "movwlt {0}, {1}")
-(define-insn "movwle" [] "movwle {0}, {1}")
-(define-insn "movwgt" [] "movwgt {0}, {1}")
-(define-insn "movwge" [] "movwge {0}, {1}")
+(define-insn "movweq" [] "movweq {0}, {1}"   [(0 write) (1 read)])
+(define-insn "movwne" [] "movwne {0}, {1}"   [(0 write) (1 read)])
+(define-insn "movwlt" [] "movwlt {0}, {1}"   [(0 write) (1 read)])
+(define-insn "movwle" [] "movwle {0}, {1}"   [(0 write) (1 read)])
+(define-insn "movwgt" [] "movwgt {0}, {1}"   [(0 write) (1 read)])
+(define-insn "movwge" [] "movwge {0}, {1}"   [(0 write) (1 read)])
 
-(define-insn "movw_gl16" [] "movw {0}, :lower16:{1}")
-(define-insn "movt_gu16" [] "movt {0}, :upper16:{1}")
+(define-insn "movw_gl16" [] "movw {0}, :lower16:{1}" [(0 write) (1 read)])
+(define-insn "movt_gu16" [] "movt {0}, :upper16:{1}" [(0 write) (1 read)])

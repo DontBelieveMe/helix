@@ -21,7 +21,31 @@ namespace Helix
 	{
 	public:
 		MachineInstruction(OpcodeType opcode, size_t nOperands)
-			: Instruction(opcode, nOperands) { }
+			: Instruction(opcode, nOperands)
+		{ }
+
+		OperandFlags GetOperandFlags(size_t index) const override
+		{
+			helix_assert(index < 4, "didn't expect machine operand to have so many operands...");
+
+			if (index >= 4)
+				return OP_NONE;
+
+			return Flags[index];
+		}
+
+		void SetOperandFlag(size_t index, OperandFlags flags)
+		{
+			helix_assert(index < 4, "didn't expect machine operand to have so many operands...");
+
+			if (index >= 4)
+				return;
+
+			Flags[index] = flags;
+		}
+
+	private:
+		OperandFlags Flags[4] = { };
 	};
 
 	bool IsMachineTerminator(OpcodeType opc);

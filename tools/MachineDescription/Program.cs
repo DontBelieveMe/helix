@@ -6,11 +6,24 @@ using System.Text;
 
 namespace MachineDescription
 {
+    enum OperandRW
+    {
+        Read,
+        Write
+    }
+
+    class OperandMeta
+    {
+        public OperandRW RW;
+    }
+
     class Instruction
     {
         public string Name;
         public string OutputFormat;
         public IRInstructionTemplate Template;
+
+        public List<OperandMeta> Meta = new List<OperandMeta>();
 
         public bool IsTextOnlyDefinition()
         {
@@ -298,7 +311,7 @@ namespace MachineDescription
 
         private Instruction ParseInstruction(SExpression node)
         {
-            if (node.Children.Count > 4)
+            if (node.Children.Count > 5)
             {
                 Console.WriteLine(" > Error, too many parameters passed to define-insn");
                 Environment.Exit(1);
@@ -309,9 +322,39 @@ namespace MachineDescription
 
             String outputFormat = node.GetChildAs<String>(3);
 
+            List<OperandMeta> metas = new List<OperandMeta>();
+
+            if (!name.Value.StartsWith("$"))
+            {
+                Array arr = node.GetChildAs<Array>(4);
+
+                if (arr != null)
+                {
+                    if (arr.Children.Count > 4)
+                    {
+                        Console.WriteLine(" > Error, too much meta info (> 4) too many params?");
+                        Environment.Exit(1);
+                    }
+
+                    for (int i = 0; i < arr.Children.Count; ++i)
+                        metas.Add(new OperandMeta());
+
+                    for (int i = 0; i < arr.Children.Count; ++i)
+                    {
+                        SExpression metaSexpr = arr.Children[i] as SExpression;
+
+                        int opIndex = (metaSexpr.Children[0] as Number).Value;
+                        string rwFlag = (metaSexpr.Children[1] as Symbol).Value;
+
+                        metas[opIndex].RW = rwFlag.ToLower() == "read" ? OperandRW.Read : OperandRW.Write;
+                    }
+                }
+            }
+
             Instruction insn = new Instruction() { 
                 Name = name.Value,
-                OutputFormat = outputFormat.Value
+                OutputFormat = outputFormat.Value,
+                Meta = metas
             };
             insn.Template = new IRInstructionTemplate(template, insn);
 
@@ -649,6 +692,20 @@ namespace MachineDescription
                 for (int i = 0; i < nOperands; i++)
                 {
                     ctx.PrintIndentedLine("insn->SetOperand(" + i + ", v" + i + ");");
+                }
+
+                for (int i = 0; i < insn.Meta.Count; i++)
+                {
+                    OperandMeta meta = insn.Meta[i];
+
+                    string flagString = "Instruction::OP_NONE";
+
+                    if (meta.RW == OperandRW.Read)
+                        flagString = "Instruction::OP_READ";
+                    else if (meta.RW == OperandRW.Write)
+                        flagString = "Instruction::OP_WRITE";
+
+                    ctx.PrintIndentedLine(string.Format("insn->SetOperandFlag({0}, {1});", i, flagString));
                 }
 
                 ctx.PrintIndentedLine("return insn;");
