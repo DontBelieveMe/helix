@@ -4,6 +4,7 @@
 #include "print.h"
 #include "ir-helpers.h"
 #include "instruction-index.h"
+#include "interval.h"
 
 /* C Standard Library Includes */
 #include <ctype.h>
@@ -14,29 +15,6 @@
 #pragma optimize("", off)
 
 using namespace Helix;
-
-/*********************************************************************************************************************/
-
-struct Interval
-{
-	/* Interval Bounds */
-	InstructionIndex start;
-	InstructionIndex end;
-
-	Interval(VirtualRegisterName* v)
-		: virtual_register(v) { }
-
-	Interval() = default;
-
-	/* Allocation Info */
-	VirtualRegisterName*  virtual_register  = nullptr;
-	PhysicalRegisterName* physical_register = 0;
-	size_t                stack_slot        = SIZE_MAX;
-
-	bool operator==(const Interval& other) {
-		return start == other.start && end == other.end;
-	}
-};
 
 /*********************************************************************************************************************/
 
@@ -58,54 +36,6 @@ static bool InstructionHasOperandWithFlag(const Instruction* insn, VirtualRegist
 
 	return false;
 }
-
-/*********************************************************************************************************************/
-
-struct IntervalStartComparator
-{
-	bool operator()(const Interval& a, const Interval& b)
-	{
-		if (a.start.block_index < b.start.block_index) {
-			return true;
-		}
-		else if (a.start.block_index == b.start.block_index) {
-			return a.start.instruction_index < b.start.instruction_index;
-		}
-
-		return false;
-	}
-};
-
-struct IntervalEndComparator
-{
-	bool operator()(const Interval& a, const Interval& b)
-	{
-		if (a.end.block_index < b.end.block_index) {
-			return true;
-		}
-		else if (a.end.block_index == b.end.block_index) {
-			return a.end.instruction_index < b.end.instruction_index;
-		}
-
-		return false;
-	}
-};
-
-struct IntervalStartEndComparator
-{
-	bool operator()(const Interval& a, const Interval& b)
-	{
-		if (a.end.block_index < b.start.block_index) {
-			return true;
-		}
-		else if (a.end.block_index > b.start.block_index) {
-			return false;
-		}
-		else {
-			return a.end.instruction_index < b.start.instruction_index;
-		}
-	}
-};
 
 /*********************************************************************************************************************/
 
@@ -143,7 +73,7 @@ static void ExpireOldIntervals(std::set<PhysicalRegisterName*>* free_regs, std::
 	std::vector<Interval> keep;
 
 	for (const Interval& active_interval : *active) {
-		if (!IntervalStartEndComparator()(active_interval, *interval)) {
+		if (!IntervalEndStartComparator()(active_interval, *interval)) {
 			keep.push_back(active_interval);
 			continue;
 		}

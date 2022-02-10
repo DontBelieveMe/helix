@@ -7,6 +7,7 @@ add_executable(HelixCoreTests
 	test-constant-int.cpp
 	test-instructions.cpp
 	test-instruction-index.cpp
+	test-interval.cpp
 	main.cpp
 	catch.hpp
 )

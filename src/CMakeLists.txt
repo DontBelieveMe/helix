@@ -58,6 +58,8 @@ add_library(HelixCore
 	mir.h
 	instruction-index.h
 	instruction-index.cpp
+	interval.h
+	interval.cpp
 
 	options.def
 	insns.def
