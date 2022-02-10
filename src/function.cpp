@@ -121,6 +121,8 @@ void Function::RunLivenessAnalysis()
 {
 	BasicBlock* exitBlock = GetTailBlock();
 
+	int nIterations = 0;
+
 	// Continuously iterate while there are changes to IN[bb]
 	for (;;) {
 		bool dirty = false;
@@ -139,10 +141,14 @@ void Function::RunLivenessAnalysis()
 			}
 		}
 
+		nIterations++;
+
 		if (!dirty) {
 			break;
 		}
 	}
+
+	helix_debug(logs::general, "Liveness analysis finished in {} iterations", nIterations);
 }
 
 /*********************************************************************************************************************/
