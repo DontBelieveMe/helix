@@ -91,6 +91,14 @@ const Instruction* BasicBlock::GetTerminator() const
 
 /*********************************************************************************************************************/
 
+template <typename T>
+static bool MapContainsValue(const T& it, const T& mapend)
+{
+	return it != mapend;
+}
+
+/*********************************************************************************************************************/
+
 std::set<VirtualRegisterName*> BasicBlock::CalculateDefs()
 {
 	// The 'def' set of a basic block (B) is defined as:
@@ -115,7 +123,9 @@ std::set<VirtualRegisterName*> BasicBlock::CalculateDefs()
 				else if (insn.OperandHasFlags(i, Instruction::OP_WRITE)) {
 					auto it = usedVariables.find(operand);
 
-					if (it != usedVariables.end()) {
+					// Only want definitions _prior_ to any use - e.g.
+					// shouldn't exist in the usedVariables set
+					if (!MapContainsValue(it, usedVariables.end())) {
 						definedVariables.insert(operand);
 					}
 				}
@@ -153,7 +163,9 @@ std::set<VirtualRegisterName*> BasicBlock::CalculateUses()
 				else if (insn.OperandHasFlags(i, Instruction::OP_READ)) {
 					auto it = definedVariables.find(operand);
 
-					if (it != definedVariables.end()) {
+					// Only want uses _prior_ to any definitions, e.g.
+					// shouldn't exist in the definitions set.
+					if (!MapContainsValue(it, definedVariables.end())) {
 						usedVariables.insert(operand);
 					}
 				}
