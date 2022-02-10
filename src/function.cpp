@@ -119,8 +119,6 @@ static void ComputeLiveOutForBlock(BasicBlock* bb)
 
 void Function::RunLivenessAnalysis()
 {
-	BasicBlock* exitBlock = GetTailBlock();
-
 	int nIterations = 0;
 
 	// Continuously iterate while there are changes to IN[bb]

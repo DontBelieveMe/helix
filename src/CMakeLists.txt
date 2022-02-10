@@ -56,6 +56,8 @@ add_library(HelixCore
 	ir-helpers.h
 	ir-helpers.cpp
 	mir.h
+	instruction-index.h
+	instruction-index.cpp
 
 	options.def
 	insns.def

@@ -3,6 +3,7 @@
 #include "function.h"
 #include "print.h"
 #include "ir-helpers.h"
+#include "instruction-index.h"
 
 /* C Standard Library Includes */
 #include <ctype.h>
@@ -16,27 +17,11 @@ using namespace Helix;
 
 /*********************************************************************************************************************/
 
-struct InsnIndex
-{
-	size_t block_index       = SIZE_MAX;
-	size_t instruction_index = SIZE_MAX;
-
-	InsnIndex(size_t block, size_t instruction)
-		: block_index(block), instruction_index(instruction)
-	{ }
-
-	InsnIndex() = default;
-
-	bool operator==(const InsnIndex& other) {
-		return block_index == other.block_index && instruction_index == other.instruction_index;
-	}
-};
-
 struct Interval
 {
 	/* Interval Bounds */
-	InsnIndex start;
-	InsnIndex end;
+	InstructionIndex start;
+	InstructionIndex end;
 
 	Interval(VirtualRegisterName* v)
 		: virtual_register(v) { }
@@ -178,25 +163,28 @@ void RegisterAllocator2::Execute(Function* function)
 
 	/* debug log liveness information */
 	SlotTracker slots;
+	slots.CacheFunction(function);
 
-	Helix::TextOutputStream tout(stdout);
-	Helix::Print(slots, tout, *function);
+	//Helix::TextOutputStream tout(stdout);
+	//Helix::Print(slots, tout, *function);
 
-#if 0
+#if 1
+	helix_debug(logs::regalloc2, "********** Liveness Analysis **********");
+
 	for (const BasicBlock& bb : function->blocks()) {
-		helix_info(logs::regalloc2, "bb{}", slots.GetBasicBlockSlot(&bb));
+		helix_debug(logs::regalloc2, "bb{}", slots.GetBasicBlockSlot(&bb));
 
 		const auto in = bb.GetLiveIn();
 		const auto out = bb.GetLiveOut();
 
-		helix_info(logs::regalloc2, "\tIN [count={}]:", in.size());
+		helix_debug(logs::regalloc2, "\tIN [count={}]:", in.size());
 		for (const VirtualRegisterName* v : in) {
-			helix_info(logs::regalloc2, "\t - %{}", slots.GetValueSlot(v));
+			helix_debug(logs::regalloc2, "\t   - %{}", slots.GetValueSlot(v));
 		}
 
-		helix_info(logs::regalloc2, "\tOUT [count={}]:", out.size());
+		helix_debug(logs::regalloc2, "\tOUT [count={}]:", out.size());
 		for (const VirtualRegisterName* v : out) {
-			helix_info(logs::regalloc2, "\t - %{}", slots.GetValueSlot(v));
+			helix_debug(logs::regalloc2, "\t   - %{}", slots.GetValueSlot(v));
 		}
 	}
 #endif
@@ -223,7 +211,7 @@ void RegisterAllocator2::Execute(Function* function)
 
 						if (!Contains(block_in, vreg) && !Contains(block_out, vreg)) {
 							Interval new_interval(vreg);
-							new_interval.end = InsnIndex(blockIndex, instructionIndex);
+							new_interval.end = InstructionIndex(blockIndex, instructionIndex);
 							new_interval.virtual_register = vreg;
 
 							uses[vreg] = new_interval;
@@ -247,7 +235,7 @@ void RegisterAllocator2::Execute(Function* function)
 							continue;
 
 						if (!Contains(block_in, vreg) && !Contains(block_out, vreg)) {
-							uses[vreg].start = InsnIndex(blockIndex, instructionIndex);
+							uses[vreg].start = InstructionIndex(blockIndex, instructionIndex);
 							intervals[vreg] = uses[vreg];
 							uses.erase(vreg);
 						}
@@ -260,13 +248,13 @@ void RegisterAllocator2::Execute(Function* function)
 			for (VirtualRegisterName* vreg : block_in) {
 				if (!Contains(intervals, vreg)) {
 					Interval new_interval(vreg);
-					new_interval.start = InsnIndex(blockIndex, 0);
+					new_interval.start = InstructionIndex(blockIndex, 0);
 
 					intervals[vreg] = new_interval;
 				}
 
 				if (!Contains(block_out, vreg)) {
-					InsnIndex end = InsnIndex(blockIndex, SIZE_MAX);
+					InstructionIndex end = InstructionIndex(blockIndex, SIZE_MAX);
 
 					instructionIndex = 0;
 					for (Instruction& insn : bb) {
@@ -283,7 +271,7 @@ void RegisterAllocator2::Execute(Function* function)
 
 			for (VirtualRegisterName* vreg : block_out) {
 				if (!Contains(block_in, vreg) && !Contains(intervals, vreg)) {
-					InsnIndex start = InsnIndex(blockIndex, SIZE_MAX);
+					InstructionIndex start = InstructionIndex(blockIndex, SIZE_MAX);
 
 					instructionIndex = 0;
 					for (Instruction& insn : bb) {
@@ -301,7 +289,7 @@ void RegisterAllocator2::Execute(Function* function)
 					intervals[vreg] = interval;
 				}
 				else {
-					InsnIndex end = InsnIndex(blockIndex, SIZE_MAX);
+					InstructionIndex end = InstructionIndex(blockIndex, SIZE_MAX);
 
 					instructionIndex = 0;
 					for (Instruction& insn : bb) {
@@ -320,7 +308,9 @@ void RegisterAllocator2::Execute(Function* function)
 		}
 	}
 
-#if 0
+#if 1
+	helix_debug(logs::regalloc2, "********** Interval Analysis **********");
+
 	for (const auto [vreg, interval] : intervals) {
 		helix_debug(logs::regalloc2, "%{} = {}:{} -> {}:{}",
 			slots.GetValueSlot(vreg),
@@ -371,6 +361,7 @@ void RegisterAllocator2::Execute(Function* function)
 	}
 
 #if 1
+	helix_debug(logs::regalloc2, "********** Final Allocation **********");
 
 	for (const Interval& interval : intervals_sorted)
 	{
