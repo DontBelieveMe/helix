@@ -14,10 +14,14 @@
 /* Internal Project Includes */
 #include "instruction-index.h"
 
+/* C++ Standard Library Includes */
+#include <unordered_map>
+
 namespace Helix
 {
 	class VirtualRegisterName;
 	class PhysicalRegisterName;
+	class Function;
 
 	struct Interval
 	{
@@ -83,4 +87,6 @@ namespace Helix
 		 */
 		bool operator()(const Interval& a, const Interval& b) const;
 	};
+
+	void ComputeIntervalsForFunction(Function* function, std::unordered_map<VirtualRegisterName*, Interval>& intervals);
 }

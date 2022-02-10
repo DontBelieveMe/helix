@@ -16,26 +16,7 @@
 
 using namespace Helix;
 
-/*********************************************************************************************************************/
-
-template <typename MapType, typename KeyType>
-static bool Contains(const MapType& assoc, const KeyType& key)
-{
-	auto it = assoc.find(key);
-	return it != assoc.end();
-}
-
-/*********************************************************************************************************************/
-
-static bool InstructionHasOperandWithFlag(const Instruction* insn, VirtualRegisterName* vreg, Instruction::OperandFlags flag)
-{
-	for (size_t i = 0; i < insn->GetCountOperands(); ++i) {
-		if (insn->GetOperand(i) == vreg && insn->OperandHasFlags(i, flag))
-			return true;
-	}
-
-	return false;
-}
+#define REGALLOC2_DEBUG_LOGS 0
 
 /*********************************************************************************************************************/
 
@@ -89,13 +70,16 @@ static void ExpireOldIntervals(std::set<PhysicalRegisterName*>* free_regs, std::
 
 void RegisterAllocator2::Execute(Function* function)
 {
+	//////////////////////////////////////////////////////////////////////////
+	// (1) Liveness Analysis
+	//////////////////////////////////////////////////////////////////////////
+
 	function->RunLivenessAnalysis();
 
-	/* debug log liveness information */
+#if REGALLOC2_DEBUG_LOGS
 	SlotTracker slots;
 	slots.CacheFunction(function);
 
-#if 0
 	helix_debug(logs::regalloc2, "********** Liveness Analysis **********");
 
 	for (const BasicBlock& bb : function->blocks()) {
@@ -116,126 +100,14 @@ void RegisterAllocator2::Execute(Function* function)
 	}
 #endif
 
+	//////////////////////////////////////////////////////////////////////////
+	// (2) Compute Live Intervals
+	//////////////////////////////////////////////////////////////////////////
+
 	std::unordered_map<VirtualRegisterName*, Interval> intervals;
+	Helix::ComputeIntervalsForFunction(function, intervals);
 
-	{
-		size_t blockIndex = 0;
-		for (BasicBlock& bb : function->blocks()) {
-			size_t instructionIndex;
-			std::unordered_map<VirtualRegisterName*, Interval> uses;
-
-			const std::set<VirtualRegisterName*>& block_in = bb.GetLiveIn();
-			const std::set<VirtualRegisterName*>& block_out = bb.GetLiveOut();
-
-			instructionIndex = 0;
-			for (Instruction& insn : bb) {
-				for (size_t opIndex = 0; opIndex < insn.GetCountOperands(); ++opIndex) {
-					if (insn.OperandHasFlags(opIndex, Instruction::OP_READ)) {
-						VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(insn.GetOperand(opIndex));
-
-						if (!vreg)
-							continue;
-
-						if (!Contains(block_in, vreg) && !Contains(block_out, vreg)) {
-							Interval new_interval(vreg);
-							new_interval.end = InstructionIndex(blockIndex, instructionIndex);
-							new_interval.virtual_register = vreg;
-
-							uses[vreg] = new_interval;
-						}
-					}
-				}
-
-				instructionIndex++;
-			}
-
-			instructionIndex = 0;
-			for (Instruction& insn : bb) {
-				for (size_t opIndex = 0; opIndex < insn.GetCountOperands(); ++opIndex) {
-					if (insn.OperandHasFlags(opIndex, Instruction::OP_WRITE)) {
-						VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(insn.GetOperand(opIndex));
-
-						if (!vreg)
-							continue;
-
-						if (!Contains(uses, vreg))
-							continue;
-
-						if (!Contains(block_in, vreg) && !Contains(block_out, vreg)) {
-							uses[vreg].start = InstructionIndex(blockIndex, instructionIndex);
-							intervals[vreg] = uses[vreg];
-							uses.erase(vreg);
-						}
-					}
-				}
-
-				instructionIndex++;
-			}
-
-			for (VirtualRegisterName* vreg : block_in) {
-				if (!Contains(intervals, vreg)) {
-					Interval new_interval(vreg);
-					new_interval.start = InstructionIndex(blockIndex, 0);
-
-					intervals[vreg] = new_interval;
-				}
-
-				if (!Contains(block_out, vreg)) {
-					InstructionIndex end = InstructionIndex(blockIndex, SIZE_MAX);
-
-					instructionIndex = 0;
-					for (Instruction& insn : bb) {
-						if (InstructionHasOperandWithFlag(&insn, vreg, Instruction::OP_READ)) {
-							end.instruction_index = instructionIndex;
-						}
-
-						instructionIndex++;
-					}
-
-					intervals[vreg].end = end;
-				}
-			}
-
-			for (VirtualRegisterName* vreg : block_out) {
-				if (!Contains(block_in, vreg) && !Contains(intervals, vreg)) {
-					InstructionIndex start = InstructionIndex(blockIndex, SIZE_MAX);
-
-					instructionIndex = 0;
-					for (Instruction& insn : bb) {
-						if (InstructionHasOperandWithFlag(&insn, vreg, Instruction::OP_WRITE)) {
-							start.instruction_index = instructionIndex;
-							break;
-						}
-
-						instructionIndex++;
-					}
-
-					Interval interval(vreg);
-					interval.start = start;
-
-					intervals[vreg] = interval;
-				}
-				else {
-					InstructionIndex end = InstructionIndex(blockIndex, SIZE_MAX);
-
-					instructionIndex = 0;
-					for (Instruction& insn : bb) {
-						if (InstructionHasOperandWithFlag(&insn, vreg, Instruction::OP_READ)) {
-							end.instruction_index = instructionIndex;
-						}
-
-						instructionIndex++;
-					}
-
-					intervals[vreg].end = end;
-				}
-			}
-
-			blockIndex++;
-		}
-	}
-
-#if 0
+#if REGALLOC2_DEBUG_LOGS
 	helix_debug(logs::regalloc2, "********** Interval Analysis **********");
 
 	for (const auto [vreg, interval] : intervals) {
@@ -245,6 +117,10 @@ void RegisterAllocator2::Execute(Function* function)
 			interval.end.block_index, interval.end.instruction_index);
 	}
 #endif
+
+	//////////////////////////////////////////////////////////////////////////
+	// (3) Allocate each interval a register (or spill)
+	//////////////////////////////////////////////////////////////////////////
 
 	std::vector<Interval> intervals_sorted;
 	
@@ -287,7 +163,7 @@ void RegisterAllocator2::Execute(Function* function)
 		}
 	}
 
-#if 1
+#if REGALLOC2_DEBUG_LOGS
 	helix_debug(logs::regalloc2, "********** Final Allocation **********");
 
 	for (const Interval& interval : intervals_sorted)
@@ -300,12 +176,15 @@ void RegisterAllocator2::Execute(Function* function)
 	}
 #endif
 
+	//////////////////////////////////////////////////////////////////////////
+	// (4) Rewrite virtual register references to the allocated physical register
+	//     (or inject spill code)
+	//////////////////////////////////////////////////////////////////////////
+
 	std::unordered_map<VirtualRegisterName*, PhysicalRegisterName*> map;
 
 	for (const Interval& interval : intervals_sorted)
-	{
 		map.insert({ interval.virtual_register, interval.physical_register });
-	}
 
 	for (BasicBlock& bb : function->blocks()) {
 		for (Instruction& insn : bb) {
