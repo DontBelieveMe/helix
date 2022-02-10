@@ -78,8 +78,10 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 		}
 	}
 	else if (is_global(load->GetSrc()) && is_register(load->GetDst())) {
+		VirtualRegisterName* temporary_register = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+
 		// Load the address of the global into the destination register...
-		BasicBlock::iterator where = LoadGlobalAddressIntoRegister(insn, load->GetDst(), load->GetSrc());
+		BasicBlock::iterator where = LoadGlobalAddressIntoRegister(insn, temporary_register, load->GetSrc());
 
 		// ... then load the value stored at the address in the destination register, into the destination register.
 		// This seems like a bit of a hack that allows us to only use one register.
@@ -87,9 +89,9 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 		// #FIXME: Do a bit of an investigation, find out if this is legal (it seems to work?) or even just a bad idea.
 		
 		switch (GetMachineMode(load->GetDst())) {
-		case QImode: return ARMv7::CreateLdrb(load->GetDst(), load->GetDst());
-		case HImode: return ARMv7::CreateLdrh(load->GetDst(), load->GetDst());
-		case SImode: return ARMv7::CreateLdr(load->GetDst(), load->GetDst());
+		case QImode: return ARMv7::CreateLdrb(load->GetDst(), temporary_register);
+		case HImode: return ARMv7::CreateLdrh(load->GetDst(), temporary_register);
+		case SImode: return ARMv7::CreateLdr(load->GetDst(), temporary_register);
 		default:
 			helix_unreachable("cannot natively load values of this machine mode (from global)");
 			break;
