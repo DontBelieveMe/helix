@@ -95,10 +95,7 @@ void RegisterAllocator2::Execute(Function* function)
 	SlotTracker slots;
 	slots.CacheFunction(function);
 
-	//Helix::TextOutputStream tout(stdout);
-	//Helix::Print(slots, tout, *function);
-
-#if 1
+#if 0
 	helix_debug(logs::regalloc2, "********** Liveness Analysis **********");
 
 	for (const BasicBlock& bb : function->blocks()) {
@@ -238,7 +235,7 @@ void RegisterAllocator2::Execute(Function* function)
 		}
 	}
 
-#if 1
+#if 0
 	helix_debug(logs::regalloc2, "********** Interval Analysis **********");
 
 	for (const auto [vreg, interval] : intervals) {
