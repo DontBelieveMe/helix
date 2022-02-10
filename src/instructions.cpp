@@ -304,6 +304,9 @@ std::string Helix::stringify_operand(Value* v, SlotTracker& slots)
 		const size_t slot = slots.GetBasicBlockSlot(bb->GetParent());
 		return fmt::format(".bb{}", slot);
 	}
+	if (VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(v)) {
+		return fmt::format("%{}", slots.GetValueSlot(v));
+	}
 
 	helix_unimplemented("stringify_operand, unknown value type");
 	return {};
