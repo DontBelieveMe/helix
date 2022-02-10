@@ -127,10 +127,6 @@ void Function::RunLivenessAnalysis()
 
 		// For each block...
 		for (BasicBlock& bb : m_Blocks) {
-			// ... except the exit block...
-			if (&bb == exitBlock) {
-				continue;
-			}
 
 			// Compute OUT[bb]
 			ComputeLiveOutForBlock(&bb);
