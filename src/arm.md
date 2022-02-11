@@ -292,13 +292,13 @@
 (define-insn "inttoptr"
 	[(HLIR::IntToPtr
 		(match_operand:i32 0 "register")
-		(match_operand:i32 1 "register"))]
+		(match_operand:ptr 1 "register"))]
 	"mov {1}, {0}"
 	[(0 write) (1 read)])
 
 (define-insn "ptrtoint"
 	[(HLIR::PtrToInt
-		(match_operand:i32 0 "register")
+		(match_operand:ptr 0 "register")
 		(match_operand:i32 1 "register"))]
 	"mov {1}, {0}"
 	[(0 write) (1 read)])

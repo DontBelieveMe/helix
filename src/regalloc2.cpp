@@ -5,6 +5,8 @@
 #include "ir-helpers.h"
 #include "instruction-index.h"
 #include "interval.h"
+#include "arm-md.h" /* generated */
+#include "mir.h"
 
 /* C Standard Library Includes */
 #include <ctype.h>
@@ -20,22 +22,42 @@ using namespace Helix;
 
 /*********************************************************************************************************************/
 
-static size_t NewStackLocation(size_t* stackCounter)
+struct StackFrame
 {
-	const size_t tmp = *stackCounter;
-	*stackCounter = *stackCounter + 1;
-	return tmp;
+	size_t size = 0;
+};
+
+/*********************************************************************************************************************/
+
+static unsigned Align(unsigned input, unsigned alignment)
+{
+	if (input % alignment == 0) {
+		return input;
+	}
+
+	return input + (alignment - (input % alignment));
 }
 
 /*********************************************************************************************************************/
 
-static void SpillAtInterval(size_t* stackCounter, std::vector<Interval>* active, Interval* interval)
+static size_t AllocateStackSpace(StackFrame* stackFrame, size_t size)
 {
+	stackFrame->size += size;
+	size_t offset = stackFrame->size;
+	return offset;
+}
+
+/*********************************************************************************************************************/
+
+static void SpillAtInterval(StackFrame* stackFrame, std::vector<Interval>* active, Interval* interval)
+{
+	helix_unreachable("spilling temporarily unavailable");
+
 	Interval& spill = active->back();
 
 	if (!IntervalEndComparator()(spill, *interval)) {
 		interval->physical_register = spill.physical_register;
-		spill.stack_slot = NewStackLocation(stackCounter);
+		spill.stack_slot = AllocateStackSpace(stackFrame, ARMv7::TypeSize(spill.virtual_register->GetType()));
 
 		active->erase(std::remove(active->begin(), active->end(), spill), active->end());
 		active->push_back(*interval);
@@ -43,7 +65,7 @@ static void SpillAtInterval(size_t* stackCounter, std::vector<Interval>* active,
 		std::sort(active->begin(), active->end(), IntervalEndComparator());
 	}
 	else {
-		interval->stack_slot = NewStackLocation(stackCounter);
+		interval->stack_slot = AllocateStackSpace(stackFrame, ARMv7::TypeSize(interval->virtual_register->GetType()));
 	}
 }
 
@@ -123,9 +145,18 @@ void RegisterAllocator2::Execute(Function* function)
 	//////////////////////////////////////////////////////////////////////////
 
 	std::vector<Interval> intervals_sorted;
-	
-	{
+	StackFrame stackFrame;
 
+	std::unordered_map<StackAllocInsn*, size_t> variableStackSlots;
+
+	for (Instruction& insn : *function->GetHeadBlock()) {
+		if (insn.GetOpcode() == HLIR::StackAlloc) {
+			StackAllocInsn* stackAlloc = static_cast<StackAllocInsn*>(&insn);
+			variableStackSlots[stackAlloc] = AllocateStackSpace(&stackFrame, ARMv7::TypeSize(stackAlloc->GetAllocatedType()));
+		}
+	}
+
+	{
 		for (const auto& [vreg, interval] : intervals) {
 			intervals_sorted.push_back(interval);
 		}
@@ -133,7 +164,6 @@ void RegisterAllocator2::Execute(Function* function)
 		std::sort(intervals_sorted.begin(), intervals_sorted.end(), IntervalStartComparator());
 
 		std::vector<Interval> active;
-		size_t stackCounter = 0;
 
 		std::set<PhysicalRegisterName*> free_registers =
 		{
@@ -150,7 +180,7 @@ void RegisterAllocator2::Execute(Function* function)
 			ExpireOldIntervals(&free_registers, &active, &interval);
 
 			if (active.size() >= kTotalAvailableRegisters) {
-				SpillAtInterval(&stackCounter, &active, &interval);
+				SpillAtInterval(&stackFrame, &active, &interval);
 			}
 			else {
 				PhysicalRegisterName* preg = *free_registers.begin();
@@ -176,6 +206,8 @@ void RegisterAllocator2::Execute(Function* function)
 	}
 #endif
 
+	stackFrame.size = Align(stackFrame.size, 8);
+
 	//////////////////////////////////////////////////////////////////////////
 	// (4) Rewrite virtual register references to the allocated physical register
 	//     (or inject spill code)
@@ -197,6 +229,27 @@ void RegisterAllocator2::Execute(Function* function)
 			}
 		}
 	}
+
+	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::SP);
+
+	for (const auto& [insn, slot] : variableStackSlots) {
+		Value* preg = insn->GetOutputPtr();
+
+		size_t offset = stackFrame.size - slot;
+		ConstantInt* cint = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
+		Helix::MachineInstruction* d = ARMv7::CreateAdd_r32i32(sp, cint, preg);
+		BasicBlock* parent = insn->GetParent();
+
+		parent->Replace(insn, d);
+	}
+
+	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), stackFrame.size);
+
+	BasicBlock* tail = function->GetTailBlock();
+	BasicBlock* head = function->GetHeadBlock();
+
+	head->InsertBefore(head->begin(), ARMv7::CreateSub_r32i32(sp, stack_size_constant, sp));
+	tail->InsertBefore(tail->Where(tail->GetLast()), ARMv7::CreateAdd_r32i32(sp, stack_size_constant, sp));
 }
 
 /*********************************************************************************************************************/
