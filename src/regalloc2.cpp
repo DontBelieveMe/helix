@@ -98,30 +98,6 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 
 	function->RunLivenessAnalysis();
 
-#if REGALLOC2_DEBUG_LOGS
-	SlotTracker slots;
-	slots.CacheFunction(function);
-
-	helix_debug(logs::regalloc2, "********** Liveness Analysis **********");
-
-	for (const BasicBlock& bb : function->blocks()) {
-		helix_debug(logs::regalloc2, "bb{}", slots.GetBasicBlockSlot(&bb));
-
-		const auto in = bb.GetLiveIn();
-		const auto out = bb.GetLiveOut();
-
-		helix_debug(logs::regalloc2, "\tIN [count={}]:", in.size());
-		for (const VirtualRegisterName* v : in) {
-			helix_debug(logs::regalloc2, "\t   - %{}", slots.GetValueSlot(v));
-		}
-
-		helix_debug(logs::regalloc2, "\tOUT [count={}]:", out.size());
-		for (const VirtualRegisterName* v : out) {
-			helix_debug(logs::regalloc2, "\t   - %{}", slots.GetValueSlot(v));
-		}
-	}
-#endif
-
 	//////////////////////////////////////////////////////////////////////////
 	// (2) Compute Live Intervals
 	//////////////////////////////////////////////////////////////////////////
@@ -129,16 +105,34 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 	std::unordered_map<VirtualRegisterName*, Interval> intervals;
 	Helix::ComputeIntervalsForFunction(function, intervals);
 
-#if REGALLOC2_DEBUG_LOGS
-	helix_debug(logs::regalloc2, "********** Interval Analysis **********");
+	if (info.TestTrace) {
+		SlotTracker slots;
+		slots.CacheFunction(function);
 
-	for (const auto [vreg, interval] : intervals) {
-		helix_debug(logs::regalloc2, "%{} = {}:{} -> {}:{}",
-			slots.GetValueSlot(vreg),
-			interval.start.block_index, interval.start.instruction_index,
-			interval.end.block_index, interval.end.instruction_index);
+		Helix::DebugDump(*function);
+
+		std::vector<std::pair<VirtualRegisterName*, Interval>> sorted;
+		for (const auto& pair : intervals)
+			sorted.push_back(pair);
+
+		std::sort(
+			sorted.begin(), sorted.end(),
+			[&slots](const std::pair<VirtualRegisterName*, Interval>& lhs, const std::pair<VirtualRegisterName*, Interval>& rhs) {
+				return slots.GetValueSlot(lhs.first) < slots.GetValueSlot(rhs.first);
+			}
+		);
+
+		helix_debug(logs::regalloc2, "********** Interval Analysis **********");
+		fmt::print("********** Interval Analysis **********\n");
+
+		for (const auto [vreg, interval] : sorted) {
+			fmt::print("\t%{} = {}:{} -> {}:{}\n",
+				slots.GetValueSlot(vreg),
+				interval.start.block_index, interval.start.instruction_index,
+				interval.end.block_index, interval.end.instruction_index);
+		}
+		fmt::print("***************************************\n");
 	}
-#endif
 
 	//////////////////////////////////////////////////////////////////////////
 	// (3) Allocate each interval a register (or spill)

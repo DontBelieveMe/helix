@@ -1,0 +1,29 @@
+<Test>
+	<Flags>--test-trace=regalloc2</Flags>
+
+	<TestFlags>
+		<TestFlag name="regex" value="false"></TestFlag>
+	</TestFlags>
+
+	<ExecutableExpectedExitCode>1</ExecutableExpectedExitCode>
+
+	<ExpectedOutput>
+function main(): void {
+.0:
+	stack_alloc [i32 x 1], %0:ptr
+	arm.movw_gl16 %1:ptr, @ci0:ptr
+	arm.movt_gu16 %1:ptr, @ci0:ptr
+	arm.ldr %2:i32, %1:ptr
+	arm.str %2:i32, %0:ptr
+	arm.br .1
+.1:
+	arm.ldr r0:i32, %0:ptr
+	arm.ret
+}
+********** Interval Analysis **********
+	%0 = 0:0 -> 1:0
+	%1 = 0:1 -> 0:3
+	%2 = 0:3 -> 0:4
+***************************************
+	</ExpectedOutput>
+</Test>
