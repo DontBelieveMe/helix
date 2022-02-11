@@ -3,7 +3,7 @@
  * @author Barney Wilks
  * 
  * Pass implementing the final code generation phase - doing pattern matching
- * aginst the input IR and producing the equivilant assembly.
+ * against the input IR and producing the equivalent assembly.
  * 
  * See comments in match.cpp for implementation details.
  */
