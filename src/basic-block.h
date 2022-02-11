@@ -72,6 +72,7 @@ namespace Helix
 
 		iterator InsertBefore(iterator where, Instruction* insn);
 		iterator InsertAfter(iterator where, Instruction* insn);
+		void     Append(Instruction* insn);
 
 		Instruction* GetLast() { return &Instructions.back(); }
 
