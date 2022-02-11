@@ -6,6 +6,7 @@
  /* Helix Core Includes */
 #include "../interval.h"
 #include "../instructions.h"
+#include "../function.h"
 
 /* Testing Library Includes */
 #include "catch.hpp"
@@ -216,5 +217,42 @@ TEST_CASE("Interval end/start comparator works", "[IntervalEndStartComparator]")
 		REQUIRE(!comparator(a, b));
 	}
 }
+
+/*********************************************************************************************************************/
+
+TEST_CASE("Calculating intervals from function", "[ComputeIntervalsForFunction]")
+{
+	const FunctionType* functionType = FunctionType::Create(BuiltinTypes::GetInt32(), {});
+	Function* fn = Function::Create(functionType, "main", {});
+
+	BasicBlock* bb = BasicBlock::Create();
+
+	VirtualRegisterName* a = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+	VirtualRegisterName* b = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+	VirtualRegisterName* c = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+	VirtualRegisterName* d = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+
+	ConstantInt* one = ConstantInt::Create(BuiltinTypes::GetInt32(), 1);
+	ConstantInt* two = ConstantInt::Create(BuiltinTypes::GetInt32(), 2);
+	ConstantInt* three = ConstantInt::Create(BuiltinTypes::GetInt32(), 3);
+
+	bb->Append(Helix::CreateBinOp(HLIR::IAdd, one, two,   a)); // (1) a = 1 + 2;
+	bb->Append(Helix::CreateBinOp(HLIR::IMul, a,   two,   b)); // (2) b = a * 2;
+	bb->Append(Helix::CreateBinOp(HLIR::IAdd, two, three, c)); // (3) c = 2 + 3;
+	bb->Append(Helix::CreateBinOp(HLIR::ISub, b,   c,     d)); // (4) d = b - c;
+	bb->Append(Helix::CreateRet(d));                           // (5) return d;
+
+	fn->Append(bb);
+	fn->RunLivenessAnalysis();
+
+	std::unordered_map<VirtualRegisterName*, Interval> intervals;
+	Helix::ComputeIntervalsForFunction(fn, intervals);
+
+	REQUIRE(intervals[a] == Interval(a, InstructionIndex(0, 0), InstructionIndex(0, 1)));
+	REQUIRE(intervals[b] == Interval(b, InstructionIndex(0, 1), InstructionIndex(0, 3)));
+	REQUIRE(intervals[c] == Interval(c, InstructionIndex(0, 2), InstructionIndex(0, 3)));
+	REQUIRE(intervals[d] == Interval(c, InstructionIndex(0, 3), InstructionIndex(0, 4)));
+}
+
 
 /*********************************************************************************************************************/

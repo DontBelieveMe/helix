@@ -41,6 +41,7 @@ namespace Helix
 		/// the stack slot to spill to/from.
 		size_t stack_slot = SIZE_MAX;
 
+		Interval(VirtualRegisterName* variable, InstructionIndex start, InstructionIndex end);
 		Interval(VirtualRegisterName* variable);
 		Interval() = default;
 

@@ -14,6 +14,12 @@ using namespace Helix;
 
 /*********************************************************************************************************************/
 
+Interval::Interval(VirtualRegisterName* variable, InstructionIndex start, InstructionIndex end)
+	: virtual_register(variable), start(start), end(end)
+{ }
+
+/*********************************************************************************************************************/
+
 Interval::Interval(VirtualRegisterName* variable)
 	: virtual_register(variable)
 { }
