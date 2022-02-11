@@ -125,7 +125,13 @@ namespace Helix
 				for (const Instruction& insn : bb) {
 					for (size_t i = 0; i < insn.GetCountOperands(); ++i) {
 						const Value* v = insn.GetOperand(i);
-						GetValueSlot(v);
+
+						// #FIXME(bwilks): This is all a bit confusing, the actual Print() functions
+						//                 (which is what we are trying to emulate here, like a dry run)
+						//                 only calls GetValueSlot for VirtualRegisterNames and not all values
+						//                 maybe this should be renamed GetVirtualRegisterNameSlot() ????
+						if (value_isa<VirtualRegisterName>(v))
+							GetValueSlot(v);
 					}
 				}
 			}
