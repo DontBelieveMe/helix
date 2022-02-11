@@ -90,7 +90,7 @@ static void ExpireOldIntervals(std::set<PhysicalRegisterName*>* free_regs, std::
 
 /*********************************************************************************************************************/
 
-void RegisterAllocator2::Execute(Function* function)
+void RegisterAllocator2::Execute(Function* function, const PassRunInformation& info)
 {
 	//////////////////////////////////////////////////////////////////////////
 	// (1) Liveness Analysis

@@ -42,7 +42,7 @@ void PassManager::ValidateModule(ValidationPass& validationPass, Module* module)
 {
 	HELIX_PROFILE_ZONE;
 	
-	validationPass.Execute(module);
+	validationPass.Execute(module, {});
 }
 
 void PassManager::RunPass(const PassData& passData, Module* module)
@@ -58,7 +58,10 @@ void PassManager::RunPass(const PassData& passData, Module* module)
 		Helix::DebugDump(*module);
 	}
 
-	pass->Execute(module);
+	PassRunInformation info;
+	info.TestTrace = (Options::GetTestTracePass() == passData.name);
+
+	pass->Execute(module, info);
 
 	if (Options::GetEmitIRPostPass() == passData.name) {
 		Helix::DebugDump(*module);
@@ -102,22 +105,22 @@ void PassManager::Execute(Module* mod)
 	}
 }
 	
-void BasicBlockPass::Execute(Module* mod)
+void BasicBlockPass::Execute(Module* mod, const PassRunInformation& info)
 {
 	for (auto it = mod->functions_begin(); it != mod->functions_end(); ++it) {
 		Function* fn = *it;
 
 		for (auto bbit = fn->begin(); bbit != fn->end(); ++bbit) {
 			BasicBlock& bb = *bbit;
-			this->Execute(&bb);
+			this->Execute(&bb, info);
 		}
 	}
 }
 
-void FunctionPass::Execute(Module* mod)
+void FunctionPass::Execute(Module* mod, const PassRunInformation& info)
 {
 	for (auto it = mod->functions_begin(); it != mod->functions_end(); ++it) {
 		Function* fn = *it;
-		this->Execute(fn);
+		this->Execute(fn, info);
 	}
 }

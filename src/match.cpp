@@ -12,7 +12,7 @@ using namespace Helix;
 
 /*********************************************************************************************************************/
 
-void MachineExpander::Execute(Module* mod)
+void MachineExpander::Execute(Module* mod, const PassRunInformation&)
 {
 	for (Function* fn : mod->functions()) {
 		for (BasicBlock& bb : fn->blocks()) {

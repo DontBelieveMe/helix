@@ -119,7 +119,7 @@ static void EmitDataDirective(FILE* file, Value* init_value)
 
 /*********************************************************************************************************************/
 
-void AssemblyEmitter::Execute(Module* mod)
+void AssemblyEmitter::Execute(Module* mod, const PassRunInformation&)
 {
 	const std::string& assemblyFileName = Helix::GetAssemblyOutputFilePath(mod);
 

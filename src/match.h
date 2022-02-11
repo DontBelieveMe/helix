@@ -14,7 +14,7 @@ namespace Helix
 	class MachineExpander : public Pass
 	{
 	public:
-		virtual void Execute(Module* mod) override;
+		virtual void Execute(Module* mod, const PassRunInformation& info) override;
 	};
 }
 

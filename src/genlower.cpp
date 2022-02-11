@@ -90,7 +90,7 @@ void GenericLowering::LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 
 /*********************************************************************************************************************/
 
-void GenericLowering::Execute(Function* fn)
+void GenericLowering::Execute(Function* fn, const PassRunInformation&)
 {
 	struct WorkPair { Instruction* insn; BasicBlock* bb; };
 

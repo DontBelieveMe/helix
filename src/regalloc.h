@@ -10,7 +10,7 @@ namespace Helix
 	class RegisterAllocator : public FunctionPass
 	{
 	public:
-		virtual void Execute(Function* fn) override;
+		virtual void Execute(Function* fn, const PassRunInformation& info) override;
 
 	private:
 		struct StackVariable

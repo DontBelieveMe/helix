@@ -7,7 +7,7 @@ namespace Helix
     class RegisterAllocator2 : public FunctionPass
     {
     public:
-        void Execute(Function* fn) override;
+        void Execute(Function* fn, const PassRunInformation& info) override;
     };
 }
 

@@ -97,7 +97,7 @@ static const Type* LowerVirtualRegisterType(const Type* type) {
 
 /*********************************************************************************************************************/
 
-void RegisterAllocator::Execute(Function* fn)
+void RegisterAllocator::Execute(Function* fn, const PassRunInformation&)
 {
 	PhysicalRegisters::ArmV7RegisterID kPhysicalRegisterIDs[] =
 	{

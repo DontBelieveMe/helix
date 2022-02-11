@@ -28,26 +28,31 @@ namespace Helix
 	class BasicBlock;
 	class ValidationPass;
 
+	struct PassRunInformation
+	{
+		bool TestTrace = false;
+	};
+
 	class Pass
 	{
 	public:
 		virtual ~Pass() = default;
 
-		virtual void Execute(Module* mod) = 0;
+		virtual void Execute(Module* mod, const PassRunInformation& info) = 0;
 	};
 
 	class FunctionPass : public Pass
 	{
 	public:
-		virtual void Execute(Module* mod) override final;
-		virtual void Execute(Function* fn) = 0;
+		virtual void Execute(Module* mod, const PassRunInformation& info) override final;
+		virtual void Execute(Function* fn, const PassRunInformation& info) = 0;
 	};
 
 	class BasicBlockPass : public Pass
 	{
 	public:
-		virtual void Execute(Module* mod) override final;
-		virtual void Execute(BasicBlock* bb) = 0;
+		virtual void Execute(Module* mod, const PassRunInformation& info) override final;
+		virtual void Execute(BasicBlock* bb, const PassRunInformation& info) = 0;
 	};
 
 	template <typename T>

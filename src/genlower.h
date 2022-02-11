@@ -12,7 +12,7 @@ namespace Helix
    	class GenericLowering : public FunctionPass
 	{
 	public:
-		void Execute(Function* fn);
+		void Execute(Function* fn, const PassRunInformation& info);
 
 	private:
 		void LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn);

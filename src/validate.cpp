@@ -158,7 +158,7 @@ bool CheckCastInsn(Function*,BasicBlock&,CastInsn& cast) {
 	return true;
 }
 
-void ValidationPass::Execute(Module* module) {
+void ValidationPass::Execute(Module* module, const PassRunInformation&) {
 	bool error = false;
 
 	for (Function* fn : module->functions()) {

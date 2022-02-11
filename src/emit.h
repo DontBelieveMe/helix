@@ -19,7 +19,7 @@ namespace Helix
 	class AssemblyEmitter : public Pass
 	{
 	public:
-		virtual void Execute(Module* mod) override;
+		virtual void Execute(Module* mod, const PassRunInformation& info) override;
 	};
 }
 

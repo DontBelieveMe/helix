@@ -24,7 +24,7 @@ namespace Helix
 	class GenericLegalizer : public FunctionPass
 	{
 	public:
-		void Execute(Function* fn);
+		void Execute(Function* fn, const PassRunInformation& info);
 
 	private:
 		void LegaliseStore(BasicBlock& bb, StoreInsn& store);
@@ -35,7 +35,7 @@ namespace Helix
 	class LowerStructStackAllocation : public FunctionPass
 	{
 	public:
-		void Execute(Function* fn);
+		void Execute(Function* fn, const PassRunInformation& info);
 	};
 
 	/*********************************************************************************************************************/
@@ -43,7 +43,7 @@ namespace Helix
 	class LegaliseStructs : public FunctionPass
 	{
 	public:
-		void Execute(Function* fn);
+		void Execute(Function* fn, const PassRunInformation& info);
 
 	private:
 		void CopyStruct(Value* src, Value* dst, const StructType* structType, BasicBlock::iterator where);
@@ -54,7 +54,7 @@ namespace Helix
 	class CConv : public FunctionPass
 	{
 	public:
-		void Execute(Function* fn);
+		void Execute(Function* fn, const PassRunInformation& info);
 	};
 
 	/*********************************************************************************************************************/
@@ -62,7 +62,7 @@ namespace Helix
 	class ReturnCombine : public FunctionPass
 	{
 	public:
-		void Execute(Function* fn);
+		void Execute(Function* fn, const PassRunInformation& info);
 	};
 
 	/*********************************************************************************************************************/
@@ -70,7 +70,7 @@ namespace Helix
 	class ConstantHoisting : public BasicBlockPass
 	{
 	public:
-		void Execute(BasicBlock* bb);
+		void Execute(BasicBlock* bb, const PassRunInformation& info);
 
 	private:
 		GlobalVariable* CreateOrGetGlobal(Module* bb, ConstantInt* cint);

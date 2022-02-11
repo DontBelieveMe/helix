@@ -68,7 +68,7 @@ void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
 
 /*********************************************************************************************************************/
 
-void GenericLegalizer::Execute(Function* fn)
+void GenericLegalizer::Execute(Function* fn, const PassRunInformation&)
 {
 	helix_assert(fn->GetCountBlocks() > 0, "function must have at least one basic block");
 
@@ -130,7 +130,7 @@ void GenericLegalizer::Execute(Function* fn)
 
 /*********************************************************************************************************************/
 
-void ReturnCombine::Execute(Function* fn)
+void ReturnCombine::Execute(Function* fn, const PassRunInformation&)
 {
 	helix_assert(fn->GetCountBlocks() >= 1, "Function must have at least one basic block");
 
@@ -192,7 +192,7 @@ void ReturnCombine::Execute(Function* fn)
 
 /*********************************************************************************************************************/
 
-void CConv::Execute(Function* fn)
+void CConv::Execute(Function* fn, const PassRunInformation&)
 {
 	// #FIXME: Maybe this can be simplified by assuming there is only one return?
 	//         (as per the ReturnCombine pass)
@@ -258,7 +258,7 @@ GlobalVariable* ConstantHoisting::CreateOrGetGlobal(Module* mod, ConstantInt* ci
 
 /*********************************************************************************************************************/
 
-void ConstantHoisting::Execute(BasicBlock* bb)
+void ConstantHoisting::Execute(BasicBlock* bb, const PassRunInformation&)
 {
 	helix_assert(bb, "ConstantHoisting: NULl basic block");
 
@@ -297,7 +297,7 @@ void ConstantHoisting::Execute(BasicBlock* bb)
 
 /*********************************************************************************************************************/
 
-void LowerStructStackAllocation::Execute(Function* fn)
+void LowerStructStackAllocation::Execute(Function* fn, const PassRunInformation&)
 {
 	BasicBlock* head = fn->GetHeadBlock();
 
@@ -341,7 +341,7 @@ void LegaliseStructs::CopyStruct(Value* src, Value* dst, const StructType* struc
 
 /*********************************************************************************************************************/
 
-void LegaliseStructs::Execute(Function* fn)
+void LegaliseStructs::Execute(Function* fn, const PassRunInformation&)
 {
 	struct LoadStore
 	{

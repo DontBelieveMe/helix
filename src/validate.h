@@ -10,7 +10,7 @@
 namespace Helix {
 	class ValidationPass : public Pass {
 	public:
-		void Execute(Module* module);
+		void Execute(Module* module, const PassRunInformation& info);
 	};
 }
 

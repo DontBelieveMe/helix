@@ -24,6 +24,7 @@ ARGUMENT(bool,        false, CompileOnly,                         "c",          
 ARGUMENT(std::string, "",    DumpBase,                            "dumpbase",              "Base directory in which to dump intermediate output files"                       )
 ARGUMENT(bool,        false, SaveTemps,                           "save-temps",            "Save temporary files & don't delete them at the end of compilation"              )
 ARGUMENT(std::string, "",    StopAfterPass,                       "stop-after-pass",       "Stop after the given pass has finished running"                                  )
+ARGUMENT(std::string, "",    TestTracePass,                       "test-trace",            "The specified pass should output debug/internal information. For testing"        )
 
 ARGUMENT_LIST(std::string, EnabledLog, "log", "Print all logs for the given channel to stdout")
 
