@@ -52,6 +52,7 @@ namespace Helix
 
 		iterator InsertBefore(iterator where, BasicBlock* bb);
 		iterator InsertAfter(iterator where, BasicBlock* bb);
+		void Append(BasicBlock* bb);
 
 		void Remove(iterator where);
 

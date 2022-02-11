@@ -25,6 +25,14 @@ Function::iterator Function::InsertAfter(iterator where, BasicBlock* what)
 
 /*********************************************************************************************************************/
 
+void Function::Append(BasicBlock* bb)
+{
+	bb->SetParent(this);
+	m_Blocks.push_back(bb);
+}
+
+/*********************************************************************************************************************/
+
 void Function::Remove(iterator where)
 {
 	where->SetParent(nullptr);
