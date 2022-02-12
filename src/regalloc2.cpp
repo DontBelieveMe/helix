@@ -90,6 +90,47 @@ static void ExpireOldIntervals(std::set<PhysicalRegisterName*>* free_regs, std::
 
 /*********************************************************************************************************************/
 
+static void PrintIntervalTestInfo(Function* function, const std::unordered_map<VirtualRegisterName*, Interval>& intervals)
+{
+	SlotTracker slots;
+	slots.CacheFunction(function);
+
+	// First print the function that we're testing
+	Helix::DebugDump(*function);
+
+	// Take all the intervals and sort by their slot indices (basically
+	// order of appearance).
+	//
+	// This is because we use this information in tests & want the data to be "stable".
+	// (unordered_maps are not that...)
+
+	std::vector<std::pair<VirtualRegisterName*, Interval>> sorted;
+	for (const auto& pair : intervals)
+		sorted.push_back(pair);
+
+	std::sort(
+		sorted.begin(), sorted.end(),
+		[&slots](const std::pair<VirtualRegisterName*, Interval>& lhs, const std::pair<VirtualRegisterName*, Interval>& rhs) {
+			return slots.GetValueSlot(lhs.first) < slots.GetValueSlot(rhs.first);
+		}
+	);
+
+	// Finally print the information to stdout
+
+	fmt::print("********** Interval Analysis **********\n");
+
+	for (const auto [vreg, interval] : sorted) {
+		fmt::print("\t%{} = {}:{} -> {}:{}\n",
+			slots.GetValueSlot(vreg),
+			interval.start.block_index, interval.start.instruction_index,
+			interval.end.block_index, interval.end.instruction_index);
+	}
+
+	fmt::print("***************************************\n");
+}
+
+/*********************************************************************************************************************/
+
 void RegisterAllocator2::Execute(Function* function, const PassRunInformation& info)
 {
 	//////////////////////////////////////////////////////////////////////////
@@ -105,34 +146,8 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 	std::unordered_map<VirtualRegisterName*, Interval> intervals;
 	Helix::ComputeIntervalsForFunction(function, intervals);
 
-	if (info.TestTrace) {
-		SlotTracker slots;
-		slots.CacheFunction(function);
-
-		Helix::DebugDump(*function);
-
-		std::vector<std::pair<VirtualRegisterName*, Interval>> sorted;
-		for (const auto& pair : intervals)
-			sorted.push_back(pair);
-
-		std::sort(
-			sorted.begin(), sorted.end(),
-			[&slots](const std::pair<VirtualRegisterName*, Interval>& lhs, const std::pair<VirtualRegisterName*, Interval>& rhs) {
-				return slots.GetValueSlot(lhs.first) < slots.GetValueSlot(rhs.first);
-			}
-		);
-
-		helix_debug(logs::regalloc2, "********** Interval Analysis **********");
-		fmt::print("********** Interval Analysis **********\n");
-
-		for (const auto [vreg, interval] : sorted) {
-			fmt::print("\t%{} = {}:{} -> {}:{}\n",
-				slots.GetValueSlot(vreg),
-				interval.start.block_index, interval.start.instruction_index,
-				interval.end.block_index, interval.end.instruction_index);
-		}
-		fmt::print("***************************************\n");
-	}
+	if (info.TestTrace)
+		PrintIntervalTestInfo(function, intervals);
 
 	//////////////////////////////////////////////////////////////////////////
 	// (3) Allocate each interval a register (or spill)
