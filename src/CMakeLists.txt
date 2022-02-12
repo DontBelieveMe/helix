@@ -60,6 +60,8 @@ add_library(HelixCore
 	instruction-index.cpp
 	interval.h
 	interval.cpp
+	linear-scan.h
+	linear-scan.cpp
 
 	options.def
 	insns.def

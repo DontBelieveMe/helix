@@ -8,6 +8,7 @@ add_executable(HelixCoreTests
 	test-instructions.cpp
 	test-instruction-index.cpp
 	test-interval.cpp
+	test-linear-scan.cpp
 	main.cpp
 	catch.hpp
 )
