@@ -47,6 +47,14 @@ void PhysicalRegisters::Init()
 	PHYSICAL_REGISTER(15, "r15", R15);
 }
 
+bool PhysicalRegisters::IsValidPhysicalRegister(PhysicalRegisterName* value)
+{
+	if (!value)
+		return false;
+
+	return value->GetID() < PhysicalRegisters::NumRegisters;
+}
+
 PhysicalRegisterName* PhysicalRegisters::GetRegister(const Type* type, ArmV7RegisterID id)
 {
 	if (const IntegerType* int_type = type_cast<IntegerType>(type)) {

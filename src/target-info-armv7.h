@@ -41,6 +41,8 @@ namespace Helix
 			FP = R11
 		};
 
+		bool IsValidPhysicalRegister(PhysicalRegisterName* value);
+
 		void Init();
 
 		PhysicalRegisterName* GetRegister(const Type* type, ArmV7RegisterID id);
