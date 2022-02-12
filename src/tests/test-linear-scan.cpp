@@ -14,7 +14,7 @@
 /* Testing Library Includes */
 #include "catch.hpp"
 
-#pragma optimize("", off)
+// #pragma optimize("", off)
 
 using namespace Helix;
 

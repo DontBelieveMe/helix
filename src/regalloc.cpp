@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <utility>
 
-#pragma optimize("", off)
+// #pragma optimize("", off)
 
 using namespace Helix;
 
