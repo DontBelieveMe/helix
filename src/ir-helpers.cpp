@@ -29,3 +29,14 @@ void IR::ReplaceAllUsesWith(Value* oldValue, Value* newValue)
 }
 
 /*********************************************************************************************************************/
+
+void IR::ReplaceInstructionAndDestroyOriginal(Instruction* a, Instruction* b)
+{
+	BasicBlock* parent = a->GetParent();
+	parent->Replace(a, b);
+
+	a->Clear();
+	Helix::DestroyInstruction(a);
+}
+
+/*********************************************************************************************************************/

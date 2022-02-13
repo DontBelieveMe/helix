@@ -23,6 +23,16 @@ namespace Helix::IR
 		BasicBlock& parent;
 	};
 
+	/**
+	 * Replace instruction a with instruction b.
+	 * 
+	 * 'b' no longer then gets reparented with its new parent
+	 * being the previous parent of 'a'.
+	 * 
+	 * 'a' get's destroyed (deleted), make sure no references remain :)
+	 */
+	void ReplaceInstructionAndDestroyOriginal(Instruction* a, Instruction* b);
+
 	template <typename T>
 	inline void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, OpcodeType opcode);
 
