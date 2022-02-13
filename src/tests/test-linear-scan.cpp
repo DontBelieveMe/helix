@@ -26,8 +26,10 @@ using namespace Helix;
 bool CheckRegisterAllocationCorrectness(LSRA::Context& context)
 {
 	for (auto& [vreg, interval] : context.InputIntervals) {
-		if (!PhysicalRegisters::IsValidPhysicalRegister(context.Allocations[vreg].Register))
+		if (!PhysicalRegisters::IsValidPhysicalRegister(context.Allocations[vreg].Register)
+			&& !context.Allocations[vreg].StackSlot.IsValid()) {
 			return false;
+		}
 
 		for (const auto& [vreg2, interval2] : context.InputIntervals) {
 			if (vreg == vreg2)
@@ -81,24 +83,6 @@ TEST_CASE("Simple allocation (more vregs than available registers, but lifetimes
 
 	LSRA::Run(&context);
 
-	PhysicalRegisterName* first = context.Allocations[vregs[0]].Register;
-
-	for (const auto& [virtualRegister, allocation] : context.Allocations) {
-		PhysicalRegisterName* physicalRegister = allocation.Register;
-
-		REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(physicalRegister));
-
-		// In the register allocator is free to assign any register to any of the
-		// intervals (since none overlap, any register is available)
-		//
-		// However in practice it will assign them all to the same register &
-		// I want to check that it does that.
-		//
-		// Technically this isn't a proper unit test (blah, blah don't test implementation details
-		// bleugh).
-		REQUIRE(physicalRegister == first);
-	}
-
 	REQUIRE(CheckRegisterAllocationCorrectness(context));
 }
 
@@ -127,6 +111,39 @@ TEST_CASE("Simple allocation (more vregs than available registers, but some life
 		REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(allocation.Register));
 	}
 	
+	REQUIRE(CheckRegisterAllocationCorrectness(context));
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("All intervals overlap, requires spilling one")
+{
+	StackFrame    stack;
+	LSRA::Context context({}, &stack);
+
+	std::vector<VirtualRegisterName*> virtualRegisters;
+
+	// Currently the register allocator has 5 registers to allocate (r4, r5, r6, r7, r8)
+	//
+	// #FIXME(bwilks): This needs to be updated if that ever changes (test should fail &
+	//                 make that obvious though :)
+	for (size_t i = 0; i < 6; ++i) {
+		VirtualRegisterName* v = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+		context.InputIntervals[v] = Interval(v, InstructionIndex(0, 10), InstructionIndex(0, 20 + i));
+		virtualRegisters.push_back(v);
+	}
+
+	LSRA::Run(&context);
+
+	// Every virtual register (apart from the last one) should be assigned a register
+	for (size_t i = 0; i < virtualRegisters.size() - 1; ++i) {
+		REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(context.Allocations[virtualRegisters[i]].Register));
+	}
+
+	// Then the last one (e.g. the one with the interval with the largest end point) should be spilled.
+	REQUIRE(context.Allocations[virtualRegisters.back()].StackSlot.IsValid());
+	REQUIRE(context.Allocations[virtualRegisters.back()].Register == nullptr);
+
 	REQUIRE(CheckRegisterAllocationCorrectness(context));
 }
 
