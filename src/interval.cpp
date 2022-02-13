@@ -10,8 +10,6 @@
 #include "instructions.h"
 #include "function.h"
 
-#pragma optimize("", off)
-
 using namespace Helix;
 
 /*********************************************************************************************************************/
@@ -100,9 +98,7 @@ void Helix::ComputeIntervalsForFunction(Function* function, std::unordered_map<V
 		instructionIndex = 0;
 		for (Instruction& insn : bb) {
 			for (size_t opIndex = 0; opIndex < insn.GetCountOperands(); ++opIndex) {
-				bool isRead = insn.OperandHasFlags(opIndex, Instruction::OP_READ);
-
-				if (isRead) {
+				if (insn.OperandHasFlags(opIndex, Instruction::OP_READ)) {
 					VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(insn.GetOperand(opIndex));
 
 					if (!vreg)
