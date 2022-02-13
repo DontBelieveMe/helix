@@ -291,6 +291,9 @@ void RetInsn::MakeVoid()
 
 std::string Helix::stringify_operand(Value* v, SlotTracker& slots)
 {
+	if (!v)
+		return "(null)";
+
 	if (ConstantInt* ci = value_cast<ConstantInt>(v)) {
 		return std::to_string(ci->GetIntegralValue());
 	}
