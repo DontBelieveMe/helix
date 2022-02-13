@@ -28,9 +28,8 @@ StackFrame::SlotIndex StackFrame::Add(size_t bytes)
 {
 	const SlotIndex slot { m_Allocations.size() };
 
-	m_Allocations.push_back({ bytes, m_NextAllocationOffset });
-
 	m_NextAllocationOffset += bytes;
+	m_Allocations.push_back({ bytes, m_NextAllocationOffset });
 
 	return slot;
 }
