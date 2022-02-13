@@ -289,19 +289,23 @@
 ;         is not the same as the native pointer size).
 ;         Ideally this should be removed by an earlier pass in the compiler
 ;         and should never get this far.
+;
+;        NB: See note on "Binary Instructions" on why the read/write flags
+;            are the wrong way round (e.g. don't represent the ARM operands
+;            but the order of operands in the IR)
 (define-insn "inttoptr"
 	[(HLIR::IntToPtr
 		(match_operand:i32 0 "register")
 		(match_operand:ptr 1 "register"))]
 	"mov {1}, {0}"
-	[(0 write) (1 read)])
+	[(0 read) (1 write)])
 
 (define-insn "ptrtoint"
 	[(HLIR::PtrToInt
 		(match_operand:ptr 0 "register")
 		(match_operand:i32 1 "register"))]
 	"mov {1}, {0}"
-	[(0 write) (1 read)])
+	[(0 read) (1 write)])
 
 (define-insn "$ptrtoint"
 	[(HLIR::PtrToInt
