@@ -2,15 +2,10 @@
 #include "regalloc2.h"
 #include "function.h"
 #include "print.h"
-#include "ir-helpers.h"
-#include "instruction-index.h"
 #include "interval.h"
 #include "arm-md.h" /* generated */
 #include "mir.h"
 #include "linear-scan.h"
-
-/* C Standard Library Includes */
-#include <ctype.h>
 
 /* C++ Standard Library Includes */
 #include <algorithm>
