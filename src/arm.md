@@ -185,17 +185,28 @@
 ;                             Memory Operations
 ; *****************************************************************************
 
-(define-insn "ldr"   [] "ldr {0}, [{1}]"   [(0 write) (1 read)])   ; Load (32 bits)
+(define-insn "ldr"    [] "ldr {0}, [{1}]"         [(0 write) (1 read)])   ; Load (32 bits)
 
-(define-insn "ldrsh" [] "ldrsh {0}, [{1}]" [(0 write) (1 read)]) ; Load & Sign Extend (16 bits)
-(define-insn "ldrh"  [] "ldrh {0}, [{1}]"  [(0 write) (1 read)])  ; Load & Zero Extend (16 bits)
+(define-insn "ldrsh"  [] "ldrsh {0}, [{1}]"       [(0 write) (1 read)]) ; Load & Sign Extend (16 bits)
+(define-insn "ldrh"   [] "ldrh {0}, [{1}]"        [(0 write) (1 read)])  ; Load & Zero Extend (16 bits)
 
-(define-insn "ldrb"  [] "ldrb {0}, [{1}]"  [(0 write) (1 read)])  ; Load & Zero Extend (8 bits)
-(define-insn "ldrsb" [] "ldrsb {0}, [{1}]" [(0 write) (1 read)]) ; Load & Sign Extend (8 bits)
+(define-insn "ldrb"   [] "ldrb {0}, [{1}]"        [(0 write) (1 read)])  ; Load & Zero Extend (8 bits)
+(define-insn "ldrsb"  [] "ldrsb {0}, [{1}]"       [(0 write) (1 read)]) ; Load & Sign Extend (8 bits)
 
-(define-insn "str"   [] "str {0}, [{1}]"   [(0 read) (1 read)])   ; Store (32 bit)
-(define-insn "strh"  [] "strh {0}, [{1}]"  [(0 read) (1 read)])  ; Store (16 bit)
-(define-insn "strb"  [] "strb {0}, [{1}]"  [(0 read) (1 read)])  ; Store (16 bit)
+(define-insn "str"    [] "str {0}, [{1}]"         [(0 read) (1 read)])   ; Store (32 bit)
+(define-insn "strh"   [] "strh {0}, [{1}]"        [(0 read) (1 read)])  ; Store (16 bit)
+(define-insn "strb"   [] "strb {0}, [{1}]"        [(0 read) (1 read)])  ; Store (16 bit)
+
+(define-insn "ldri"   [] "ldr {0}, [{1}, #{2}]"   [(0 write) (1 read) (2 read)]) ; Load (Word, Immediate Offset)
+(define-insn "ldrbi"  [] "ldrb {0}, [{1}, #{2}]"  [(0 write) (1 read) (2 read)]) ; Load (Byte, Immediate Offset)
+(define-insn "ldrhi"  [] "ldrh {0}, [{1}, #{2}]"  [(0 write) (1 read) (2 read)]) ; Load (Halfword, Immediate Offset)
+
+(define-insn "ldrsbi" [] "ldrsb {0}, [{1}, #{2}]" [(0 write) (1 read) (2 read)]) ; Load & Sign Extend (Byte, Immediate Offset)
+(define-insn "ldrshi" [] "ldrsh {0}, [{1}, #{2}]" [(0 write) (1 read) (2 read)]) ; Load & Sign Extend (Halfword, Immediate Offset)
+
+(define-insn "stri"   [] "str {0}, [{1}, #{2}]"   [(0 read) (1 read) (2 read)]) ; Store (Word, Immediate Offset)
+(define-insn "strbi"  [] "strb {0}, [{1}, #{2}]"  [(0 read) (1 read) (2 read)]) ; Store (Byte, Immediate Offset)
+(define-insn "strhi"  [] "strh {0}, [{1}, #{2}]"  [(0 read) (1 read) (2 read)]) ; Store (Halfword, Immediate Offset)
 
 ; ******************************
 ;      Store (To Memory)
