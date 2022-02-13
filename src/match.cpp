@@ -26,7 +26,6 @@ void MachineExpander::Execute(Module* mod, const PassRunInformation&)
 					continue;
 				}
 
-				helix_debug(logs::match, "{}", GetOpcodeName((HLIR::Opcode) old->GetOpcode()));
 				MachineInstruction* insn = ARMv7::Expand(old);
 
 				it = bb.Where((Instruction*) it->get_next());
