@@ -21,7 +21,7 @@ TEST_CASE("Default constructor sets appropate defaults", "[Interval]")
 
 	REQUIRE(interval.virtual_register == nullptr);
 	REQUIRE(interval.physical_register == nullptr);
-	REQUIRE(interval.stack_slot == SIZE_MAX);
+	REQUIRE(!interval.stack_slot.IsValid());
 }
 
 /*********************************************************************************************************************/
@@ -31,12 +31,10 @@ TEST_CASE("Two intervals representing the same range are equal", "[Interval]")
 	Helix::Interval a;
 	a.start = InstructionIndex(4, 5);
 	a.end   = InstructionIndex(4, 8);
-	a.stack_slot = 123;
 
 	Helix::Interval b;
 	b.start = InstructionIndex(4, 5);
 	b.end   = InstructionIndex(4, 8);
-	b.stack_slot = 512;
 
 	REQUIRE(a == b);
 }
