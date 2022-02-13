@@ -125,6 +125,7 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 	// The one, the only, the STACK POINTER ladies and gentlemen
 	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::SP);
 
+#if 0
 	SlotTracker slots;
 	slots.CacheFunction(function);
 
@@ -136,6 +137,20 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 			interval.start.block_index, interval.start.instruction_index,
 			interval.end.block_index, interval.end.instruction_index, stringify_operand(allocation.Register, slots), allocation.StackSlot.index);
 	}
+#endif
+
+	struct Spill
+	{
+		Instruction*          Insn = nullptr;
+		VirtualRegisterName*  VirtualRegister = nullptr;
+		StackFrame::SlotIndex Slot;
+	};
+
+	// List of places where we need to inject code to load a value from the stack
+	std::vector<Spill> loadSpills;
+
+	// List of places where we need to inject code to store a value back to the stack
+	std::vector<Spill> restoreSpills;
 
 	for (BasicBlock& bb : function->blocks()) {
 		for (Instruction& insn : bb) {
@@ -143,13 +158,59 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 				if (VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(insn.GetOperand(op))) {
 					const auto it = registerAllocatorContext.Allocations.find(vreg);
 					
-					helix_assert(it != registerAllocatorContext.Allocations.end(), "Virtual register has not been allocated a physical register");
-					helix_assert(!it->second.StackSlot.IsValid(), "UNSUPPORTED: Virtual register has been allocated a stack slot");
+					helix_assert(it != registerAllocatorContext.Allocations.end(),
+						"Virtual register has not been allocated a physical register");
 
-					insn.SetOperand(op, it->second.Register);
+					const LSRA::Allocation& allocation = it->second;
+
+					const StackFrame::SlotIndex stackSlot = allocation.StackSlot;
+
+					if (stackSlot.IsValid()) {
+						helix_assert(stackFrame.GetAllocationOffset(stackSlot) < 255, "stack frame is too large!");
+
+						if (insn.OperandHasFlags(op, Instruction::OP_READ)) {
+							loadSpills.push_back({ &insn, vreg, stackSlot });
+						}
+						else if (insn.OperandHasFlags(op, Instruction::OP_WRITE)) {
+							restoreSpills.push_back({ &insn, vreg, stackSlot });
+						}
+						else {
+							helix_unreachable("Value wants to spill but operand is not READ/WRITE marked");
+						}
+
+						insn.SetOperand(op, PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R0));
+					}
+					else {
+						PhysicalRegisterName* physicalRegisterName = allocation.Register;
+
+						helix_assert(PhysicalRegisters::IsValidPhysicalRegister(physicalRegisterName),
+							"Value has not been assigned a valid physical register");
+
+						insn.SetOperand(op, physicalRegisterName);
+					}
 				}
 			}
 		}
+	}
+
+	// Now go and inject any load/store spill code that we need to
+
+	PhysicalRegisterName* r0 = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R0);
+
+	for (const Spill& spill : loadSpills) {
+		const size_t offset = stackSize - stackFrame.GetAllocationOffset(spill.Slot);
+		ConstantInt* offsetValue = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
+
+		MachineInstruction* ldr = ARMv7::CreateLdri(r0, sp, offsetValue);
+		IR::InsertBefore(spill.Insn, ldr);
+	}
+
+	for (const Spill& spill : restoreSpills) {
+		const size_t offset = stackSize - stackFrame.GetAllocationOffset(spill.Slot);
+		ConstantInt* offsetValue = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
+
+		MachineInstruction* ldr = ARMv7::CreateStri(r0, sp, offsetValue);
+		IR::InsertAfter(spill.Insn, ldr);
 	}
 
 	// Replace any stack_alloc instructions with LLIR instructions that calculate the correct
