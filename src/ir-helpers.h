@@ -29,9 +29,21 @@ namespace Helix::IR
 	 * 'b' no longer then gets reparented with its new parent
 	 * being the previous parent of 'a'.
 	 * 
-	 * 'a' get's destroyed (deleted), make sure no references remain :)
+	 * 'a' gets destroyed (deleted), make sure no references remain :)
 	 */
 	void ReplaceInstructionAndDestroyOriginal(Instruction* a, Instruction* b);
+
+	/**
+	 * Insert instruction 'b' just before 'a' (reparenting 'b' under the parent
+	 * block of 'a')
+	 */
+	void InsertBefore(Instruction* a, Instruction* b);
+
+	/**
+	 * Insert instruction 'b' just after 'a' (reparenting 'b' under the parent
+	 * block of 'a')
+	 */
+	void InsertAfter(Instruction* a, Instruction* b);
 
 	template <typename T>
 	inline void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, OpcodeType opcode);

@@ -40,3 +40,19 @@ void IR::ReplaceInstructionAndDestroyOriginal(Instruction* a, Instruction* b)
 }
 
 /*********************************************************************************************************************/
+
+void IR::InsertAfter(Instruction* a, Instruction* b)
+{
+	BasicBlock* bb = a->GetParent();
+	bb->InsertAfter(bb->Where(a), b);
+}
+
+/*********************************************************************************************************************/
+
+void IR::InsertBefore(Instruction* a, Instruction* b)
+{
+	BasicBlock* bb = a->GetParent();
+	bb->InsertBefore(bb->Where(a), b);
+}
+
+/*********************************************************************************************************************/
