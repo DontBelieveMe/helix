@@ -13,6 +13,7 @@
 
 /* Internal Project Includes */
 #include "instruction-index.h"
+#include "stack-frame.h"
 
 /* C++ Standard Library Includes */
 #include <unordered_map>
@@ -39,7 +40,7 @@ namespace Helix
 
 		/// (After register allocation) if this interval couldn't be assigned a register
 		/// the stack slot to spill to/from.
-		size_t stack_slot = SIZE_MAX;
+		StackFrame::SlotIndex stack_slot;
 
 		Interval(VirtualRegisterName* variable, InstructionIndex start, InstructionIndex end);
 		Interval(VirtualRegisterName* variable);

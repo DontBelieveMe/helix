@@ -6,42 +6,16 @@
 #include "arm-md.h" /* generated */
 #include "mir.h"
 #include "linear-scan.h"
+#include "ir-helpers.h"
 
 /* C++ Standard Library Includes */
 #include <algorithm>
 
-// #pragma optimize("", off)
+#pragma optimize("", off)
 
 using namespace Helix;
 
 #define REGALLOC2_DEBUG_LOGS 0
-
-/*********************************************************************************************************************/
-
-struct StackFrame
-{
-	size_t size = 0;
-};
-
-/*********************************************************************************************************************/
-
-static unsigned Align(unsigned input, unsigned alignment)
-{
-	if (input % alignment == 0) {
-		return input;
-	}
-
-	return input + (alignment - (input % alignment));
-}
-
-/*********************************************************************************************************************/
-
-static size_t AllocateStackSpace(StackFrame* stackFrame, size_t size)
-{
-	stackFrame->size += size;
-	size_t offset = stackFrame->size;
-	return offset;
-}
 
 /*********************************************************************************************************************/
 
@@ -89,13 +63,13 @@ static void PrintIntervalTestInfo(Function* function, const std::unordered_map<V
 void RegisterAllocator2::Execute(Function* function, const PassRunInformation& info)
 {
 	//////////////////////////////////////////////////////////////////////////
-	// (1) Liveness Analysis
+	// Liveness Analysis
 	//////////////////////////////////////////////////////////////////////////
 
 	function->RunLivenessAnalysis();
 
 	//////////////////////////////////////////////////////////////////////////
-	// (2) Compute Live Intervals
+	// Compute Live Intervals
 	//////////////////////////////////////////////////////////////////////////
 
 	std::unordered_map<VirtualRegisterName*, Interval> intervals;
@@ -104,61 +78,109 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 	if (info.TestTrace)
 		PrintIntervalTestInfo(function, intervals);
 
+	//////////////////////////////////////////////////////////////////////////
+	// Reserve any stack space that the IR requests (i.e. manual stack_allocs
+	// not register allocator spills)
+	// 
+	// Do this before the register allocator reserves any stack space for
+	// any spills
+	//////////////////////////////////////////////////////////////////////////
+
 	StackFrame stackFrame;
-	std::unordered_map<StackAllocInsn*, size_t> variableStackSlots;
+	std::unordered_map<StackAllocInsn*, StackFrame::SlotIndex> stackAllocInstructions;
 
 	for (Instruction& insn : *function->GetHeadBlock()) {
 		if (insn.GetOpcode() == HLIR::StackAlloc) {
-			StackAllocInsn* stackAlloc = static_cast<StackAllocInsn*>(&insn);
-			variableStackSlots[stackAlloc] = AllocateStackSpace(&stackFrame, ARMv7::TypeSize(stackAlloc->GetAllocatedType()));
+			StackAllocInsn* stackAlloc     = static_cast<StackAllocInsn*>(&insn);
+			const size_t    allocationSize = ARMv7::TypeSize(stackAlloc->GetAllocatedType());
+
+			stackAllocInstructions[stackAlloc] = stackFrame.Add(allocationSize);
 		}
 	}
 
-	stackFrame.size = Align(stackFrame.size, 8);
-
 	//////////////////////////////////////////////////////////////////////////
-	// (3) Allocate each interval a register (or spill)
+	// Allocate each interval a register (or spill)
 	//////////////////////////////////////////////////////////////////////////
 
-	LSRA::Context registerAllocatorContext { intervals };
+	LSRA::Context registerAllocatorContext(intervals, &stackFrame);
 	LSRA::Run(&registerAllocatorContext);
 
+	// Get the stack size, but aligned to a double word boundary (AAPCS says this
+	// is only required at public interfaces, but it should work anywhere anyway)
+	// 
+	// AAPCS32 (https://github.com/ARM-software/abi-aa/blob/main/aapcs32/aapcs32.rst)
+	//
+	//  > 6.2.1.2   Stack constraints at a public interface
+	//  > ...
+	//  >     SP mod 8 = 0. The stack must be double-word aligned.
+	//
+	const size_t stackSize = stackFrame.GetSizeAligned(8);
+
+
 	//////////////////////////////////////////////////////////////////////////
-	// (4) Rewrite virtual register references to the allocated physical register
-	//     (or inject spill code)
+	// Rewrite virtual register references to the allocated physical register
+	// (or inject spill code)
 	//////////////////////////////////////////////////////////////////////////
+
+	// The one, the only, the STACK POINTER ladies and gentlemen
+	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::SP);
+
+	SlotTracker slots;
+	slots.CacheFunction(function);
+
+	for (const auto& [vreg, allocation] : registerAllocatorContext.Allocations) {
+		auto interval = intervals[vreg];
+
+		fmt::print("\t%{} ({}:{} -> {}:{}) = {} {}\n",
+			slots.GetValueSlot(vreg),
+			interval.start.block_index, interval.start.instruction_index,
+			interval.end.block_index, interval.end.instruction_index, stringify_operand(allocation.Register, slots), allocation.StackSlot.index);
+	}
 
 	for (BasicBlock& bb : function->blocks()) {
 		for (Instruction& insn : bb) {
 			for (size_t op = 0; op < insn.GetCountOperands(); ++op) {
 				if (VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(insn.GetOperand(op))) {
-					auto it = registerAllocatorContext.Allocated.find(vreg);
-					helix_assert(it != registerAllocatorContext.Allocated.end(), "register not allocated for spill :(");
-					insn.SetOperand(op, it->second);
+					const auto it = registerAllocatorContext.Allocations.find(vreg);
+					
+					helix_assert(it != registerAllocatorContext.Allocations.end(), "Virtual register has not been allocated a physical register");
+					helix_assert(!it->second.StackSlot.IsValid(), "UNSUPPORTED: Virtual register has been allocated a stack slot");
+
+					insn.SetOperand(op, it->second.Register);
 				}
 			}
 		}
 	}
 
-	PhysicalRegisterName* sp = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::SP);
+	// Replace any stack_alloc instructions with LLIR instructions that calculate the correct
+	// address from the stack pointer.
 
-	for (const auto& [insn, slot] : variableStackSlots) {
-		Value* preg = insn->GetOutputPtr();
+	for (const auto& [insn, slot] : stackAllocInstructions) {
+		Value*       physicalRegister = insn->GetOutputPtr();
+		const size_t offset           = stackSize - stackFrame.GetAllocationOffset(slot);
+		ConstantInt* offsetValue      = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
 
-		size_t offset = stackFrame.size - slot;
-		ConstantInt* cint = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
-		Helix::MachineInstruction* d = ARMv7::CreateAdd_r32i32(sp, cint, preg);
-		BasicBlock* parent = insn->GetParent();
-
-		parent->Replace(insn, d);
+		Helix::MachineInstruction* addInstruction = ARMv7::CreateAdd_r32i32(sp, offsetValue, physicalRegister);
+		
+		IR::ReplaceInstructionAndDestroyOriginal(insn, addInstruction);
 	}
 
-	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), stackFrame.size);
+	// Finally inject function prologue/epilogue code that creates & destroys the stack
+
+	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), stackSize);
 
 	BasicBlock* tail = function->GetTailBlock();
 	BasicBlock* head = function->GetHeadBlock();
 
-	head->InsertBefore(head->begin(), ARMv7::CreateSub_r32i32(sp, stack_size_constant, sp));
+	// First thing we want to do is 'create' the stack - e.g. move the stack pointer so that it
+	// points to the 'bottom' of what we want the stack to be.
+	//
+	// The emit pass will inject any other prologue code before this (e.g. pushing the frame pointer/link register
+	// to the stack etc...)
+	head->InsertBefore(head->begin(),                ARMv7::CreateSub_r32i32(sp, stack_size_constant, sp));
+
+	// Finally the last thing to do (before what is presumably the return instruction) is destroy the
+	// space on the stack we reserved, meaning that whichever function that comes next can reuse it.
 	tail->InsertBefore(tail->Where(tail->GetLast()), ARMv7::CreateAdd_r32i32(sp, stack_size_constant, sp));
 }
 

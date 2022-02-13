@@ -9,6 +9,7 @@ add_executable(HelixCoreTests
 	test-instruction-index.cpp
 	test-interval.cpp
 	test-linear-scan.cpp
+	test-stack-frame.cpp
 	main.cpp
 	catch.hpp
 )

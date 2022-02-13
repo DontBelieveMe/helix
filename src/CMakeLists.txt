@@ -62,6 +62,8 @@ add_library(HelixCore
 	interval.cpp
 	linear-scan.h
 	linear-scan.cpp
+	stack-frame.h
+	stack-frame.cpp
 
 	options.def
 	insns.def

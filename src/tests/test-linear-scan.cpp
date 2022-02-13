@@ -26,7 +26,7 @@ using namespace Helix;
 bool CheckRegisterAllocationCorrectness(LSRA::Context& context)
 {
 	for (auto& [vreg, interval] : context.InputIntervals) {
-		if (!PhysicalRegisters::IsValidPhysicalRegister(context.Allocated[vreg]))
+		if (!PhysicalRegisters::IsValidPhysicalRegister(context.Allocations[vreg].Register))
 			return false;
 
 		for (const auto& [vreg2, interval2] : context.InputIntervals) {
@@ -34,7 +34,7 @@ bool CheckRegisterAllocationCorrectness(LSRA::Context& context)
 				continue;
 
 			if (interval2.start >= interval.start && interval2.start < interval.end) {
-				if (context.Allocated[vreg] == context.Allocated[vreg2])
+				if (context.Allocations[vreg].Register == context.Allocations[vreg2].Register)
 					return false;
 			}
 		}
@@ -57,11 +57,11 @@ TEST_CASE("Simple allocation (less vregs than available registers)", "[LRSA]")
 	LSRA::Run(&context);
 
 	// Should both be assigned to physical registers
-	REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(context.Allocated[a]));
-	REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(context.Allocated[b]));
+	REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(context.Allocations[a].Register));
+	REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(context.Allocations[b].Register));
 
 	// And shouldn't be assigned to the same register
-	REQUIRE(context.Allocated[a] != context.Allocated[b]);
+	REQUIRE(context.Allocations[a].Register != context.Allocations[b].Register);
 
 	REQUIRE(CheckRegisterAllocationCorrectness(context));
 }
@@ -81,9 +81,11 @@ TEST_CASE("Simple allocation (more vregs than available registers, but lifetimes
 
 	LSRA::Run(&context);
 
-	PhysicalRegisterName* first = context.Allocated[vregs[0]];
+	PhysicalRegisterName* first = context.Allocations[vregs[0]].Register;
 
-	for (const auto& [virtualRegister, physicalRegister] : context.Allocated) {
+	for (const auto& [virtualRegister, allocation] : context.Allocations) {
+		PhysicalRegisterName* physicalRegister = allocation.Register;
+
 		REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(physicalRegister));
 
 		// In the register allocator is free to assign any register to any of the
@@ -121,8 +123,8 @@ TEST_CASE("Simple allocation (more vregs than available registers, but some life
 	LSRA::Run(&context);
 
 	// Test that all intervals have been assigned a valid register
-	for (const auto& [virtualRegister, physicalRegister] : context.Allocated) {
-		REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(physicalRegister));
+	for (const auto& [virtualRegister, allocation] : context.Allocations) {
+		REQUIRE(PhysicalRegisters::IsValidPhysicalRegister(allocation.Register));
 	}
 	
 	REQUIRE(CheckRegisterAllocationCorrectness(context));
@@ -141,8 +143,8 @@ TEST_CASE("Test CheckRegisterAllocationCorrectness utility function", "[LRSA]")
 		context.InputIntervals[a] = Interval(a, InstructionIndex(0, 2), InstructionIndex(0, 5));
 		context.InputIntervals[b] = Interval(b, InstructionIndex(0, 3), InstructionIndex(0, 6));
 
-		context.Allocated[a] = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
-		context.Allocated[b] = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
+		context.Allocations[a].Register = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
+		context.Allocations[b].Register = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
 
 		REQUIRE(!CheckRegisterAllocationCorrectness(context));
 	}
@@ -153,8 +155,8 @@ TEST_CASE("Test CheckRegisterAllocationCorrectness utility function", "[LRSA]")
 		context.InputIntervals[a] = Interval(a, InstructionIndex(0, 2), InstructionIndex(0, 5));
 		context.InputIntervals[b] = Interval(b, InstructionIndex(0, 3), InstructionIndex(0, 6));
 
-		context.Allocated[a] = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
-		context.Allocated[b] = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R6);
+		context.Allocations[a].Register = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
+		context.Allocations[b].Register = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R6);
 
 		REQUIRE(CheckRegisterAllocationCorrectness(context));
 	}
@@ -165,8 +167,8 @@ TEST_CASE("Test CheckRegisterAllocationCorrectness utility function", "[LRSA]")
 		context.InputIntervals[a] = Interval(a, InstructionIndex(0, 2), InstructionIndex(0, 5));
 		context.InputIntervals[b] = Interval(b, InstructionIndex(0, 5), InstructionIndex(0, 20));
 
-		context.Allocated[a] = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
-		context.Allocated[b] = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
+		context.Allocations[a].Register = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
+		context.Allocations[b].Register = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R5);
 
 		REQUIRE(CheckRegisterAllocationCorrectness(context));
 	}

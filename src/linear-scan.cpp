@@ -17,7 +17,13 @@
 
 using namespace Helix;
 
-// #pragma optimize("", off)
+#pragma optimize("", off)
+
+/*********************************************************************************************************************/
+
+LSRA::Context::Context(const std::unordered_map<VirtualRegisterName*, Interval>& intervals, StackFrame* stack)
+	: InputIntervals(intervals), Stack(stack)
+{ }
 
 /*********************************************************************************************************************/
 
@@ -34,46 +40,60 @@ static void PopulateAllAvailableRegisters(std::unordered_set<PhysicalRegisterNam
 
 /*********************************************************************************************************************/
 
-static void SpillAtInterval(std::vector<Interval>* active, Interval* interval)
+static void SpillAtInterval(StackFrame* stack, std::vector<Interval*>* active, Interval* interval)
 {
-	helix_unreachable("spilling temporarily unavailable");
+	Interval* spill = active->back();
 
-#if 0
-	Interval& spill = active->back();
+	// If this interval ends before the one with largest (furthest away) end point in the active list
+	// then spill that interval instead, and use its register for ourselves.
+	//
+	// This is a fairly simple heuristic but apparently gives good enough results.
+	if (!IntervalEndComparator()(*spill, *interval)) {
+		const size_t spillSize = ARMv7::TypeSize(spill->virtual_register->GetType());
 
-	if (!IntervalEndComparator()(spill, *interval)) {
-		interval->physical_register = spill.physical_register;
-		spill.stack_slot = AllocateStackSpace(stackFrame, ARMv7::TypeSize(spill.virtual_register->GetType()));
+		// Assign the register of the interval we're spilling instead...
+		interval->physical_register = spill->physical_register;
 
+		// ... and spill that interval instead.
+		spill->stack_slot = stack->Add(spillSize);
+		spill->physical_register = nullptr;
+
+		// Remove the interval we've just spilled from the active list and push our interval
+		// (the that 'stole' the register) to that list.
 		active->erase(std::remove(active->begin(), active->end(), spill), active->end());
-		active->push_back(*interval);
+		active->push_back(interval);
 
-		std::sort(active->begin(), active->end(), IntervalEndComparator());
+		// Make sure the active list stays sorted by increasing end points.
+		std::sort(active->begin(), active->end(), [](Interval* a, Interval* b) { return IntervalEndComparator()(*a, *b); });
 	}
 	else {
-		interval->stack_slot = AllocateStackSpace(stackFrame, ARMv7::TypeSize(interval->virtual_register->GetType()));
+		// Otherwise just spill this interval to the stack anyway
+
+		const size_t spillSize = ARMv7::TypeSize(interval->virtual_register->GetType());
+
+		interval->stack_slot = stack->Add(spillSize);
+		interval->physical_register = nullptr;
 	}
-#endif
 }
 
 /*********************************************************************************************************************/
 
 static void ExpireOldIntervals(std::unordered_set<PhysicalRegisterName*>* freeRegisters,
-	std::vector<Interval>* active, Interval* interval)
+	std::vector<Interval*>* active, Interval* interval)
 {
-	std::vector<Interval> keep;
+	std::vector<Interval*> keep;
 
-	for (const Interval& active_interval : *active) {
-		if (!IntervalEndStartComparator()(active_interval, *interval)) {
+	for (Interval* active_interval : *active) {
+		if (!IntervalEndStartComparator()(*active_interval, *interval)) {
 			keep.push_back(active_interval);
 			continue;
 		}
 
-		freeRegisters->insert(active_interval.physical_register);
+		freeRegisters->insert(active_interval->physical_register);
 	}
 
 	*active = keep;
-	std::sort(active->begin(), active->end(), IntervalEndComparator());
+	std::sort(active->begin(), active->end(), [](Interval* a, Interval* b) { return IntervalEndComparator()(*a, *b); });
 }
 
 /*********************************************************************************************************************/
@@ -93,7 +113,7 @@ void LSRA::Run(Context* context)
 	// (2) Define a list of intervals 'active' - a list of intervals that overlap
 	//     at the current point in the program & have been placed in registers.
 	//     Active should be kept sorted in order of increasing end point
-	std::vector<Interval> active;
+	std::vector<Interval*> active;
 
 	// (3) Define a list of all free registers & define 'R' to be the total
 	//     number of registers that could possibly be free at any one time.
@@ -110,20 +130,20 @@ void LSRA::Run(Context* context)
 		ExpireOldIntervals(&freeRegisters, &active, &interval);
 
 		if (active.size() >= R) {
-			SpillAtInterval(&active, &interval);
+			SpillAtInterval(context->Stack, &active, &interval);
 		}
 		else {
 			PhysicalRegisterName* preg = *(freeRegisters.begin());
 			freeRegisters.erase(preg);
 
 			interval.physical_register = preg;
-			active.push_back(interval);
-			std::sort(active.begin(), active.end(), IntervalEndComparator());
+			active.push_back(&interval);
+			std::sort(active.begin(), active.end(), [](Interval* a, Interval* b) { return IntervalEndComparator()(*a, *b); });
 		}
 	}
 
 	for (Interval& interval : intervals) {
-		context->Allocated[interval.virtual_register] = interval.physical_register;
+		context->Allocations[interval.virtual_register] = { interval.physical_register, interval.stack_slot };
 	}
 }
 
