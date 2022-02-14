@@ -13,3 +13,6 @@
 [submodule "extras/c-testsuite"]
 	path = extras/c-testsuite
 	url = https://github.com/DontBelieveMe/c-testsuite
+[submodule "extras/helix-benchmark"]
+	path = extras/helix-benchmark
+	url = https://github.com/DontBelieveMe/helix-benchmark
