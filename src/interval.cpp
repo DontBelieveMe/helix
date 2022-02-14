@@ -195,18 +195,23 @@ void Helix::ComputeIntervalsForFunction(Function* function, std::unordered_map<V
 				intervals[vreg] = interval;
 			}
 			else {
-				InstructionIndex end = InstructionIndex(blockIndex, SIZE_MAX);
+				if (Contains(block_in, vreg)) {
+					intervals[vreg].end = InstructionIndex(blockIndex, bb.GetCountInstructions());
+				}
+				else {
+					InstructionIndex end = InstructionIndex(blockIndex, SIZE_MAX);
 
-				instructionIndex = 0;
-				for (Instruction& insn : bb) {
-					if (InstructionHasOperandWithFlag(&insn, vreg, Instruction::OP_READ)) {
-						end.instruction_index = instructionIndex;
+					instructionIndex = 0;
+					for (Instruction& insn : bb) {
+						if (InstructionHasOperandWithFlag(&insn, vreg, Instruction::OP_READ)) {
+							end.instruction_index = instructionIndex;
+						}
+
+						instructionIndex++;
 					}
 
-					instructionIndex++;
+					intervals[vreg].end = end;
 				}
-
-				intervals[vreg].end = end;
 			}
 		}
 
