@@ -1786,6 +1786,14 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 			sourceFiles
 		);
 
+		std::string defines = "";
+
+		for (size_t i = 0; i < Options::GetCountPP_Definess(); ++i) {
+			const std::string& define = Options::GetPP_Defines(i);
+
+			defines += "-D" + define + " ";
+		}
+
 		tool.appendArgumentsAdjuster(clang::tooling::getInsertArgumentAdjuster(
 			{
 				"--target=armv7-pc-linux-eabi",
@@ -1795,6 +1803,7 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 				// std headers anyway without it, but it matches -nostdlib
 				// and it can't hurt to make sure
 				"-nostdinc",
+				defines,
 
 			#if defined(CONFIG_LIBC_INCLUDE_DIRECTORY)
 				"-I" CONFIG_LIBC_INCLUDE_DIRECTORY

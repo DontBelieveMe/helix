@@ -27,6 +27,7 @@ ARGUMENT(std::string, "",    StopAfterPass,                       "stop-after-pa
 ARGUMENT(std::string, "",    TestTracePass,                       "test-trace",            "The specified pass should output debug/internal information. For testing"        )
 
 ARGUMENT_LIST(std::string, EnabledLog, "log", "Print all logs for the given channel to stdout")
+ARGUMENT_LIST(std::string, PP_Defines, "D", "Define <macro> to <value> (or 1 if <value> omitted)")
 
 ARGUMENTS_POSITIONAL(std::string, SourceFile, "file...");
 
