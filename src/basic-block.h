@@ -127,6 +127,10 @@ namespace Helix
 			Helix::DestroyInstruction(&(*insn));
 		}
 
+		size_t GetCountInstructions() const {
+			return Instructions.size();
+		}
+
 		Function* GetParent() const { return Parent; }
 		void SetParent(Function* fn) { Parent = fn; }
 
