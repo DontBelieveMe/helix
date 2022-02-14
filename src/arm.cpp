@@ -1,6 +1,8 @@
 #include "mir.h"
 #include "system.h"
 #include "basic-block.h"
+#include "ir-helpers.h"
+
 using namespace Helix;
 
 //#pragma optimize("", off)
@@ -61,42 +63,94 @@ static BasicBlock::iterator LoadGlobalAddressIntoRegister(Instruction* insn, Val
 
 /*********************************************************************************************************************/
 
+static MachineInstruction* CreateMachineLoad(Value* dst, Value* src, MachineMode mode, bool signExtend)
+{
+	switch (mode) {
+	case QImode: return signExtend ? ARMv7::CreateLdrsb(dst, src) : ARMv7::CreateLdrb(dst, src);
+	case HImode: return signExtend ? ARMv7::CreateLdrsh(dst, src) : ARMv7::CreateLdrh(dst, src);
+	case SImode: return ARMv7::CreateLdr(dst, src);
+	default:
+		break;
+	}
+
+	helix_unreachable("unacceptable machine mode for load");
+	return nullptr;
+}
+
+/*********************************************************************************************************************/
+
 MachineInstruction* ARMv7::expand_load(Instruction* insn)
 {
 	helix_assert(insn->GetOpcode() == HLIR::Load, "cannot expand load instruction that doesn't have kInsn_Load opcode");
 
 	LoadInsn* load = (LoadInsn*) insn;
 
-	if (is_register(load->GetSrc()) && is_register(load->GetDst())) {
-		switch (GetMachineMode(load->GetDst())) {
-		case QImode: return ARMv7::CreateLdrb(load->GetDst(), load->GetSrc());
-		case HImode: return ARMv7::CreateLdrh(load->GetDst(), load->GetSrc());
-		case SImode: return ARMv7::CreateLdr(load->GetDst(), load->GetSrc());
-		default:
-			helix_unreachable("unacceptable machine mode for load value (from mem reg)");
-			break;
-		}
-	}
-	else if (is_global(load->GetSrc()) && is_register(load->GetDst())) {
-		VirtualRegisterName* temporary_register = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+	Value* loadDestination = load->GetDst();
+	Value* loadSource      = load->GetSrc();
 
-		// Load the address of the global into the destination register...
-		BasicBlock::iterator where = LoadGlobalAddressIntoRegister(insn, temporary_register, load->GetSrc());
+	bool bSignExtend = false;
 
-		// ... then load the value stored at the address in the destination register, into the destination register.
-		// This seems like a bit of a hack that allows us to only use one register.
+	Use use;
+	if (IR::TryGetSingleUser(load, loadDestination, &use)) {
+		// If we have a single user of the output of the load
+		// check if it's a zero/sign extension instruction.
 		//
-		// #FIXME: Do a bit of an investigation, find out if this is legal (it seems to work?) or even just a bad idea.
-		
-		switch (GetMachineMode(load->GetDst())) {
-		case QImode: return ARMv7::CreateLdrb(load->GetDst(), temporary_register);
-		case HImode: return ARMv7::CreateLdrh(load->GetDst(), temporary_register);
-		case SImode: return ARMv7::CreateLdr(load->GetDst(), temporary_register);
+		// If it's a sign extension then we need to emit a
+		// special LDRS* instruction that does a load and
+		// sign extend.
+		//
+		// If it's a zero extension then we don't need
+		// to do anything since LDR* does zero extension
+		// by default.
+		//
+		// Either way, we need to remove the zext/sext
+		// instruction & update any references/use to reflect
+		// such
+
+		Instruction* singleUser = use.GetInstruction();
+
+		switch (singleUser->GetOpcode()) {
+		case HLIR::SExt:
+			bSignExtend = true;
+
+		// Can just fallthrough here, since it's the same logic for handling
+		// the zext & sext instructions themselves.
+		[[fallthrough]];
+		case HLIR::ZExt: {
+			CastInsn* castInstruction = static_cast<CastInsn*>(singleUser);
+
+			helix_assert(castInstruction->GetSrc() == loadDestination, "Load/Cast destination mismatch");
+
+			// First replace any uses of the sext/zext result with
+			// the load destination value (we're basically 'forwarding'
+			// through the cast & acting like it never existed)...
+			IR::ReplaceAllUsesWith(castInstruction->GetDst(), loadDestination);
+
+			// ... and finally remove the instruction itself
+			castInstruction->DeleteFromParent();
+
+			break;
+		}
+
 		default:
-			helix_unreachable("cannot natively load values of this machine mode (from global)");
 			break;
 		}
 	}
+
+	const MachineMode destinationMachineMode = GetMachineMode(loadDestination);
+
+	if (is_register(loadSource) && is_register(loadDestination)) {
+		return CreateMachineLoad(loadDestination, loadSource, destinationMachineMode, bSignExtend);
+	}
+	else if (is_global(loadSource) && is_register(loadDestination)) {
+		// Load the address of the global into this temporary 'addressRegister'
+		VirtualRegisterName* addressRegister = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
+		LoadGlobalAddressIntoRegister(insn, addressRegister, loadSource);
+
+		return CreateMachineLoad(loadDestination, addressRegister, destinationMachineMode, bSignExtend);
+	}
+
+	helix_unreachable("Unexpected types for source & destination operands in load");
 
 	return nullptr;
 }
