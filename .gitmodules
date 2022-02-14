@@ -13,6 +13,3 @@
 [submodule "extras/c-testsuite"]
 	path = extras/c-testsuite
 	url = https://github.com/DontBelieveMe/c-testsuite
-[submodule "extras/creduce"]
-	path = extras/creduce
-	url = https://github.com/csmith-project/creduce.git
