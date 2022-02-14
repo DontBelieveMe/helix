@@ -40,6 +40,8 @@ namespace Helix
 		    : m_User(insn), m_OperandIndex(index)
 		{ }
 
+		Use() = default;
+
 		bool operator==(const Use& other) const;
 
 		void ReplaceWith(Value* newValue);
@@ -48,8 +50,8 @@ namespace Helix
 		size_t       GetOperandIndex() const { return m_OperandIndex; }
 
 	private:
-		Instruction* m_User;
-		uint16_t     m_OperandIndex;
+		Instruction* m_User          = nullptr;
+		uint16_t     m_OperandIndex  = UINT16_MAX;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
