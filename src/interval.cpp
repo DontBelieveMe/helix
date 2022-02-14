@@ -126,6 +126,17 @@ void Helix::ComputeIntervalsForFunction(Function* function, std::unordered_map<V
 					if (!vreg)
 						continue;
 
+					// #FIXME(bwilks): This is a hack to get around intervals not being created for values
+					//                 that are only defined & never used.
+					if (vreg->GetCountUses() == 1) {
+						helix_assert(vreg->GetUse(0).GetInstruction() == &insn, "Single user of only def register not parent?");
+
+						const InstructionIndex here(blockIndex, instructionIndex);
+						intervals[vreg] = Interval(vreg, here, here);
+
+						continue;
+					}
+
 					if (!Contains(uses, vreg))
 						continue;
 
