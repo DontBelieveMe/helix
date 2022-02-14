@@ -186,7 +186,7 @@ void AssemblyEmitter::Execute(Module* mod, const PassRunInformation&)
 		//         head BB is used as a branch target etc...
 		//         Not much point in printing BB labels if they are never used...
 
-		fprintf(file, "\tpush {r11, lr}\n");
+		fprintf(file, "\tpush {r4, r5, r6, r7, r8, r10, r11}\n"); 
 		fprintf(file, "\tmov r11, sp\n");
 
 		for (BasicBlock& bb : fn->blocks()) {

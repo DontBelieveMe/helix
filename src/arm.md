@@ -286,7 +286,8 @@
 ; instead of going through a branch instruction
 (define-insn "ret"
 	[(HLIR::Return)]
-	"@pop {r11, pc}"
+	"@pop {r4, r5, r6, r7, r8, r10, r11}
+	bx lr"
 	[])
 
 ; *****************************************************************************
