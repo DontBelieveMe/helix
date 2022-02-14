@@ -219,7 +219,7 @@
 (define-insn "$store_global_address_to_memory"
 	[(HLIR::Store
 		(match_operand:ptr 0 "global")
-		(match_operand:i32 1 "register"))]
+		(match_operand:ptr 1 "register"))]
 	"*expand_store")
 
 ; Store 32 bit value in the source register (operand 0) into
