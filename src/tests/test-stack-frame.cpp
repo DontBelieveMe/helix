@@ -60,7 +60,7 @@ TEST_CASE("Stack allows the addition of a single word", "[StackFrame]")
 	
 	const StackFrame::SlotIndex slot = stack.Add(4);
 
-	REQUIRE(stack.GetAllocationOffset(slot) == 0);
+	REQUIRE(stack.GetAllocationOffset(slot) == 4);
 	REQUIRE(stack.GetAllocationSize(slot) == 4);
 }
 
@@ -73,8 +73,8 @@ TEST_CASE("Stack allows the addition of two words", "[StackFrame]")
 	const StackFrame::SlotIndex slot0 = stack.Add(4);
 	const StackFrame::SlotIndex slot1 = stack.Add(4);
 
-	REQUIRE(stack.GetAllocationOffset(slot0) == 0);
-	REQUIRE(stack.GetAllocationOffset(slot1) == 4);
+	REQUIRE(stack.GetAllocationOffset(slot0) == 4);
+	REQUIRE(stack.GetAllocationOffset(slot1) == 8);
 
 	REQUIRE(stack.GetAllocationSize(slot0) == 4);
 	REQUIRE(stack.GetAllocationSize(slot1) == 4);
