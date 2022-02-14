@@ -166,7 +166,7 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 					const StackFrame::SlotIndex stackSlot = allocation.StackSlot;
 
 					if (stackSlot.IsValid()) {
-						helix_assert(stackFrame.GetAllocationOffset(stackSlot) < 255, "stack frame is too large!");
+						helix_assert(stackFrame.GetAllocationOffset(stackSlot) <= 4095, "stack frame is too large!");
 
 						if (insn.OperandHasFlags(op, Instruction::OP_READ)) {
 							loadSpills.push_back({ &insn, vreg, stackSlot });
