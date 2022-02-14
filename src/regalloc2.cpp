@@ -27,6 +27,20 @@ static void PrintIntervalTestInfo(Function* function, const std::unordered_map<V
 	// First print the function that we're testing
 	Helix::DebugDump(*function);
 
+#if 0
+	for (BasicBlock& bb : function->blocks()) {
+		fmt::print(".bb{}\n", slots.GetBasicBlockSlot(&bb));
+
+		fmt::print("    - IN:\n");
+		for (VirtualRegisterName* v : bb.GetLiveIn())
+			fmt::print("        + %{}\n", slots.GetValueSlot(v));
+
+		fmt::print("    - OUT:\n");
+		for (VirtualRegisterName* v : bb.GetLiveOut())
+			fmt::print("        + %{}\n", slots.GetValueSlot(v));
+	}
+#endif
+
 	// Take all the intervals and sort by their slot indices (basically
 	// order of appearance).
 	//
