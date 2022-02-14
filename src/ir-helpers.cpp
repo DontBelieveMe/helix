@@ -56,3 +56,21 @@ void IR::InsertBefore(Instruction* a, Instruction* b)
 }
 
 /*********************************************************************************************************************/
+
+bool IR::TryGetSingleUser(Instruction* base, Value* v, Use* outUse)
+{
+	if (v->GetCountUses() != 2)
+		return false;
+
+	for (const Use& use : v->uses()) {
+		if (use.GetInstruction() == base)
+			continue;
+
+		*outUse = use;
+		return true;
+	}
+
+	return false;
+}
+
+/*********************************************************************************************************************/

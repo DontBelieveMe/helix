@@ -45,6 +45,8 @@ namespace Helix::IR
 	 */
 	void InsertAfter(Instruction* a, Instruction* b);
 
+	bool TryGetSingleUser(Instruction* base, Value* v, Use* outUse);
+
 	template <typename T>
 	inline void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, OpcodeType opcode);
 
