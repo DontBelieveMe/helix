@@ -129,6 +129,10 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 			// ... and finally remove the instruction itself
 			castInstruction->DeleteFromParent();
 
+			helix_assert(ARMv7::TypeSize(loadDestination->GetType()) <= 4, "Load destination can't fit into a single register");
+
+			loadDestination->SetType(BuiltinTypes::GetInt32());
+
 			break;
 		}
 
