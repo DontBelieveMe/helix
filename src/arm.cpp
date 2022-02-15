@@ -252,25 +252,21 @@ MachineInstruction* ARMv7::expand_store(Instruction* insn)
 	helix_assert(insn->GetOpcode() == HLIR::Store, "instruction is not a store");
 	StoreInsn* store = (StoreInsn*) insn;
 
-	// Use r7 as a temporary/scratch register to store the address of the global
-	// so we can store the value from that temp register to memory.
-	// This is currently reserved by the register allocator for this purpose, but it is
-	// quite a shitty thing to be doing, every little help counts when it comes to register allocation.
-
-	PhysicalRegisterName* r7 = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R7);
-
 	// If the the source is a global variable then store the address to the memory
 	// address given in dst.
 	if (value_isa<GlobalVariable>(store->GetSrc())) {
-		LoadGlobalAddressIntoRegister(store, r7, store->GetSrc());
-		return ARMv7::CreateStr(r7, store->GetDst());
+		VirtualRegisterName* globalAddress = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+		LoadGlobalAddressIntoRegister(store, globalAddress, store->GetSrc());
+		return ARMv7::CreateStr(globalAddress, store->GetDst());
 	}
 	else if (value_isa<GlobalVariable>(store->GetDst())) {
+		VirtualRegisterName* globalAddress = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+
 		// #FIXME: Support storing types other than i32 (i16 & i8 primarily, i64 support can wait. don't even mention fp).
 		helix_assert(GetMachineMode(store->GetSrc()) == SImode, "unexpected machine mode for store (currently unsupported)");
 
-		LoadGlobalAddressIntoRegister(store, r7, store->GetDst());
-		return ARMv7::CreateStr(store->GetSrc(), r7);
+		LoadGlobalAddressIntoRegister(store, globalAddress, store->GetDst());
+		return ARMv7::CreateStr(store->GetSrc(), globalAddress);
 	}
 	else if (is_register(store->GetSrc()) && is_register(store->GetDst())) {
 		switch (GetMachineMode(store->GetSrc())) {
