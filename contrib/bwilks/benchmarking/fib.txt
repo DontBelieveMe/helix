@@ -1,0 +1,21 @@
+int main() {
+    int a, b, i, temp;
+    a = 0;
+    b = 1;
+    for (i = 0; i < 13; i++) {
+        temp = a;
+        a = a + b;
+        b = temp;
+    }
+    return a;
+}
+
+
+14/02/2022
+-------------------------------------------------------------
+Benchmark                   Time             CPU   Iterations
+-------------------------------------------------------------
+BM_FUNCTION(Helix)        129 ns          129 ns      5413426
+BM_FUNCTION(TCC)         76.8 ns         76.6 ns     10090020
+BM_FUNCTION(Clang)       4.02 ns         4.01 ns    174886527
+BM_FUNCTION(GCC)         4.02 ns         4.01 ns    174858560
