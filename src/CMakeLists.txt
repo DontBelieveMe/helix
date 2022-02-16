@@ -66,6 +66,8 @@ add_library(HelixCore
 	stack-frame.cpp
 	arm-split-constants.h
 	arm-split-constants.cpp
+	peephole-generic.h
+	peephole-generic.cpp
 
 	options.def
 	insns.def

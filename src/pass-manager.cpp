@@ -13,6 +13,7 @@
 #include "genlower.h"
 #include "regalloc2.h"
 #include "arm-split-constants.h"
+#include "peephole-generic.h"
 
 using namespace Helix;
 
@@ -25,6 +26,8 @@ PassManager::PassManager()
 	AddPass<LegaliseStructs>();
 	AddPass<ReturnCombine>();
 	AddPass<GenericLowering>();
+
+	AddPass<PeepholeGeneric>();
 
 	/* ARM Specific Passes */
 	//AddPass<ConstantHoisting>();
