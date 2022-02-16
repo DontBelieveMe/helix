@@ -47,6 +47,14 @@ namespace Helix::IR
 
 	bool TryGetSingleUser(Instruction* base, Value* v, Use* outUse);
 
+	inline BasicBlock::iterator GetNext(Instruction* insn) {
+		return BasicBlock::iterator((Instruction*) insn->get_next());
+	}
+
+	inline BasicBlock::iterator GetPrev(Instruction* insn) {
+		return BasicBlock::iterator((Instruction*)insn->get_prev());
+	}
+
 	template <typename T>
 	inline void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, OpcodeType opcode);
 

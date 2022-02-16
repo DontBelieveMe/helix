@@ -72,10 +72,10 @@ namespace Helix
 			{ m_node = static_cast<T*>(m_node->get_prev()); return *this; }
 
 		intrusive_list_iterator<T> operator++(int)
-			{ return intrusive_list_iterator<T>(m_node->get_next()); }
+			{ return intrusive_list_iterator<T>((T*) m_node->get_next()); }
 
 		intrusive_list_iterator<T> operator--(int)
-			{ return intrusive_list_iterator<T>(m_node->get_prev()); }
+			{ return intrusive_list_iterator<T>((T*) m_node->get_prev()); }
 
 		void invalidate() { m_node = nullptr; }
 
