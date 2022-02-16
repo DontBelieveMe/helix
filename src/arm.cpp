@@ -88,6 +88,8 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 	Value* loadDestination = load->GetDst();
 	Value* loadSource      = load->GetSrc();
 
+	const MachineMode destinationMachineMode = GetMachineMode(loadDestination);
+
 	bool bSignExtend = false;
 
 	Use use;
@@ -140,8 +142,6 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 			break;
 		}
 	}
-
-	const MachineMode destinationMachineMode = GetMachineMode(loadDestination);
 
 	if (is_register(loadSource) && is_register(loadDestination)) {
 		return CreateMachineLoad(loadDestination, loadSource, destinationMachineMode, bSignExtend);
