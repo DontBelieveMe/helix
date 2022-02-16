@@ -64,6 +64,8 @@ add_library(HelixCore
 	linear-scan.cpp
 	stack-frame.h
 	stack-frame.cpp
+	arm-split-constants.h
+	arm-split-constants.cpp
 
 	options.def
 	insns.def

@@ -348,3 +348,6 @@
 
 (define-insn "movw_gl16" [] "movw {0}, :lower16:{1}" [(0 write) (1 read)])
 (define-insn "movt_gu16" [] "movt {0}, :upper16:{1}" [(0 write) (1 read)])
+(define-insn "movwi"     [] "movw {0}, #{1}" [(0 write) (1 read)])
+(define-insn "movti"     [] "movt {0}, #{1}" [(0 write) (1 read)])
+

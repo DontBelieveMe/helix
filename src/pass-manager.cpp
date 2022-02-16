@@ -12,6 +12,7 @@
 #include "emit.h"
 #include "genlower.h"
 #include "regalloc2.h"
+#include "arm-split-constants.h"
 
 using namespace Helix;
 
@@ -26,13 +27,14 @@ PassManager::PassManager()
 	AddPass<GenericLowering>();
 
 	/* ARM Specific Passes */
-	AddPass<ConstantHoisting>();
+	//AddPass<ConstantHoisting>();
 	AddPass<CConv>();
 	AddPass<LowerStructStackAllocation>();
 	
 	/* regalloc2 now should run after IR -> MIR expansion */
 	/* AddPass<RegisterAllocator>(); */
 
+	AddPass<ArmSplitConstants>();
 	AddPass<MachineExpander>();
 	AddPass<RegisterAllocator2>();
 	AddPass<AssemblyEmitter>();

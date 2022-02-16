@@ -21,7 +21,8 @@ void MachineExpander::Execute(Module* mod, const PassRunInformation&)
 			while (it != bb.end()) {
 				Instruction* old = &(*it);
 
-				if (old->GetOpcode() == HLIR::StackAlloc) {
+				if (old->GetOpcode() == HLIR::StackAlloc
+					|| Helix::IsMachineOpcode(old->GetOpcode())) {
 					it = bb.Where((Instruction*) old->get_next());
 					continue;
 				}
