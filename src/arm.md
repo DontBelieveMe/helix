@@ -263,6 +263,13 @@
 ; *****************************************************************************
 
 (define-insn "bge" [] "bge {0}" [(0 read)])
+(define-insn "bgt" [] "bgt {0}" [(0 read)])
+
+(define-insn "ble" [] "ble {0}" [(0 read)])
+(define-insn "blt" [] "blt {0}" [(0 read)])
+
+(define-insn "bne" [] "bne {0}" [(0 read)])
+(define-insn "beq" [] "beq {0}" [(0 read)])
 
 (define-insn "$cbr"
 	[(HLIR::ConditionalBranch

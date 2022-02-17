@@ -161,12 +161,51 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 
 /*********************************************************************************************************************/
 
+static MachineInstruction* expand_icmp_branch_pair(CompareInsn* compare, ConditionalBranchInsn* branch)
+{
+	helix_assert(compare->GetParent() == branch->GetParent(), "Cannot expand icmp/branch pair with different parent blocks");
+
+	Value* trueTarget = branch->GetTrueTarget();
+	Value* falseTarget = branch->GetFalseTarget();
+
+	MachineInstruction* br = nullptr;
+	switch (compare->GetOpcode()) {
+	case HLIR::ICmp_Eq:  br = ARMv7::CreateBeq(trueTarget); break;
+	case HLIR::ICmp_Neq: br = ARMv7::CreateBne(trueTarget); break;
+	case HLIR::ICmp_Gt:  br = ARMv7::CreateBgt(trueTarget); break;
+	case HLIR::ICmp_Gte: br = ARMv7::CreateBge(trueTarget); break;
+	case HLIR::ICmp_Lt:  br = ARMv7::CreateBlt(trueTarget); break;
+	case HLIR::ICmp_Lte: br = ARMv7::CreateBle(trueTarget); break;
+	default:
+		helix_unreachable("Unknown comparison type (compare/branch expansion)");
+	}
+
+	branch->DeleteFromParent(); branch = nullptr;
+
+	BasicBlock* bb = compare->GetParent();
+	BasicBlock::iterator where = bb->Where(compare);
+
+	where = bb->InsertBefore(where, ARMv7::CreateCmp(compare->GetLHS(), compare->GetRHS()));
+	where = bb->InsertAfter(where, br);
+
+	return ARMv7::CreateBr(falseTarget);
+}
+
+/*********************************************************************************************************************/
+
 MachineInstruction* ARMv7::expand_icmp(Instruction* insn)
 {
 	helix_assert(!Helix::IsMachineOpcode(insn->GetOpcode()), "Can't expand LLIR instruction");
 	helix_assert(HLIR::IsCompare((HLIR::Opcode) insn->GetOpcode()), "instruction is not a comparison");
 
 	CompareInsn* compare = (CompareInsn*) insn;
+
+	Use use;
+	if (IR::TryGetSingleUser(insn, compare->GetResult(), &use)) {
+		if (use.GetInstruction()->GetOpcode() == HLIR::ConditionalBranch) {
+			return expand_icmp_branch_pair(compare, (ConditionalBranchInsn*) use.GetInstruction());
+		}
+	}
 
 	BasicBlock*          bb    = compare->GetParent();
 	BasicBlock::iterator where = bb->Where(compare);
