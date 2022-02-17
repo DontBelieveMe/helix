@@ -117,5 +117,5 @@ configure_file(helix-config.in.h helix-config.h)
 
 if (MSVC)
 	target_link_options(HelixCore PRIVATE /DEBUG)
-	target_compile_options(HelixCore PRIVATE /wd26812 /W4 /Zi)
+	target_compile_options(HelixCore PRIVATE /wd26812 /W4 /Zi /Od)
 endif()
