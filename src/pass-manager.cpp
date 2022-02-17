@@ -32,17 +32,11 @@ PassManager::PassManager()
 	AddPass<ReturnCombine>();
 	AddPass<GenericLowering>();
 	AddPass<Mem2Reg>();
-
 	AddPass<PeepholeGeneric>();
 
 	/* ARM Specific Passes */
-	//AddPass<ConstantHoisting>();
 	AddPass<CConv>();
 	AddPass<LowerStructStackAllocation>();
-	
-	/* regalloc2 now should run after IR -> MIR expansion */
-	/* AddPass<RegisterAllocator>(); */
-
 	AddPass<ArmSplitConstants>();
 	AddPass<MachineExpander>();
 	AddPass<RegisterAllocator2>();
