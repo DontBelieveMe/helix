@@ -1,0 +1,73 @@
+
+../obj/strlen/helix.o:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00000000 <helix_main>:
+   0:   e92d0df0        push    {r4, r5, r6, r7, r8, sl, fp}
+   4:   e1a0b00d        mov     fp, sp
+
+00000008 <.bb0>:
+   8:   e24dd018        sub     sp, sp, #24
+   c:   e28d0014        add     r0, sp, #20
+  10:   e58d0008        str     r0, [sp, #8]
+  14:   e28d4010        add     r4, sp, #16
+  18:   e3007000        movw    r7, #0
+  1c:   e3407000        movt    r7, #0
+  20:   e5847000        str     r7, [r4]
+  24:   e28d000c        add     r0, sp, #12
+  28:   e58d0004        str     r0, [sp, #4]
+  2c:   e3006000        movw    r6, #0
+  30:   e3406000        movt    r6, #0
+  34:   e5968000        ldr     r8, [r6]
+  38:   e59d0004        ldr     r0, [sp, #4]
+  3c:   e5808000        str     r8, [r0]
+  40:   eaffffff        b       44 <.bb1>
+
+00000044 <.bb1>:
+  44:   e5946000        ldr     r6, [r4]
+  48:   e59d0004        ldr     r0, [sp, #4]
+  4c:   e5908000        ldr     r8, [r0]
+  50:   e1a05006        mov     r5, r6
+  54:   e3006000        movw    r6, #0
+  58:   e3406000        movt    r6, #0
+  5c:   e5967000        ldr     r7, [r6]
+  60:   e0060798        mul     r6, r8, r7
+  64:   e0858006        add     r8, r5, r6
+  68:   e1a06008        mov     r6, r8
+  6c:   e5967000        ldr     r7, [r6]
+  70:   e3005000        movw    r5, #0
+  74:   e3405000        movt    r5, #0
+  78:   e5958000        ldr     r8, [r5]
+  7c:   e1570008        cmp     r7, r8
+  80:   e3a07000        mov     r7, #0
+  84:   13007001        movwne  r7, #1
+  88:   e3570001        cmp     r7, #1
+  8c:   aa000000        bge     94 <.bb2>
+  90:   ea000008        b       b8 <.bb3>
+
+00000094 <.bb2>:
+  94:   e59d0004        ldr     r0, [sp, #4]
+  98:   e5907000        ldr     r7, [r0]
+  9c:   e3006000        movw    r6, #0
+  a0:   e3406000        movt    r6, #0
+  a4:   e5965000        ldr     r5, [r6]
+  a8:   e0878005        add     r8, r7, r5
+  ac:   e59d0004        ldr     r0, [sp, #4]
+  b0:   e5808000        str     r8, [r0]
+  b4:   eaffffe2        b       44 <.bb1>
+
+000000b8 <.bb3>:
+  b8:   e59d0004        ldr     r0, [sp, #4]
+  bc:   e5907000        ldr     r7, [r0]
+  c0:   e59d0008        ldr     r0, [sp, #8]
+  c4:   e5807000        str     r7, [r0]
+  c8:   eaffffff        b       cc <.bb4>
+
+000000cc <.bb4>:
+  cc:   e59d0008        ldr     r0, [sp, #8]
+  d0:   e5900000        ldr     r0, [r0]
+  d4:   e28dd018        add     sp, sp, #24
+  d8:   e8bd0df0        pop     {r4, r5, r6, r7, r8, sl, fp}
+  dc:   e12fff1e        bx      lr

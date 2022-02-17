@@ -1,0 +1,31 @@
+int benchmark_main() {
+    int a[] = { 0, 5, 6, 34, 50, 51, 100, 101, 1053, 2000, 2001, 2002, 2003, 2010, 2050, 20312, 433333 };
+    int n = sizeof(a) / sizeof(int);
+    int x = 20312;
+
+    int i = 0, j = n - 1;
+    while (i <= j) {
+        int k = i + ((j - i) / 2);
+        if (a[k] == x) {
+            return k;
+        }
+        else if (a[k] < x) {
+            i = k + 1;
+        }
+        else {
+            j = k - 1;
+        }
+    }
+
+    return 255;
+}
+
+
+15/02/2022
+-------------------------------------------------------------
+Benchmark                   Time             CPU   Iterations
+-------------------------------------------------------------
+BM_FUNCTION(Helix)        164 ns          164 ns      4268737
+BM_FUNCTION(TCC)          107 ns          107 ns      4904061
+BM_FUNCTION(Clang)       17.3 ns         17.3 ns     40363938
+BM_FUNCTION(GCC)         43.4 ns         43.4 ns     16296974

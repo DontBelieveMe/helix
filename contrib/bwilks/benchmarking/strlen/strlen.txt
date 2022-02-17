@@ -1,0 +1,19 @@
+int main() {
+	char* c = "hello, world";
+
+	int l = 0;
+	while (c[l] != '\0')
+		l++;
+
+	return l;
+}
+
+15/02/2022
+-------------------------------------------------------------
+Benchmark                   Time             CPU   Iterations
+-------------------------------------------------------------
+BM_FUNCTION(Helix)       96.8 ns         96.8 ns      7218343
+BM_FUNCTION(TCC)         68.5 ns         68.5 ns     10088437
+BM_FUNCTION(Clang)       4.00 ns         4.00 ns    174888283
+BM_FUNCTION(GCC)         23.4 ns         23.3 ns     29982201
+
