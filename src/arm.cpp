@@ -341,6 +341,11 @@ bool Helix::IsMachineTerminator(OpcodeType opc)
 {
 	switch (opc) {
 	case ARMv7::Bge:
+	case ARMv7::Bgt:
+	case ARMv7::Blt:
+	case ARMv7::Ble:
+	case ARMv7::Beq:
+	case ARMv7::Bne:
 	case ARMv7::Br:
 	case ARMv7::Ret:
 		return true;
