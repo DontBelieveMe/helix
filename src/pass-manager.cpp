@@ -1,10 +1,12 @@
 #define DECLARE_PASS_IMPL
 
+/* Generic Internal Project Includes */
 #include "pass-manager.h"
 #include "module.h"
 #include "print.h"
 #include "options.h"
 
+/* Pass Internal Project Includes */
 #include "lower.h"
 #include "regalloc.h"
 #include "match.h"
@@ -14,10 +16,13 @@
 #include "regalloc2.h"
 #include "arm-split-constants.h"
 #include "peephole-generic.h"
+#include "mem2reg.h"
 
 using namespace Helix;
 
 HELIX_DEFINE_LOG_CHANNEL(pass_manager);
+
+/*********************************************************************************************************************/
 
 PassManager::PassManager()
 {
@@ -26,6 +31,7 @@ PassManager::PassManager()
 	AddPass<LegaliseStructs>();
 	AddPass<ReturnCombine>();
 	AddPass<GenericLowering>();
+	AddPass<Mem2Reg>();
 
 	AddPass<PeepholeGeneric>();
 
@@ -43,12 +49,16 @@ PassManager::PassManager()
 	AddPass<AssemblyEmitter>();
 }
 
+/*********************************************************************************************************************/
+
 void PassManager::ValidateModule(ValidationPass& validationPass, Module* module)
 {
 	HELIX_PROFILE_ZONE;
 	
 	validationPass.Execute(module, {});
 }
+
+/*********************************************************************************************************************/
 
 void PassManager::RunPass(const PassData& passData, Module* module)
 {
@@ -76,6 +86,8 @@ void PassManager::RunPass(const PassData& passData, Module* module)
 		module->DumpControlFlowGraphToFile(fmt::format("cfg-{}.dot", passData.name));
 	}
 }
+
+/*********************************************************************************************************************/
 
 void PassManager::Execute(Module* mod)
 {
@@ -109,7 +121,9 @@ void PassManager::Execute(Module* mod)
 		}
 	}
 }
-	
+
+/*********************************************************************************************************************/
+
 void BasicBlockPass::Execute(Module* mod, const PassRunInformation& info)
 {
 	for (auto it = mod->functions_begin(); it != mod->functions_end(); ++it) {
@@ -122,6 +136,8 @@ void BasicBlockPass::Execute(Module* mod, const PassRunInformation& info)
 	}
 }
 
+/*********************************************************************************************************************/
+
 void FunctionPass::Execute(Module* mod, const PassRunInformation& info)
 {
 	for (auto it = mod->functions_begin(); it != mod->functions_end(); ++it) {
@@ -129,3 +145,6 @@ void FunctionPass::Execute(Module* mod, const PassRunInformation& info)
 		this->Execute(fn, info);
 	}
 }
+
+/*********************************************************************************************************************/
+

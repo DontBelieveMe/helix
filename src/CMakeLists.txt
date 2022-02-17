@@ -68,6 +68,8 @@ add_library(HelixCore
 	arm-split-constants.cpp
 	peephole-generic.h
 	peephole-generic.cpp
+	mem2reg.h
+	mem2reg.cpp
 
 	options.def
 	insns.def
