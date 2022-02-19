@@ -53,8 +53,6 @@ TEST_CASE("Verify opcode categories", "[Bytecode]")
 
 TEST_CASE("Creating a floating point compare", "[Bytecode]")
 {
-	BasicBlock* bb = BasicBlock::Create();
-
 	Value* lhs = ConstantInt::Create(BuiltinTypes::GetInt32(), 0);
 	Value* rhs = ConstantInt::Create(BuiltinTypes::GetInt32(), 1);
 
@@ -79,8 +77,6 @@ TEST_CASE("Creating a floating point compare", "[Bytecode]")
 
 TEST_CASE("Creating a integral compare", "[Bytecode]")
 {
-	BasicBlock* bb = BasicBlock::Create();
-
 	Value* v = ConstantInt::Create(BuiltinTypes::GetInt32(), 454);
 	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32(), "result");
 
