@@ -42,6 +42,14 @@ void Mem2Reg::Execute(Function* fn, const PassRunInformation&)
 				&& use.GetInstruction()->GetOpcode() != HLIR::Store) {
 				toRemove = false;
 			}
+			else {
+				if (use.GetInstruction()->GetOpcode() == HLIR::Store) {
+					StoreInsn* store = (StoreInsn*)use.GetInstruction();
+
+					if (store->GetSrc() == outputPtr)
+						toRemove = false;
+				}
+			}
 		}
 
 		if (toRemove) {
