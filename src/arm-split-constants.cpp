@@ -74,7 +74,7 @@ static VirtualRegisterName* GetIntegerIntoRegister_8(Instruction* user, Constant
 
 /*********************************************************************************************************************/
 
-void ArmSplitConstants::Execute(Function* fn, const PassRunInformation& info)
+void ArmSplitConstants::Execute(Function* fn, const PassRunInformation&)
 {
 	struct IntegerReference
 	{
@@ -89,7 +89,7 @@ void ArmSplitConstants::Execute(Function* fn, const PassRunInformation& info)
 		for (Instruction& insn : bb) {
 			for (size_t opIndex = 0; opIndex < insn.GetCountOperands(); ++opIndex) {
 				if (ConstantInt* integerValue = value_cast<ConstantInt>(insn.GetOperand(opIndex))) {
-					constantIntegers.push_back({ &insn, integerValue, Use(&insn, opIndex)});
+					constantIntegers.push_back({ &insn, integerValue, Use(&insn, (uint16_t) opIndex)});
 				}
 			}
 		}
