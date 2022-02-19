@@ -343,6 +343,13 @@
 	"mov {0}, {1}"
 	[(0 write) (1 read)])
 
+(define-insn "set_ptr"
+	[(HLIR::Set
+		(match_operand:ptr 0 "register")
+		(match_operand:ptr 1 "register"))]
+	"mov {0}, {1}"
+	[(0 write) (1 read)])
+
 (define-insn "$set-address"
 	[(HLIR::Set
 		(match_operand:ptr 0 "register")
