@@ -43,8 +43,7 @@ void IR::ReplaceInstructionAndDestroyOriginal(Instruction* a, Instruction* b)
 	BasicBlock* parent = a->GetParent();
 	parent->Replace(a, b);
 
-	a->Clear();
-	Helix::DestroyInstruction(a);
+	IR::DestroyInstruction(a);
 }
 
 /*********************************************************************************************************************/
@@ -79,6 +78,24 @@ bool IR::TryGetSingleUser(Instruction* base, Value* v, Use* outUse)
 	}
 
 	return false;
+}
+
+/*********************************************************************************************************************/
+
+void IR::DestroyInstruction(Instruction* insn)
+{
+	if (!insn)
+		return;
+
+	BasicBlock* parent = insn->GetParent();
+
+	if (parent) {
+		parent->Remove(parent->Where(insn));
+	}
+
+	insn->Clear();
+
+	delete insn;
 }
 
 /*********************************************************************************************************************/

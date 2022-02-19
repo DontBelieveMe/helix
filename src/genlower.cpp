@@ -32,7 +32,7 @@ void GenericLowering::LowerIRem(BasicBlock& bb, BinOpInsn& insn)
 	where = bb.InsertAfter(where, Helix::CreateBinOp(HLIR::IMul, t0, rhs, t1));
 	where = bb.InsertAfter(where, Helix::CreateBinOp(HLIR::ISub, lhs, t1, dst));
 
-	bb.Delete(bb.Where(&insn));
+	insn.DeleteFromParent();
 }
 
 /*********************************************************************************************************************/
@@ -55,7 +55,7 @@ void GenericLowering::LowerLea(BasicBlock& bb, LoadEffectiveAddressInsn& insn)
 
 	IR::ReplaceAllUsesWith(insn.GetOutputPtr(), intptr);
 
-	bb.Delete(bb.Where(&insn));
+	insn.DeleteFromParent();
 }
 
 /*********************************************************************************************************************/
@@ -85,7 +85,7 @@ void GenericLowering::LowerLfa(BasicBlock& bb, LoadFieldAddressInsn& insn)
 
 	IR::ReplaceAllUsesWith(insn.GetOutputPtr(), resultPointer);
 
-	bb.Delete(bb.Where(&insn));
+	insn.DeleteFromParent();
 }
 
 /*********************************************************************************************************************/

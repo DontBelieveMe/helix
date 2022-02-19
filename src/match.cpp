@@ -6,7 +6,7 @@
 #include "match.h"
 #include "module.h"
 #include "mir.h"
-#include "print.h"
+#include "ir-helpers.h"
 
 using namespace Helix;
 
@@ -34,7 +34,7 @@ void MachineExpander::Execute(Module* mod, const PassRunInformation&)
 				if (insn->GetParent() != old->GetParent())
 					bb.Replace(old, insn);
 
-				Helix::DestroyInstruction(old);
+				IR::DestroyInstruction(old);
 			}
 		}
 	}

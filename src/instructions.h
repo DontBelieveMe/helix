@@ -382,8 +382,6 @@ namespace Helix
 	CastInsn* CreateSExt(Value* input, Value* output);
 	CastInsn* CreateZExt(Value* input, Value* output);
 
-	void DestroyInstruction(Instruction* insn);
-
 	std::string stringify_operand(Value* v, SlotTracker& slots);
 
 	inline bool is_const_int_with_value(Value* v, Integer i)

@@ -40,7 +40,7 @@ void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
 				where = bb.InsertAfter(where, Helix::CreateStore(init, ptr));
 			}
 
-			bb.Delete(bb.Where(&store));
+			store.DeleteFromParent();
 		}
 
 		return;
@@ -57,7 +57,7 @@ void GenericLegalizer::LegaliseStore(BasicBlock& bb, StoreInsn& store)
 				where = bb.InsertAfter(where, Helix::CreateStore(initValue, ptr));
 			}
 
-			bb.Delete(bb.Where(&store));
+			store.DeleteFromParent();
 		}
 
 		return;
@@ -186,7 +186,7 @@ void ReturnCombine::Execute(Function* fn, const PassRunInformation&)
 
 		where = bb.InsertAfter(where, Helix::CreateUnconditionalBranch(tailBlock));
 
-		bb.Delete(bb.Where(&ret));
+		ret.DeleteFromParent();
 	}
 }
 

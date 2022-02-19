@@ -23,6 +23,8 @@ namespace Helix::IR
 		BasicBlock& parent;
 	};
 
+	void DestroyInstruction(Instruction* insn);
+
 	/**
 	 * Replace instruction a with instruction b.
 	 * 

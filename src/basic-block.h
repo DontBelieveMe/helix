@@ -97,6 +97,8 @@ namespace Helix
 		void Replace(Instruction* original, Instruction* newValue)
 		{
 			newValue->SetParent(this);
+			original->SetParent(nullptr);
+
 			Instructions.replace(original, newValue);
 		}
 
@@ -123,13 +125,6 @@ namespace Helix
 
 		iterator Where(Instruction* insn) const { return iterator(insn); }
 		const_iterator Where(const Instruction* insn) const { return const_iterator(insn); }
-
-		void Delete(iterator insn)
-		{
-			Remove(insn);
-			insn->Clear();
-			Helix::DestroyInstruction(&(*insn));
-		}
 
 		size_t GetCountInstructions() const {
 			return Instructions.size();

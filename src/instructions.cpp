@@ -3,6 +3,7 @@
 #include "function.h"
 #include "print.h"
 #include "mir.h"
+#include "ir-helpers.h"
 
 using namespace Helix;
 
@@ -258,13 +259,6 @@ RetInsn::RetInsn()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Helix::DestroyInstruction(Instruction* insn)
-{
-	delete insn;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool RetInsn::HasReturnValue() const
 {
 	return GetCountOperands() == 1;
@@ -368,8 +362,8 @@ Instruction::OperandFlags RetInsn::GetOperandFlags(size_t i) const
 
 void Instruction::DeleteFromParent()
 {
-	helix_assert(m_Parent, "can't delete instruction from parent since parent is null");
-	m_Parent->Delete(m_Parent->Where(this));
+	// helix_assert(m_Parent, "can't delete instruction from parent since parent is null");
+	IR::DestroyInstruction(this);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
