@@ -172,9 +172,20 @@ namespace Helix
 
 		void remove(const iterator& where)
 		{
+			if (!where.is_valid())
+				return;
+
 			T* node = where.m_node;
+
 			T* next = static_cast<T*>(node->get_next());
 			T* prev = static_cast<T*>(node->get_prev());
+
+			/* Nothing to remove from the list if both the next & previous
+			   links are null.  */
+			if (!next && !prev)
+				return;
+
+			helix_assert(next && prev, "Both next & prev links need to be valid :)");
 
 			prev->set_next(next);
 			next->set_prev(prev);

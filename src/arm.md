@@ -336,6 +336,19 @@
 ;                             Move Operations
 ; *****************************************************************************
 
+(define-insn "set"
+	[(HLIR::Set
+		(match_operand:i32 0 "register")
+		(match_operand:i32 1 "register"))]
+	"mov {0}, {1}"
+	[(0 write) (1 read)])
+
+(define-insn "$set-address"
+	[(HLIR::Set
+		(match_operand:ptr 0 "register")
+		(match_operand:ptr 1 "global"))]
+	"*expand_global_address_to_register")
+
 (define-insn "movi" [] "mov {0}, #{1}" [(0 write) (1 read)])
 (define-insn "mov"  [] "mov {0}, {1}"  [(0 write) (1 read)])
 

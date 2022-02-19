@@ -47,7 +47,7 @@ static MachineMode GetMachineMode(Value* value)
 
 /*********************************************************************************************************************/
 
-static BasicBlock::iterator LoadGlobalAddressIntoRegister(Instruction* insn, Value* dest_register, Value* source_global)
+static MachineInstruction* LoadGlobalAddressIntoRegister(Instruction* insn, Value* dest_register, Value* source_global)
 {
 	BasicBlock* bb = insn->GetParent();
 	BasicBlock::iterator where = bb->Where(insn);
@@ -55,10 +55,12 @@ static BasicBlock::iterator LoadGlobalAddressIntoRegister(Instruction* insn, Val
 	// Load the lower 16 bits of the address into the lower 16 bits of the register.
 	where = bb->InsertBefore(where, ARMv7::CreateMovw_gl16(dest_register, source_global));
 
-	// Load the upper 16 bits of the address into the upper 16 bits of the register.
-	where = bb->InsertAfter(where,  ARMv7::CreateMovt_gu16(dest_register, source_global));
+	MachineInstruction* fin = ARMv7::CreateMovt_gu16(dest_register, source_global);
 
-	return where;
+	// Load the upper 16 bits of the address into the upper 16 bits of the register.
+	where = bb->InsertAfter(where, fin);
+
+	return fin;
 }
 
 /*********************************************************************************************************************/
@@ -326,6 +328,12 @@ MachineInstruction* ARMv7::expand_store(Instruction* insn)
 
 MachineInstruction* ARMv7::expand_global_address_to_register(Instruction* insn)
 {
+	if (insn->GetOpcode() == HLIR::Set) {
+		SetInsn* set = (SetInsn*)insn;
+
+		return LoadGlobalAddressIntoRegister(insn, set->GetRegister(), set->GetNewValue());
+	}
+
 	helix_assert(insn->GetOpcode() == HLIR::PtrToInt, "instruction is not ptrtoint");
 	CastInsn* castInsn = (CastInsn*) insn;
 	helix_assert(is_global(castInsn->GetSrc()), "ptrtoint source must be a global for this transform");

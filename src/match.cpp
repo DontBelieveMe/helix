@@ -31,7 +31,9 @@ void MachineExpander::Execute(Module* mod, const PassRunInformation&)
 
 				it = bb.Where((Instruction*) it->get_next());
 
-				bb.Replace(old, insn);
+				if (insn->GetParent() != old->GetParent())
+					bb.Replace(old, insn);
+
 				Helix::DestroyInstruction(old);
 			}
 		}

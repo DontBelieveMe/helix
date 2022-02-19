@@ -36,6 +36,7 @@ DEF_INSN_FIXED(Store,              "store",       2, FLG(READ), FLG(READ))
 DEF_INSN_FIXED(StackAlloc,         "stack_alloc", 1, FLG(WRITE))
 DEF_INSN_FIXED(LoadElementAddress, "lea",         3, FLG(READ), FLG(READ), FLG(WRITE))
 DEF_INSN_FIXED(LoadFieldAddress,   "lfa",         3, FLG(READ), FLG(READ), FLG(WRITE))
+DEF_INSN_FIXED(Set,                "set",         2, FLG(WRITE), FLG(READ))
 
 BEGIN_INSN_CLASS(Branch)
 	BEGIN_INSN_CLASS(Terminator)

@@ -33,6 +33,8 @@ namespace Helix::IR
 	 */
 	void ReplaceInstructionAndDestroyOriginal(Instruction* a, Instruction* b);
 
+	void ReplaceInstructionAndPreserveOriginal(Instruction* a, Instruction* b);
+
 	/**
 	 * Insert instruction 'b' just before 'a' (reparenting 'b' under the parent
 	 * block of 'a')
@@ -59,7 +61,22 @@ namespace Helix::IR
 	inline void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, OpcodeType opcode);
 
 	template <typename T>
+	inline void FindAllInstructionsOfType(std::vector<T*>& insns, BasicBlock* bb, OpcodeType opcode);
+
+	template <typename T>
 	inline T* FindFirstInstructionOfType(BasicBlock& bb, OpcodeType opcode);
+}
+
+/*********************************************************************************************************************/
+
+template <typename T>
+inline void Helix::IR::FindAllInstructionsOfType(std::vector<T*>& insns, BasicBlock* bb, OpcodeType opcode)
+{
+	for (Instruction& insn : *bb) {
+		if (insn.GetOpcode() == opcode) {
+			insns.push_back(static_cast<T*>(&insn));
+		}
+	}
 }
 
 /*********************************************************************************************************************/

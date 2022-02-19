@@ -30,6 +30,14 @@ void IR::ReplaceAllUsesWith(Value* oldValue, Value* newValue)
 
 /*********************************************************************************************************************/
 
+void IR::ReplaceInstructionAndPreserveOriginal(Instruction* a, Instruction* b)
+{
+	BasicBlock* parent = a->GetParent();
+	parent->Replace(a, b);
+}
+
+/*********************************************************************************************************************/
+
 void IR::ReplaceInstructionAndDestroyOriginal(Instruction* a, Instruction* b)
 {
 	BasicBlock* parent = a->GetParent();

@@ -108,7 +108,11 @@ namespace Helix
 
 		std::vector<BasicBlock*> GetSuccessors() const;
 
-		void Remove(iterator where) { where->SetParent(nullptr); Instructions.remove(where); }
+		void Remove(iterator where)
+		{
+			where->SetParent(nullptr);
+			Instructions.remove(where);
+		}
 
 		bool CanDelete() const;
 

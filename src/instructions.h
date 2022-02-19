@@ -313,6 +313,26 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	class SetInsn : public Instruction
+	{
+	public:
+		SetInsn(Value* reg, Value* newValue)
+			: Instruction(HLIR::Set, 2)
+		{
+			this->SetOperand(0, reg);
+			this->SetOperand(1, newValue);
+		}
+
+		Value* GetRegister() const { return this->GetOperand(0); }
+		Value* GetNewValue() const { return this->GetOperand(1); }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	SetInsn* CreateSetInsn(Value* reg, Value* newValue);
+
 	/// Create a comparison instruction that compares 'lhs' and 'rhs' and stores the result to the given
 	/// 'result' register.
 	CompareInsn* CreateCompare(HLIR::Opcode cmpOpcode, Value* lhs, Value* rhs, Value* result);

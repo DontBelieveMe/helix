@@ -22,6 +22,13 @@ static std::vector<Instruction::OperandFlags> s_fixedOperandsFlags[HLIR::kInsnCo
 
 /*********************************************************************************************************************/
 
+SetInsn* Helix::CreateSetInsn(Value* reg, Value* newValue)
+{
+	return new SetInsn(reg, newValue);
+}
+
+/*********************************************************************************************************************/
+
 CastInsn* Helix::CreateSExt(Value* input, Value* output)
 {
 	return new CastInsn(HLIR::SExt, input, output);
@@ -335,6 +342,7 @@ Instruction::OperandFlags CompareInsn::GetOperandFlags(size_t i) const { return 
 Instruction::OperandFlags LoadEffectiveAddressInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
 Instruction::OperandFlags LoadFieldAddressInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
 Instruction::OperandFlags CastInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i); }
+Instruction::OperandFlags SetInsn::GetOperandFlags(size_t i) const { return GetFixedOpFlags(this, i);  }
 
 Instruction::OperandFlags CallInsn::GetOperandFlags(size_t i) const
 {
