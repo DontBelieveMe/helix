@@ -9,6 +9,7 @@
 #include "interval.h"
 #include "instructions.h"
 #include "function.h"
+#include "ir-helpers.h"
 
 using namespace Helix;
 
@@ -128,11 +129,15 @@ void Helix::ComputeIntervalsForFunction(Function* function, std::unordered_map<V
 
 					// #FIXME(bwilks): This is a hack to get around intervals not being created for values
 					//                 that are only defined & never used.
-					if (vreg->GetCountUses() == 1) {
-						helix_assert(vreg->GetUse(0).GetInstruction() == &insn, "Single user of only def register not parent?");
-
+					if (IR::GetCountReadUsers(vreg) == 0) {
 						const InstructionIndex here(blockIndex, instructionIndex);
-						intervals[vreg] = Interval(vreg, here, here);
+
+						if (Contains(intervals, vreg)) {
+							intervals[vreg].end = here;
+						}
+						else {
+							intervals[vreg] = Interval(vreg, here, here);
+						}
 
 						continue;
 					}

@@ -99,3 +99,36 @@ void IR::DestroyInstruction(Instruction* insn)
 }
 
 /*********************************************************************************************************************/
+
+size_t IR::GetCountReadUsers(Value* v)
+{
+	size_t count = 0;
+
+	for (const Use& use : v->uses()) {
+		Instruction* insn = use.GetInstruction();
+
+		if (insn->OperandHasFlags(use.GetOperandIndex(), Instruction::OP_READ))
+			count++;
+	}
+
+	return count;
+}
+
+/*********************************************************************************************************************/
+
+size_t IR::GetCountWriteUsers(Value* v)
+{
+	size_t count = 0;
+
+	for (const Use& use : v->uses()) {
+		Instruction* insn = use.GetInstruction();
+
+		if (insn->OperandHasFlags(use.GetOperandIndex(), Instruction::OP_WRITE))
+			count++;
+	}
+
+	return count;
+}
+
+
+/*********************************************************************************************************************/

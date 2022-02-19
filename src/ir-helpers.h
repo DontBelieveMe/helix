@@ -59,6 +59,9 @@ namespace Helix::IR
 		return BasicBlock::iterator((Instruction*)insn->get_prev());
 	}
 
+	size_t GetCountReadUsers(Value* v);
+	size_t GetCountWriteUsers(Value* v);
+
 	template <typename T>
 	inline void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, OpcodeType opcode);
 
