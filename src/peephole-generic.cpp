@@ -12,13 +12,15 @@ using namespace Helix;
 
 #pragma optimize("", off)
 
-void PeepholeGeneric::Execute(Function* fn, const PassRunInformation& info)
+void PeepholeGeneric::Execute(Function* fn, const PassRunInformation&)
 {
+	bool bFlagChanges = false;
+
 	for (BasicBlock& bb : fn->blocks()) {
 		BasicBlock::iterator input = bb.begin();
 
 		while (input != bb.end()) {
-			input = DoInstruction(input, nullptr);
+			input = DoInstruction(input, &bFlagChanges);
 		}
 	}
 }
@@ -46,6 +48,8 @@ BasicBlock::iterator PeepholeGeneric::DoIMul(BinOpInsn* imul, bool* bFlagChanges
 
 			BasicBlock::iterator next = IR::GetNext(imul);
 			imul->DeleteFromParent();
+
+			*bFlagChanges = true;
 
 			return next;
 		}
