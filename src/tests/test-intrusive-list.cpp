@@ -42,8 +42,8 @@ TEST_CASE("Empty intrusive_list", "[intrusive_list]")
 
 	int count = 0;
 
-	for (const MyInteger& integer : ints)
-	{
+	for (const MyInteger& integer : ints) {
+		(void)integer;
 		count++;
 	}
 
