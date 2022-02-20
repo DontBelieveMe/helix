@@ -18,6 +18,7 @@ namespace Helix
 	private:
 		BasicBlock::iterator DoInstruction(BasicBlock::iterator input, bool* bFlagChanges);
 		BasicBlock::iterator DoIMul(BinOpInsn* imul, bool* bFlagChanges);
+		BasicBlock::iterator DoGenericBinOp(BinOpInsn* binop, bool* bFlagChanges);
 	};
 }
 
