@@ -1,0 +1,24 @@
+pi@raspberrypi:~/helix-benchmark/build $ ./fib
+
+2022-02-20T17:54:18+00:00
+Running ./fib
+Run on (4 X 1500 MHz CPU s)
+Load Average: 0.19, 0.15, 0.10
+-------------------------------------------------------------
+Benchmark                   Time             CPU   Iterations
+-------------------------------------------------------------
+BM_FUNCTION(Helix)        129 ns          129 ns      5434086
+BM_FUNCTION(TCC)         78.4 ns         78.4 ns      9495949
+BM_FUNCTION(Clang)       4.00 ns         4.00 ns    174896674
+BM_FUNCTION(GCC)         4.00 ns         4.00 ns    174849776
+
+pi@raspberrypi:~/helix-benchmark/build $ stat ../obj/fib/helix.o
+
+  File: ../obj/fib/helix.o
+  Size: 1156            Blocks: 8          IO Block: 4096   regular file
+Device: 802h/2050d      Inode: 388475      Links: 1
+Access: (0644/-rw-r--r--)  Uid: ( 1000/      pi)   Gid: ( 1000/      pi)
+Access: 2022-02-14 21:02:32.295558844 +0000
+Modify: 2022-02-15 00:08:06.232744799 +0000
+Change: 2022-02-15 00:08:06.232744799 +0000
+ Birth: 2022-02-14 21:02:32.295558844 +0000
