@@ -1,0 +1,35 @@
+BEFORE (no optimisations, e.g. from before strlen was "optimised")
+-------------------------------------------
+]2022-02-20T15:36:21+00:00
+Running ./binary_search
+Run on (4 X 1500 MHz CPU s)
+Load Average: 0.10, 0.16, 0.12
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+-------------------------------------------------------------
+Benchmark                   Time             CPU   Iterations
+-------------------------------------------------------------
+BM_FUNCTION(Helix)        164 ns          164 ns      4023725
+BM_FUNCTION(TCC)         96.1 ns         96.1 ns      7286959
+BM_FUNCTION(Clang)       17.3 ns         17.3 ns     40357181
+BM_FUNCTION(GCC)         58.0 ns         58.0 ns     12058382
+
+
+
+
+(after the strlen optimisations, but before the register allocator fix & optimisations
+ specifically for this algorithm (covered in the notes text file))
+AFTER (NB: These results are because of a bug in the register allocator, see notes text file)
+------------------------------------------------
+
+2022-02-20T15:37:31+00:00
+Running ./binary_search
+Run on (4 X 1500 MHz CPU s)
+Load Average: 0.22, 0.19, 0.13
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+-------------------------------------------------------------
+Benchmark                   Time             CPU   Iterations
+-------------------------------------------------------------
+BM_FUNCTION(Helix)        262 ns          262 ns      2431451
+BM_FUNCTION(TCC)         96.1 ns         96.1 ns      7286581
+BM_FUNCTION(Clang)       17.3 ns         17.3 ns     40359016
+BM_FUNCTION(GCC)         43.4 ns         43.4 ns     16143736

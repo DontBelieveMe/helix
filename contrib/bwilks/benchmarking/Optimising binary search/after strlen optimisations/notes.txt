@@ -1,0 +1,7 @@
+-------------------------------------------------------------
+Benchmark                   Time             CPU   Iterations
+-------------------------------------------------------------
+BM_FUNCTION(Helix)        261 ns          261 ns      2589179
+BM_FUNCTION(TCC)          111 ns          111 ns      6320649
+BM_FUNCTION(Clang)       17.3 ns         17.3 ns     40359869
+BM_FUNCTION(GCC)         43.0 ns         43.0 ns     16281118

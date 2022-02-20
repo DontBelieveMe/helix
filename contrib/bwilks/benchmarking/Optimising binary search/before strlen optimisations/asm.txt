@@ -1,0 +1,417 @@
+
+helix-old.o:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00000000 <helix_main>:
+   0:   e92d0df0        push    {r4, r5, r6, r7, r8, sl, fp}
+   4:   e1a0b00d        mov     fp, sp
+
+00000008 <.bb0>:
+   8:   e24dd070        sub     sp, sp, #112    ; 0x70
+   c:   e28d006c        add     r0, sp, #108    ; 0x6c
+  10:   e58d0010        str     r0, [sp, #16]
+  14:   e28d4068        add     r4, sp, #104    ; 0x68
+  18:   e28d0024        add     r0, sp, #36     ; 0x24
+  1c:   e58d000c        str     r0, [sp, #12]
+  20:   e59d000c        ldr     r0, [sp, #12]
+  24:   e1a06000        mov     r6, r0
+  28:   e3008000        movw    r8, #0
+  2c:   e3408000        movt    r8, #0
+  30:   e5985000        ldr     r5, [r8]
+  34:   e3008000        movw    r8, #0
+  38:   e3408000        movt    r8, #0
+  3c:   e5987000        ldr     r7, [r8]
+  40:   e0080795        mul     r8, r5, r7
+  44:   e0865008        add     r5, r6, r8
+  48:   e1a06005        mov     r6, r5
+  4c:   e3007000        movw    r7, #0
+  50:   e3407000        movt    r7, #0
+  54:   e5978000        ldr     r8, [r7]
+  58:   e5868000        str     r8, [r6]
+  5c:   e59d000c        ldr     r0, [sp, #12]
+  60:   e1a05000        mov     r5, r0
+  64:   e3006000        movw    r6, #0
+  68:   e3406000        movt    r6, #0
+  6c:   e5967000        ldr     r7, [r6]
+  70:   e3008000        movw    r8, #0
+  74:   e3408000        movt    r8, #0
+  78:   e5986000        ldr     r6, [r8]
+  7c:   e0080697        mul     r8, r7, r6
+  80:   e0856008        add     r6, r5, r8
+  84:   e1a07006        mov     r7, r6
+  88:   e3005000        movw    r5, #0
+  8c:   e3405000        movt    r5, #0
+  90:   e5958000        ldr     r8, [r5]
+  94:   e5878000        str     r8, [r7]
+  98:   e59d000c        ldr     r0, [sp, #12]
+  9c:   e1a07000        mov     r7, r0
+  a0:   e3006000        movw    r6, #0
+  a4:   e3406000        movt    r6, #0
+  a8:   e5965000        ldr     r5, [r6]
+  ac:   e3008000        movw    r8, #0
+  b0:   e3408000        movt    r8, #0
+  b4:   e5986000        ldr     r6, [r8]
+  b8:   e0080695        mul     r8, r5, r6
+  bc:   e0875008        add     r5, r7, r8
+  c0:   e1a07005        mov     r7, r5
+  c4:   e3006000        movw    r6, #0
+  c8:   e3406000        movt    r6, #0
+  cc:   e5968000        ldr     r8, [r6]
+  d0:   e5878000        str     r8, [r7]
+  d4:   e59d000c        ldr     r0, [sp, #12]
+  d8:   e1a05000        mov     r5, r0
+  dc:   e3007000        movw    r7, #0
+  e0:   e3407000        movt    r7, #0
+  e4:   e5976000        ldr     r6, [r7]
+  e8:   e3008000        movw    r8, #0
+  ec:   e3408000        movt    r8, #0
+  f0:   e5987000        ldr     r7, [r8]
+  f4:   e0080796        mul     r8, r6, r7
+  f8:   e0857008        add     r7, r5, r8
+  fc:   e1a06007        mov     r6, r7
+ 100:   e3005000        movw    r5, #0
+ 104:   e3405000        movt    r5, #0
+ 108:   e5958000        ldr     r8, [r5]
+ 10c:   e5868000        str     r8, [r6]
+ 110:   e59d000c        ldr     r0, [sp, #12]
+ 114:   e1a06000        mov     r6, r0
+ 118:   e3007000        movw    r7, #0
+ 11c:   e3407000        movt    r7, #0
+ 120:   e5975000        ldr     r5, [r7]
+ 124:   e3008000        movw    r8, #0
+ 128:   e3408000        movt    r8, #0
+ 12c:   e5987000        ldr     r7, [r8]
+ 130:   e0080795        mul     r8, r5, r7
+ 134:   e0865008        add     r5, r6, r8
+ 138:   e1a06005        mov     r6, r5
+ 13c:   e3007000        movw    r7, #0
+ 140:   e3407000        movt    r7, #0
+ 144:   e5978000        ldr     r8, [r7]
+ 148:   e5868000        str     r8, [r6]
+ 14c:   e59d000c        ldr     r0, [sp, #12]
+ 150:   e1a05000        mov     r5, r0
+ 154:   e3006000        movw    r6, #0
+ 158:   e3406000        movt    r6, #0
+ 15c:   e5967000        ldr     r7, [r6]
+ 160:   e3008000        movw    r8, #0
+ 164:   e3408000        movt    r8, #0
+ 168:   e5986000        ldr     r6, [r8]
+ 16c:   e0080697        mul     r8, r7, r6
+ 170:   e0856008        add     r6, r5, r8
+ 174:   e1a07006        mov     r7, r6
+ 178:   e3005000        movw    r5, #0
+ 17c:   e3405000        movt    r5, #0
+ 180:   e5958000        ldr     r8, [r5]
+ 184:   e5878000        str     r8, [r7]
+ 188:   e59d000c        ldr     r0, [sp, #12]
+ 18c:   e1a07000        mov     r7, r0
+ 190:   e3006000        movw    r6, #0
+ 194:   e3406000        movt    r6, #0
+ 198:   e5965000        ldr     r5, [r6]
+ 19c:   e3008000        movw    r8, #0
+ 1a0:   e3408000        movt    r8, #0
+ 1a4:   e5986000        ldr     r6, [r8]
+ 1a8:   e0080695        mul     r8, r5, r6
+ 1ac:   e0875008        add     r5, r7, r8
+ 1b0:   e1a07005        mov     r7, r5
+ 1b4:   e3006000        movw    r6, #0
+ 1b8:   e3406000        movt    r6, #0
+ 1bc:   e5968000        ldr     r8, [r6]
+ 1c0:   e5878000        str     r8, [r7]
+ 1c4:   e59d000c        ldr     r0, [sp, #12]
+ 1c8:   e1a05000        mov     r5, r0
+ 1cc:   e3007000        movw    r7, #0
+ 1d0:   e3407000        movt    r7, #0
+ 1d4:   e5976000        ldr     r6, [r7]
+ 1d8:   e3008000        movw    r8, #0
+ 1dc:   e3408000        movt    r8, #0
+ 1e0:   e5987000        ldr     r7, [r8]
+ 1e4:   e0080796        mul     r8, r6, r7
+ 1e8:   e0857008        add     r7, r5, r8
+ 1ec:   e1a06007        mov     r6, r7
+ 1f0:   e3005000        movw    r5, #0
+ 1f4:   e3405000        movt    r5, #0
+ 1f8:   e5958000        ldr     r8, [r5]
+ 1fc:   e5868000        str     r8, [r6]
+ 200:   e59d000c        ldr     r0, [sp, #12]
+ 204:   e1a06000        mov     r6, r0
+ 208:   e3007000        movw    r7, #0
+ 20c:   e3407000        movt    r7, #0
+ 210:   e5975000        ldr     r5, [r7]
+ 214:   e3008000        movw    r8, #0
+ 218:   e3408000        movt    r8, #0
+ 21c:   e5987000        ldr     r7, [r8]
+ 220:   e0080795        mul     r8, r5, r7
+ 224:   e0865008        add     r5, r6, r8
+ 228:   e1a06005        mov     r6, r5
+ 22c:   e3007000        movw    r7, #0
+ 230:   e3407000        movt    r7, #0
+ 234:   e5978000        ldr     r8, [r7]
+ 238:   e5868000        str     r8, [r6]
+ 23c:   e59d000c        ldr     r0, [sp, #12]
+ 240:   e1a05000        mov     r5, r0
+ 244:   e3006000        movw    r6, #0
+ 248:   e3406000        movt    r6, #0
+ 24c:   e5967000        ldr     r7, [r6]
+ 250:   e3008000        movw    r8, #0
+ 254:   e3408000        movt    r8, #0
+ 258:   e5986000        ldr     r6, [r8]
+ 25c:   e0080697        mul     r8, r7, r6
+ 260:   e0856008        add     r6, r5, r8
+ 264:   e1a07006        mov     r7, r6
+ 268:   e3005000        movw    r5, #0
+ 26c:   e3405000        movt    r5, #0
+ 270:   e5958000        ldr     r8, [r5]
+ 274:   e5878000        str     r8, [r7]
+ 278:   e59d000c        ldr     r0, [sp, #12]
+ 27c:   e1a07000        mov     r7, r0
+ 280:   e3006000        movw    r6, #0
+ 284:   e3406000        movt    r6, #0
+ 288:   e5965000        ldr     r5, [r6]
+ 28c:   e3008000        movw    r8, #0
+ 290:   e3408000        movt    r8, #0
+ 294:   e5986000        ldr     r6, [r8]
+ 298:   e0080695        mul     r8, r5, r6
+ 29c:   e0875008        add     r5, r7, r8
+ 2a0:   e1a07005        mov     r7, r5
+ 2a4:   e3006000        movw    r6, #0
+ 2a8:   e3406000        movt    r6, #0
+ 2ac:   e5968000        ldr     r8, [r6]
+ 2b0:   e5878000        str     r8, [r7]
+ 2b4:   e59d000c        ldr     r0, [sp, #12]
+ 2b8:   e1a05000        mov     r5, r0
+ 2bc:   e3007000        movw    r7, #0
+ 2c0:   e3407000        movt    r7, #0
+ 2c4:   e5976000        ldr     r6, [r7]
+ 2c8:   e3008000        movw    r8, #0
+ 2cc:   e3408000        movt    r8, #0
+ 2d0:   e5987000        ldr     r7, [r8]
+ 2d4:   e0080796        mul     r8, r6, r7
+ 2d8:   e0857008        add     r7, r5, r8
+ 2dc:   e1a06007        mov     r6, r7
+ 2e0:   e3005000        movw    r5, #0
+ 2e4:   e3405000        movt    r5, #0
+ 2e8:   e5958000        ldr     r8, [r5]
+ 2ec:   e5868000        str     r8, [r6]
+ 2f0:   e59d000c        ldr     r0, [sp, #12]
+ 2f4:   e1a06000        mov     r6, r0
+ 2f8:   e3007000        movw    r7, #0
+ 2fc:   e3407000        movt    r7, #0
+ 300:   e5975000        ldr     r5, [r7]
+ 304:   e3008000        movw    r8, #0
+ 308:   e3408000        movt    r8, #0
+ 30c:   e5987000        ldr     r7, [r8]
+ 310:   e0080795        mul     r8, r5, r7
+ 314:   e0865008        add     r5, r6, r8
+ 318:   e1a06005        mov     r6, r5
+ 31c:   e3007000        movw    r7, #0
+ 320:   e3407000        movt    r7, #0
+ 324:   e5978000        ldr     r8, [r7]
+ 328:   e5868000        str     r8, [r6]
+ 32c:   e59d000c        ldr     r0, [sp, #12]
+ 330:   e1a05000        mov     r5, r0
+ 334:   e3006000        movw    r6, #0
+ 338:   e3406000        movt    r6, #0
+ 33c:   e5967000        ldr     r7, [r6]
+ 340:   e3008000        movw    r8, #0
+ 344:   e3408000        movt    r8, #0
+ 348:   e5986000        ldr     r6, [r8]
+ 34c:   e0080697        mul     r8, r7, r6
+ 350:   e0856008        add     r6, r5, r8
+ 354:   e1a07006        mov     r7, r6
+ 358:   e3005000        movw    r5, #0
+ 35c:   e3405000        movt    r5, #0
+ 360:   e5958000        ldr     r8, [r5]
+ 364:   e5878000        str     r8, [r7]
+ 368:   e59d000c        ldr     r0, [sp, #12]
+ 36c:   e1a07000        mov     r7, r0
+ 370:   e3006000        movw    r6, #0
+ 374:   e3406000        movt    r6, #0
+ 378:   e5965000        ldr     r5, [r6]
+ 37c:   e3008000        movw    r8, #0
+ 380:   e3408000        movt    r8, #0
+ 384:   e5986000        ldr     r6, [r8]
+ 388:   e0080695        mul     r8, r5, r6
+ 38c:   e0875008        add     r5, r7, r8
+ 390:   e1a07005        mov     r7, r5
+ 394:   e3006000        movw    r6, #0
+ 398:   e3406000        movt    r6, #0
+ 39c:   e5968000        ldr     r8, [r6]
+ 3a0:   e5878000        str     r8, [r7]
+ 3a4:   e59d000c        ldr     r0, [sp, #12]
+ 3a8:   e1a05000        mov     r5, r0
+ 3ac:   e3007000        movw    r7, #0
+ 3b0:   e3407000        movt    r7, #0
+ 3b4:   e5976000        ldr     r6, [r7]
+ 3b8:   e3008000        movw    r8, #0
+ 3bc:   e3408000        movt    r8, #0
+ 3c0:   e5987000        ldr     r7, [r8]
+ 3c4:   e0080796        mul     r8, r6, r7
+ 3c8:   e0857008        add     r7, r5, r8
+ 3cc:   e1a06007        mov     r6, r7
+ 3d0:   e3005000        movw    r5, #0
+ 3d4:   e3405000        movt    r5, #0
+ 3d8:   e5958000        ldr     r8, [r5]
+ 3dc:   e5868000        str     r8, [r6]
+ 3e0:   e59d000c        ldr     r0, [sp, #12]
+ 3e4:   e1a06000        mov     r6, r0
+ 3e8:   e3007000        movw    r7, #0
+ 3ec:   e3407000        movt    r7, #0
+ 3f0:   e5975000        ldr     r5, [r7]
+ 3f4:   e3008000        movw    r8, #0
+ 3f8:   e3408000        movt    r8, #0
+ 3fc:   e5987000        ldr     r7, [r8]
+ 400:   e0080795        mul     r8, r5, r7
+ 404:   e0865008        add     r5, r6, r8
+ 408:   e1a06005        mov     r6, r5
+ 40c:   e3007000        movw    r7, #0
+ 410:   e3407000        movt    r7, #0
+ 414:   e5978000        ldr     r8, [r7]
+ 418:   e5868000        str     r8, [r6]
+ 41c:   e28d5020        add     r5, sp, #32
+ 420:   e3006000        movw    r6, #0
+ 424:   e3406000        movt    r6, #0
+ 428:   e5967000        ldr     r7, [r6]
+ 42c:   e3008000        movw    r8, #0
+ 430:   e3408000        movt    r8, #0
+ 434:   e5986000        ldr     r6, [r8]
+ 438:   e738f617        udiv    r8, r7, r6
+ 43c:   e5858000        str     r8, [r5]
+ 440:   e28d001c        add     r0, sp, #28
+ 444:   e58d0000        str     r0, [sp]
+ 448:   e3007000        movw    r7, #0
+ 44c:   e3407000        movt    r7, #0
+ 450:   e5978000        ldr     r8, [r7]
+ 454:   e59d0000        ldr     r0, [sp]
+ 458:   e5808000        str     r8, [r0]
+ 45c:   e28d0018        add     r0, sp, #24
+ 460:   e58d0008        str     r0, [sp, #8]
+ 464:   e3008000        movw    r8, #0
+ 468:   e3408000        movt    r8, #0
+ 46c:   e5987000        ldr     r7, [r8]
+ 470:   e59d0008        ldr     r0, [sp, #8]
+ 474:   e5807000        str     r7, [r0]
+ 478:   e28d0014        add     r0, sp, #20
+ 47c:   e58d0004        str     r0, [sp, #4]
+ 480:   e5957000        ldr     r7, [r5]
+ 484:   e3005000        movw    r5, #0
+ 488:   e3405000        movt    r5, #0
+ 48c:   e5958000        ldr     r8, [r5]
+ 490:   e0475008        sub     r5, r7, r8
+ 494:   e59d0004        ldr     r0, [sp, #4]
+ 498:   e5805000        str     r5, [r0]
+ 49c:   eaffffff        b       4a0 <.bb1>
+
+000004a0 <.bb1>:
+ 4a0:   e59d0008        ldr     r0, [sp, #8]
+ 4a4:   e5907000        ldr     r7, [r0]
+ 4a8:   e59d0004        ldr     r0, [sp, #4]
+ 4ac:   e5908000        ldr     r8, [r0]
+ 4b0:   e1570008        cmp     r7, r8
+ 4b4:   e3a05000        mov     r5, #0
+ 4b8:   d3005001        movwle  r5, #1
+ 4bc:   e3550001        cmp     r5, #1
+ 4c0:   aa000000        bge     4c8 <.bb2>
+ 4c4:   ea000046        b       5e4 <.bb3>
+
+000004c8 <.bb2>:
+ 4c8:   e59d0008        ldr     r0, [sp, #8]
+ 4cc:   e5907000        ldr     r7, [r0]
+ 4d0:   e59d0004        ldr     r0, [sp, #4]
+ 4d4:   e5908000        ldr     r8, [r0]
+ 4d8:   e59d0008        ldr     r0, [sp, #8]
+ 4dc:   e5905000        ldr     r5, [r0]
+ 4e0:   e0486005        sub     r6, r8, r5
+ 4e4:   e3008000        movw    r8, #0
+ 4e8:   e3408000        movt    r8, #0
+ 4ec:   e5985000        ldr     r5, [r8]
+ 4f0:   e718f516        sdiv    r8, r6, r5
+ 4f4:   e0876008        add     r6, r7, r8
+ 4f8:   e5846000        str     r6, [r4]
+ 4fc:   e5945000        ldr     r5, [r4]
+ 500:   e59d000c        ldr     r0, [sp, #12]
+ 504:   e1a06000        mov     r6, r0
+ 508:   e3007000        movw    r7, #0
+ 50c:   e3407000        movt    r7, #0
+ 510:   e5978000        ldr     r8, [r7]
+ 514:   e0070895        mul     r7, r5, r8
+ 518:   e0865007        add     r5, r6, r7
+ 51c:   e1a08005        mov     r8, r5
+ 520:   e5987000        ldr     r7, [r8]
+ 524:   e59d0000        ldr     r0, [sp]
+ 528:   e5906000        ldr     r6, [r0]
+ 52c:   e1570006        cmp     r7, r6
+ 530:   e3a05000        mov     r5, #0
+ 534:   03005001        movweq  r5, #1
+ 538:   e3550001        cmp     r5, #1
+ 53c:   aa000000        bge     544 <.bb4>
+ 540:   ea000003        b       554 <.bb5>
+
+00000544 <.bb4>:
+ 544:   e5948000        ldr     r8, [r4]
+ 548:   e59d0010        ldr     r0, [sp, #16]
+ 54c:   e5808000        str     r8, [r0]
+ 550:   ea000029        b       5fc <.bb6>
+
+00000554 <.bb5>:
+ 554:   e5946000        ldr     r6, [r4]
+ 558:   e59d000c        ldr     r0, [sp, #12]
+ 55c:   e1a07000        mov     r7, r0
+ 560:   e3005000        movw    r5, #0
+ 564:   e3405000        movt    r5, #0
+ 568:   e5958000        ldr     r8, [r5]
+ 56c:   e0050896        mul     r5, r6, r8
+ 570:   e0876005        add     r6, r7, r5
+ 574:   e1a08006        mov     r8, r6
+ 578:   e5986000        ldr     r6, [r8]
+ 57c:   e59d0000        ldr     r0, [sp]
+ 580:   e5907000        ldr     r7, [r0]
+ 584:   e1560007        cmp     r6, r7
+ 588:   e3a05000        mov     r5, #0
+ 58c:   b3005001        movwlt  r5, #1
+ 590:   e3550001        cmp     r5, #1
+ 594:   aa000000        bge     59c <.bb7>
+ 598:   ea000007        b       5bc <.bb8>
+
+0000059c <.bb7>:
+ 59c:   e5948000        ldr     r8, [r4]
+ 5a0:   e3007000        movw    r7, #0
+ 5a4:   e3407000        movt    r7, #0
+ 5a8:   e5976000        ldr     r6, [r7]
+ 5ac:   e0885006        add     r5, r8, r6
+ 5b0:   e59d0008        ldr     r0, [sp, #8]
+ 5b4:   e5805000        str     r5, [r0]
+ 5b8:   ea000007        b       5dc <.bb9>
+
+000005bc <.bb8>:
+ 5bc:   e5946000        ldr     r6, [r4]
+ 5c0:   e3007000        movw    r7, #0
+ 5c4:   e3407000        movt    r7, #0
+ 5c8:   e5978000        ldr     r8, [r7]
+ 5cc:   e0465008        sub     r5, r6, r8
+ 5d0:   e59d0004        ldr     r0, [sp, #4]
+ 5d4:   e5805000        str     r5, [r0]
+ 5d8:   eaffffff        b       5dc <.bb9>
+
+000005dc <.bb9>:
+ 5dc:   eaffffff        b       5e0 <.bb10>
+
+000005e0 <.bb10>:
+ 5e0:   eaffffae        b       4a0 <.bb1>
+
+000005e4 <.bb3>:
+ 5e4:   e3006000        movw    r6, #0
+ 5e8:   e3406000        movt    r6, #0
+ 5ec:   e5967000        ldr     r7, [r6]
+ 5f0:   e59d0010        ldr     r0, [sp, #16]
+ 5f4:   e5807000        str     r7, [r0]
+ 5f8:   eaffffff        b       5fc <.bb6>
+
+000005fc <.bb6>:
+ 5fc:   e59d0010        ldr     r0, [sp, #16]
+ 600:   e5900000        ldr     r0, [r0]
+ 604:   e28dd070        add     sp, sp, #112    ; 0x70
+ 608:   e8bd0df0        pop     {r4, r5, r6, r7, r8, sl, fp}
+ 60c:   e12fff1e        bx      lr
