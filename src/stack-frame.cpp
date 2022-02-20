@@ -13,7 +13,7 @@ using namespace Helix;
 
 /*********************************************************************************************************************/
 
-static unsigned Align(unsigned input, unsigned alignment)
+static size_t Align(size_t input, size_t alignment)
 {
 	if (input % alignment == 0) {
 		return input;
