@@ -39,7 +39,7 @@ static VirtualRegisterName* GetIntegerIntoRegister_16(Instruction* user, Constan
 	const Helix::Integer bottomHalf = fullValue & 0xffff;
 	const Helix::Integer topHalf = 0;
 
-	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt16());
 
 	MachineInstruction* movw = ARMv7::CreateMovwi(result, ConstantInt::Create(BuiltinTypes::GetInt32(), bottomHalf));
 	MachineInstruction* movt = ARMv7::CreateMovti(result, ConstantInt::Create(BuiltinTypes::GetInt32(), topHalf));
@@ -61,7 +61,7 @@ static VirtualRegisterName* GetIntegerIntoRegister_8(Instruction* user, Constant
 	const Helix::Integer bottomHalf = fullValue & 0x00ff;
 	const Helix::Integer topHalf    = 0;
 
-	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt32());
+	VirtualRegisterName* result = VirtualRegisterName::Create(BuiltinTypes::GetInt8());
 
 	MachineInstruction* movw = ARMv7::CreateMovwi(result, ConstantInt::Create(BuiltinTypes::GetInt32(), bottomHalf));
 	MachineInstruction* movt = ARMv7::CreateMovti(result, ConstantInt::Create(BuiltinTypes::GetInt32(), topHalf));
