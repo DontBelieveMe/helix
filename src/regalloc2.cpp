@@ -157,6 +157,7 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 	{
 		Instruction*          Insn = nullptr;
 		VirtualRegisterName*  VirtualRegister = nullptr;
+		PhysicalRegisterName* PhysicalRegister = nullptr;
 		StackFrame::SlotIndex Slot;
 	};
 
@@ -164,7 +165,23 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 	std::vector<Spill> loadSpills;
 
 	// List of places where we need to inject code to store a value back to the stack
-	std::vector<Spill> restoreSpills;
+	std::vector<Spill> storeSpills;
+
+	// List of all the "scratch" registers available to instructions, used
+	// for temporarily storing spilled values whilst they are stored to/loaded from
+	// the stack.
+	PhysicalRegisterName* scratchRegisters[] = {
+		 PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R0),
+		 PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R1),
+		 PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R2),
+		 PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R3)
+	};
+
+	// Stores the next available scratch register available to an instruction that
+	// has a value that wants to spill.
+	// E.g. if an instruction needs to load two different spilled values from the stack it
+	// cannot use r0 for both, it will need to use r0 and r1 for example.
+	std::unordered_map<Instruction*, size_t> instructionNextScratchRegister;
 
 	for (BasicBlock& bb : function->blocks()) {
 		for (Instruction& insn : bb) {
@@ -176,29 +193,33 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 						"Virtual register has not been allocated a physical register");
 
 					const LSRA::Allocation& allocation = it->second;
-
 					const StackFrame::SlotIndex stackSlot = allocation.StackSlot;
 
 					if (stackSlot.IsValid()) {
-						helix_assert(stackFrame.GetAllocationOffset(stackSlot) <= 4095, "stack frame is too large!");
+						const size_t scratchRegisterIndex = instructionNextScratchRegister[&insn];
 
-						if (insn.OperandHasFlags(op, Instruction::OP_READ)) {
-							loadSpills.push_back({ &insn, vreg, stackSlot });
-						}
-						else if (insn.OperandHasFlags(op, Instruction::OP_WRITE)) {
-							restoreSpills.push_back({ &insn, vreg, stackSlot });
-						}
+						helix_assert(scratchRegisterIndex < std::size(scratchRegisters), "No more scratch registers available to store spilled value for instruction");
+						helix_assert(stackFrame.GetAllocationOffset(stackSlot) <= 4095, "Stack frame is too large!");
+
+						PhysicalRegisterName* scratchRegister = scratchRegisters[scratchRegisterIndex];
+
+						const Spill spill{ &insn, vreg, scratchRegister, stackSlot };
+
+						if (insn.OperandHasFlags(op, Instruction::OP_READ))
+							loadSpills.push_back(spill);
+						else if (insn.OperandHasFlags(op, Instruction::OP_WRITE))
+							storeSpills.push_back(spill);
 						else {
 							helix_unreachable("Value wants to spill but operand is not READ/WRITE marked");
 						}
 
-						insn.SetOperand(op, PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R0));
+						insn.SetOperand(op, scratchRegister);
+						instructionNextScratchRegister[&insn]++;
 					}
 					else {
 						PhysicalRegisterName* physicalRegisterName = allocation.Register;
 
-						helix_assert(PhysicalRegisters::IsValidPhysicalRegister(physicalRegisterName),
-							"Value has not been assigned a valid physical register");
+						helix_assert(PhysicalRegisters::IsValidPhysicalRegister(physicalRegisterName), "Value has not been assigned a valid physical register");
 
 						insn.SetOperand(op, physicalRegisterName);
 					}
@@ -209,21 +230,19 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 
 	// Now go and inject any load/store spill code that we need to
 
-	PhysicalRegisterName* r0 = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R0);
-
 	for (const Spill& spill : loadSpills) {
 		const size_t offset = stackSize - stackFrame.GetAllocationOffset(spill.Slot);
 		ConstantInt* offsetValue = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
 
-		MachineInstruction* ldr = ARMv7::CreateLdri(r0, sp, offsetValue);
+		MachineInstruction* ldr = ARMv7::CreateLdri(spill.PhysicalRegister, sp, offsetValue);
 		IR::InsertBefore(spill.Insn, ldr);
 	}
 
-	for (const Spill& spill : restoreSpills) {
+	for (const Spill& spill : storeSpills) {
 		const size_t offset = stackSize - stackFrame.GetAllocationOffset(spill.Slot);
 		ConstantInt* offsetValue = ConstantInt::Create(BuiltinTypes::GetInt32(), offset);
 
-		MachineInstruction* ldr = ARMv7::CreateStri(r0, sp, offsetValue);
+		MachineInstruction* ldr = ARMv7::CreateStri(spill.PhysicalRegister, sp, offsetValue);
 		IR::InsertAfter(spill.Insn, ldr);
 	}
 
