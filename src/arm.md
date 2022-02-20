@@ -332,6 +332,34 @@
 		(match_operand:i32 1 "register"))]
 	"*expand_global_address_to_register")
 
+(define-insn "sxth"
+	[(HLIR::SExt
+		(match_operand:i16 0 "register")
+		(match_operand:i32 1 "register"))]
+	"sxth {1}, {0}"
+	[(0 read) (1 write)])
+
+(define-insn "sxtb"
+	[(HLIR::SExt
+		(match_operand:i8  0 "register")
+		(match_operand:i32 1 "register"))]
+	"sxtb {1}, {0}"
+	[(0 read) (1 write)])
+
+(define-insn "uxth"
+	[(HLIR::ZExt
+		(match_operand:i16 0 "register")
+		(match_operand:i32 1 "register"))]
+	"uxth {1}, {0}"
+	[(0 read) (1 write)])
+
+(define-insn "uxtb"
+	[(HLIR::ZExt
+		(match_operand:i8  0 "register")
+		(match_operand:i32 1 "register"))]
+	"uxtb {1}, {0}"
+	[(0 read) (1 write)])
+
 ; *****************************************************************************
 ;                             Move Operations
 ; *****************************************************************************
