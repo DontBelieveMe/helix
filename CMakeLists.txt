@@ -19,6 +19,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Automatically add the current source directory (not as nessesary)
 # and the build directory (nessesary for generated files) to
 # all project include paths list.
+include_directories (${CMAKE_BINARY_DIR}/src)
+include_directories (${CMAKE_SOURCE_DIR}/src)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # The magic

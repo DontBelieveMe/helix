@@ -88,7 +88,7 @@ if (WIN32)
 	set(MachineDescriptionTool ${CMAKE_SOURCE_DIR}/tools/MachineDescription/bin/Release/net5.0/MachineDescription.exe)
 	
 	add_custom_command(
-		COMMAND ${MachineDescriptionTool} ${CMAKE_SOURCE_DIR}/src/arm.md -output=${CMAKE_CURRENT_BINARY_DIR}
+		COMMAND ${MachineDescriptionTool} ${CMAKE_SOURCE_DIR}/src/arm.md -output=${CMAKE_BINARY_DIR}/src
 		DEPENDS arm.md ${MachineDescriptionTool}
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/arm-md.cpp ${CMAKE_CURRENT_BINARY_DIR}/arm-md.h
 		COMMENT "Generating ARM machine description" 

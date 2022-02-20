@@ -10,6 +10,10 @@ add_executable(HelixCoreTests
 	test-interval.cpp
 	test-linear-scan.cpp
 	test-stack-frame.cpp
+	test-ir-helpers.cpp
+	test-mir.cpp
+	test-types.cpp
+	test-basic-block.cpp
 	main.cpp
 	catch.hpp
 )
