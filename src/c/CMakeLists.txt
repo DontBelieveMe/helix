@@ -1,6 +1,6 @@
 add_library(HelixClangFrontend
 	clang-frontend.cpp
-	frontend.h
+	clang-frontend.h
 )
 
 if (MSVC)

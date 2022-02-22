@@ -5,6 +5,7 @@ project(Helix)
 include(cmake/clang.cmake)
 include(cmake/tracy.cmake)
 include(cmake/spdlog.cmake)
+include(cmake/antlr4.cmake)
 
 # The compiler should be C++17 standard compatible as much as possible
 # (no extensions for portability)

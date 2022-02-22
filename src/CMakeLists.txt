@@ -1,6 +1,9 @@
 # C Frontend (Clang)
 add_subdirectory(c)
 
+# IR Frontend (Custom)
+add_subdirectory(irc)
+
 # Compiler Driver
 add_subdirectory(hxc)
 
