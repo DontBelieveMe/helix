@@ -67,11 +67,14 @@ TEST_CASE("Creating a new named StructType", "[Types]")
 
 TEST_CASE("Creating a new unnamed StructType", "[Types]")
 {
+	using Catch::Matchers::StartsWith;
+
 	StructType::FieldList fields { BuiltinTypes::GetInt32() };
 	const StructType* type = StructType::Create(fields);
 
 	REQUIRE(type->GetCountFields() == 1);
 	REQUIRE(type->GetField(0) == BuiltinTypes::GetInt32());
+	REQUIRE_THAT(type->GetName(), StartsWith("anon."));
 }
 
 /*********************************************************************************************************************/
