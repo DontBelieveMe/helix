@@ -112,3 +112,52 @@ TEST_CASE("FunctionType::CopyWithDifferentReturnType", "[Types]")
 }
 
 /*********************************************************************************************************************/
+
+TEST_CASE("Verify type matches expected type with IsA<T>", "[Types]")
+{
+	const Type* type = BuiltinTypes::GetInt32();
+
+	REQUIRE(type->IsA<IntegerType>());
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("Verify type doesn't match unexpected type with IsA<T>", "[Types]")
+{
+	const Type* type = BuiltinTypes::GetInt32();
+
+	REQUIRE(!type->IsA<StructType>());
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("Verify Type::IsIntegral for integer types", "[Types]")
+{
+	REQUIRE(BuiltinTypes::GetInt32()->IsIntegral());
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("Verify Type::IsPointer for pointer types", "[Types]")
+{
+	REQUIRE(BuiltinTypes::GetPointer()->IsPointer());
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("Verify Type::IsStruct for struct types", "[Types]")
+{
+	const StructType* ty = StructType::Create({});
+
+	REQUIRE(ty->IsStruct());
+}
+
+/*********************************************************************************************************************/
+
+TEST_CASE("Verify Type::IsArray for array types", "[Types]")
+{
+	const ArrayType* ty = ArrayType::Create(30, BuiltinTypes::GetInt16());
+	REQUIRE(ty->IsArray());
+}
+
+/*********************************************************************************************************************/
