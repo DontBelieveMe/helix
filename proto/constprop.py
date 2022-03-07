@@ -171,27 +171,6 @@ def GetValue(constant):
 TOP = Value(0, VALUE_TOP)
 BOTTOM = Value(0, VALUE_BOTTOM)
 
-# Compute OUT[stmt]
-def TransferStmtOut(stmt, vars):
-    new = vars.clone()
-
-    changes = False
-
-    for v in stmt.writes:
-        if new.get(v) == BOTTOM:
-            continue
-
-        if stmt.opcode == STMT_ASSIGN:
-            if new.get(v) != GetValue(stmt.get_assignment_rhs()):
-                new.set(v, stmt.get_assignment_rhs())
-                changes = True
-        else:
-            if new.get(v) != TOP:
-                new.set(v, TOP)
-                changes = True
-
-    return (new, changes)
-
 def Meet(v0, v1):
     if v1 == TOP:
         return v0
