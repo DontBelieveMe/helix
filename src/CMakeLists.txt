@@ -72,6 +72,8 @@ add_library(HelixCore
 	mem2reg.cpp
 	scp.h
 	scp.cpp
+	dce.h
+	dce.cpp
 
 	options.def
 	insns.def
