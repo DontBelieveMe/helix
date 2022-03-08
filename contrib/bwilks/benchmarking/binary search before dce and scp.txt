@@ -1,0 +1,11 @@
+Running ./binary_search
+Run on (4 X 1500 MHz CPU s)
+Load Average: 0.39, 0.23, 0.14
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+-------------------------------------------------------------
+Benchmark                   Time             CPU   Iterations
+-------------------------------------------------------------
+BM_FUNCTION(Helix)       82.7 ns         82.7 ns      8462411
+BM_FUNCTION(TCC)         96.1 ns         96.1 ns      7286664
+BM_FUNCTION(Clang)       17.3 ns         17.3 ns     40357848
+BM_FUNCTION(GCC)         43.4 ns         43.4 ns     16143472
