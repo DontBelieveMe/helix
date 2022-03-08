@@ -17,6 +17,7 @@
 #include "arm-split-constants.h"
 #include "peephole-generic.h"
 #include "mem2reg.h"
+#include "scp.h"
 
 using namespace Helix;
 
@@ -33,6 +34,7 @@ PassManager::PassManager()
 	AddPass<GenericLowering>();
 	AddPass<Mem2Reg>();
 	AddPass<PeepholeGeneric>();
+	AddPass<SCP>();
 
 	/* ARM Specific Passes */
 	AddPass<CConv>();

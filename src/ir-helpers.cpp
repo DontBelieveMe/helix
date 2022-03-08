@@ -130,5 +130,21 @@ size_t IR::GetCountWriteUsers(Value* v)
 	return count;
 }
 
+/*********************************************************************************************************************/
+
+std::vector<BasicBlock*> IR::GetPredecessors(BasicBlock* bb)
+{
+	std::vector<BasicBlock*> preds;
+
+	BlockBranchTarget* val = bb->GetBranchTarget();
+
+	for (const Use& use : val->uses()) {
+		Instruction* user = use.GetInstruction();
+
+		preds.push_back(user->GetParent());
+	}
+
+	return preds;
+}
 
 /*********************************************************************************************************************/

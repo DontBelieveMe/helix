@@ -70,6 +70,8 @@ namespace Helix::IR
 
 	template <typename T>
 	inline T* FindFirstInstructionOfType(BasicBlock& bb, OpcodeType opcode);
+
+	std::vector<BasicBlock*> GetPredecessors(BasicBlock* bb);
 }
 
 /*********************************************************************************************************************/

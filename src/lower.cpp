@@ -215,11 +215,19 @@ void CConv::Execute(Function* fn, const PassRunInformation&)
 	if (ret->HasReturnValue()) {
 		Value* returnValue = ret->GetReturnValue();
 
-		// #FIXME: Need to implement returning values by "output" parameter.
-		//         This is defined in AAPCS32
-		helix_assert(ARMv7::TypeSize(returnValue->GetType()) <= r0Size, "return value can't fit in output register");
+		if (value_isa<VirtualRegisterName>(returnValue)) {
+			// #FIXME: Need to implement returning values by "output" parameter.
+			//         This is defined in AAPCS32
+			helix_assert(ARMv7::TypeSize(returnValue->GetType()) <= r0Size, "return value can't fit in output register");
 
-		IR::ReplaceAllUsesWith(returnValue, r0);
+			IR::ReplaceAllUsesWith(returnValue, r0);
+		}
+		else if (value_isa<ConstantInt>(returnValue)) {
+			IR::InsertBefore(ret, Helix::CreateSetInsn(r0, returnValue));
+		}
+		else {
+			helix_unreachable("unsupported return type (cconv error)");
+		}
 
 		ret->MakeVoid();
 	
@@ -231,7 +239,7 @@ void CConv::Execute(Function* fn, const PassRunInformation&)
 		helix_assert(existingFunctionType, "function type should be a FunctionType instance");
 
 		const FunctionType* voidFunctionType = existingFunctionType->CopyWithDifferentReturnType(BuiltinTypes::GetVoidType());
-		fn->SetType(voidFunctionType);	
+		fn->SetType(voidFunctionType);
 	}
 }
 
