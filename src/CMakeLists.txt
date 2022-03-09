@@ -73,6 +73,10 @@ add_library(HelixCore
 	peephole-generic.cpp
 	mem2reg.h
 	mem2reg.cpp
+	scp.h
+	scp.cpp
+	dce.h
+	dce.cpp
 
 	options.def
 	insns.def
