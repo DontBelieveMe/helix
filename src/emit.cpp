@@ -5,9 +5,9 @@
  * This handles the final process of taking the final IR form and converting it
  * to assembly.
  * Because it's simpler, this project does not (currently) implement an assembler or
- * linker and those functionalies are expected to be provided by an external toolchain
+ * linker and those functionalities are expected to be provided by an external toolchain
  * (the GCC driver assemble and link easily for us, just run `gcc <assemblyfile> ...` as
- * you would with any other soruce file).
+ * you would with any other source file).
  * 
  * As a result the compiler needs to produce textual assembly. This assembly can either
  * get written to a file (as would be expected during normal compilation), or to stdout
@@ -18,7 +18,7 @@
  * #FIXME: Currently uses the LibC FILE* I/O mechanisms, but that's not great.
  *         Seem that fmtlib has it's own file IO systems, which would be great
  *         as fmtlib is already heavily in use looks to have quite good performance
- *         and is safter than using printf style formatting).
+ *         and is safer than using printf style formatting).
  *         Initial attempts at this have been unsuccessful, but would be good to have
  *         another look (maybe using our own fmtlib dependency instead of relying on the
  *         one packed in spdlog. Windows support also seemed to be a bit in the air, so
@@ -198,7 +198,7 @@ void AssemblyEmitter::Execute(Module* mod, const PassRunInformation&)
 		for (BasicBlock& bb : fn->blocks()) {
 
 			// #FIXME: Not every basic block will need a label, maybe a simple check
-			//         of uses would do? Not emitting unnessesary labels makes the assembly
+			//         of uses would do? Not emitting unnecessary labels makes the assembly
 			//         a bit cleaner to read and less text for the assembler to process is not
 			//         going to be a bad thing.
 			const size_t basicBlockSlotIndex = slots.GetBasicBlockSlot(&bb);
@@ -219,7 +219,7 @@ void AssemblyEmitter::Execute(Module* mod, const PassRunInformation&)
 		// and is not hardcoded here (like the prologue is)
 	}
 
-	// Make sure to close the file (as long as we havn't been printing to stdout,
+	// Make sure to close the file (as long as we haven't been printing to stdout,
 	// closing stdout would be bad...?? probably UB)
 	//
 	// #FIXME: Maybe find a better way of doing this (perhaps a `closeFile` flag or something).
