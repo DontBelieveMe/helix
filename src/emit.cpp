@@ -168,9 +168,15 @@ void AssemblyEmitter::Execute(Module* mod, const PassRunInformation&)
 	for (Function* fn : mod->functions()) {
 		const std::string& functionName = fn->GetName();
 
+		if (!fn->HasBody()) {
+			fprintf(file, ".globl %s\n", functionName.c_str());
+			continue;
+		}
+
 		// #FIXME: Not every function has external linkage (and hence wants this)
 		//         Add some attribute to Function to signify linkage
 		fprintf(file, ".globl %s\n%s:\n", functionName.c_str(), functionName.c_str());
+
 
 		// -----------------------
 		//  | Function prologue |
@@ -186,7 +192,7 @@ void AssemblyEmitter::Execute(Module* mod, const PassRunInformation&)
 		//         head BB is used as a branch target etc...
 		//         Not much point in printing BB labels if they are never used...
 
-		fprintf(file, "\tpush {r4, r5, r6, r7, r8, r10, r11}\n"); 
+		fprintf(file, "\tpush {r4, r5, r6, r7, r8, r10, r11, lr}\n"); 
 		fprintf(file, "\tmov r11, sp\n");
 
 		for (BasicBlock& bb : fn->blocks()) {

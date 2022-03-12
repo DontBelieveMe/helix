@@ -2,6 +2,7 @@
 #include "system.h"
 #include "basic-block.h"
 #include "ir-helpers.h"
+#include "function.h"
 
 using namespace Helix;
 
@@ -322,6 +323,16 @@ MachineInstruction* ARMv7::expand_store(Instruction* insn)
 
 	helix_unreachable("cannot expand this form of store");
 	return nullptr;
+}
+
+/*********************************************************************************************************************/
+
+MachineInstruction* ARMv7::expand_void_call(Instruction* insn)
+{
+	helix_assert(insn->GetOpcode() == HLIR::Call, "instruction is not a call");
+
+	CallInsn* call = (CallInsn*)insn;
+	return ARMv7::CreateBl(call->GetFunction());
 }
 
 /*********************************************************************************************************************/

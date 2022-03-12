@@ -140,7 +140,9 @@ void FunctionPass::Execute(Module* mod, const PassRunInformation& info)
 {
 	for (auto it = mod->functions_begin(); it != mod->functions_end(); ++it) {
 		Function* fn = *it;
-		this->Execute(fn, info);
+
+		if (fn->HasBody())
+			this->Execute(fn, info);
 	}
 }
 

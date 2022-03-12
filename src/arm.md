@@ -271,6 +271,8 @@
 (define-insn "bne" [] "bne {0}" [(0 read)])
 (define-insn "beq" [] "beq {0}" [(0 read)])
 
+(define-insn "bl"  [] "bl {0}" [(0 read)])
+
 (define-insn "$cbr"
 	[(HLIR::ConditionalBranch
 		(match_operand:lbl 0 "basic_block")
@@ -293,9 +295,16 @@
 ; instead of going through a branch instruction
 (define-insn "ret"
 	[(HLIR::Return)]
-	"@pop {r4, r5, r6, r7, r8, r10, r11}
+	"@mov sp, r11
+	pop {r4, r5, r6, r7, r8, r10, r11, lr}
 	bx lr"
 	[])
+
+(define-insn "$call_void"
+	[(HLIR::Call
+		(match_operand:void 0 "any")
+		(match_operand:*    1 "function"))]
+	"*expand_void_call")
 
 ; *****************************************************************************
 ;                             Cast Operations
