@@ -337,6 +337,20 @@ MachineInstruction* ARMv7::expand_void_call(Instruction* insn)
 
 /*********************************************************************************************************************/
 
+MachineInstruction* ARMv7::expand_call(Instruction* insn)
+{
+	helix_assert(insn->GetOpcode() == HLIR::Call, "instruction is not a call");
+
+	CallInsn* call = (CallInsn*)insn;
+
+	PhysicalRegisterName* r0 = PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R0);
+
+	IR::InsertBefore(insn, ARMv7::CreateBl(call->GetFunction()));
+	return ARMv7::CreateMov(call->GetReturnValue(), r0);
+}
+
+/*********************************************************************************************************************/
+
 MachineInstruction* ARMv7::expand_global_address_to_register(Instruction* insn)
 {
 	if (insn->GetOpcode() == HLIR::Set) {

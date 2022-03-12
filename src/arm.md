@@ -306,6 +306,12 @@
 		(match_operand:*    1 "function"))]
 	"*expand_void_call")
 
+(define-insn "$call"
+	[(HLIR::Call
+		(match_operand:* 0 "any")
+		(match_operand:* 1 "function"))]
+	"*expand_call")
+
 ; *****************************************************************************
 ;                             Cast Operations
 ; *****************************************************************************
