@@ -10,55 +10,33 @@
 	<ExpectedOutput>
 function main(): void {
 .0:
-	stack_alloc [i32 x 1], %0:ptr
-	stack_alloc [i32 x 1], %1:ptr
-	arm.movw_gl16 %2:ptr, @ci0:ptr
-	arm.movt_gu16 %2:ptr, @ci0:ptr
-	arm.ldr %3:i32, %2:ptr
-	arm.str %3:i32, %1:ptr
-	arm.movw_gl16 %4:ptr, @ci0:ptr
-	arm.movt_gu16 %4:ptr, @ci0:ptr
-	arm.ldr %5:i32, %4:ptr
-	arm.movw_gl16 %6:ptr, @ci1:ptr
-	arm.movt_gu16 %6:ptr, @ci1:ptr
-	arm.ldr %7:i32, %6:ptr
-	arm.cmp %5:i32, %7:i32
-	arm.movi %8:i32, 0:i32
-	arm.movwgti %8:i32, 1:i32
-	arm.cmpi %8:i32, 1:i32
-	arm.bge .1
+	arm.movwi %0:i32, 4:i32
+	arm.movti %0:i32, 0:i32
+	arm.set %1:i32, %0:i32
+	arm.movwi %2:i32, 4:i32
+	arm.movti %2:i32, 0:i32
+	arm.movwi %3:i32, 2:i32
+	arm.movti %3:i32, 0:i32
+	arm.cmp %2:i32, %3:i32
+	arm.bgt .1
 	arm.br .2
 .1:
-	arm.ldr %9:i32, %1:ptr
-	arm.movw_gl16 %10:ptr, @ci1:ptr
-	arm.movt_gu16 %10:ptr, @ci1:ptr
-	arm.ldr %11:i32, %10:ptr
-	arm.mul_r32r32 %9:i32, %11:i32, %12:i32
-	arm.str %12:i32, %1:ptr
+	arm.movwi %4:i32, 8:i32
+	arm.movti %4:i32, 0:i32
+	arm.set %1:i32, %4:i32
 	arm.br .2
 .2:
-	arm.ldr %13:i32, %1:ptr
-	arm.str %13:i32, %0:ptr
+	arm.set r0:i32, %1:i32
 	arm.br .3
 .3:
-	arm.ldr r0:i32, %0:ptr
 	arm.ret
 }
 ********** Interval Analysis **********
-	%0 = 0:0 -> 3:0
-	%1 = 0:1 -> 2:0
-	%2 = 0:2 -> 0:4
-	%3 = 0:4 -> 0:5
-	%4 = 0:6 -> 0:8
-	%5 = 0:8 -> 0:12
-	%6 = 0:9 -> 0:11
-	%7 = 0:11 -> 0:12
-	%8 = 0:13 -> 0:15
-	%9 = 1:0 -> 1:4
-	%10 = 1:1 -> 1:3
-	%11 = 1:3 -> 1:4
-	%12 = 1:4 -> 1:5
-	%13 = 2:0 -> 2:1
+	%0 = 0:0 -> 0:2
+	%1 = 0:2 -> 2:0
+	%2 = 0:3 -> 0:7
+	%3 = 0:5 -> 0:7
+	%4 = 1:0 -> 1:2
 ***************************************
 	</ExpectedOutput>
 </Test>
