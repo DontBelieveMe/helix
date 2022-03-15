@@ -277,7 +277,7 @@
 	[(HLIR::ConditionalBranch
 		(match_operand:lbl 0 "basic_block")
 		(match_operand:lbl 1 "basic_block")
-		(match_operand:i32 2 "register"))]
+		(match_operand:*   2 "register"))]
 	"*expand_conditional_branch")
 
 ; Unconditional branch to a internal basic block/label.
