@@ -8,5 +8,6 @@ struct MyStruct
 int main()
 {
   struct MyStruct ms;
-  return 0;
+  ms.c = 23;
+  return ms.c;
 }
