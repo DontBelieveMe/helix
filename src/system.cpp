@@ -32,14 +32,14 @@ void Helix::DisableDebugLogging()
 
 void Helix::Unreachable(const char* header, int line, const char* file, const char* fn, const std::string& reason)
 {
-		spdlog::critical("******************** Internal Compiler Error ********************");
-		spdlog::critical("    {}", header);
-		spdlog::critical("");
-		spdlog::critical("    File:        {}", file);
-		spdlog::critical("    Line:        {}", line);
-		spdlog::critical("    Function:    {}", fn);
-		spdlog::critical("    Explanation: {}", reason);
-		spdlog::critical("******************** Internal Compiler Error ********************");
+	spdlog::critical("******************** Internal Compiler Error ********************");
+	spdlog::critical("    {}", header);
+	spdlog::critical("");
+	spdlog::critical("    File:        {}", file);
+	spdlog::critical("    Line:        {}", line);
+	spdlog::critical("    Function:    {}", fn);
+	spdlog::critical("    Explanation: {}", reason);
+	spdlog::critical("******************** Internal Compiler Error ********************");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
