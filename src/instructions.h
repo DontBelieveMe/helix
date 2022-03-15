@@ -31,6 +31,9 @@ namespace Helix
 		using OperandList = std::vector<Value*>;
 
 	public:
+		using OperandIterator = OperandList::iterator;
+		using ConstOperandIterator = OperandList::const_iterator;
+
 		enum OperandFlags
 		{
 			OP_NONE   = 0x0,
@@ -207,6 +210,9 @@ namespace Helix
 	{
 	public:
 		CallInsn(Function* function, Value* ret, const ParameterList& params);
+
+		Value* GetReturnValue() const { return this->GetOperand(0); }
+		Value* GetFunction() const { return this->GetOperand(1); }
 
 		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
@@ -400,6 +406,11 @@ namespace Helix
 	inline bool is_int(Value* v)
 	{
 		return value_isa<ConstantInt>(v);
+	}
+
+	inline bool is_any(Value*)
+	{
+		return true;
 	}
 
 	inline bool is_register(Value* v)

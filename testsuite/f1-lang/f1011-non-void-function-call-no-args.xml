@@ -3,7 +3,6 @@
 
 	<TestFlags>
 		<TestFlag name="regex" value="false"></TestFlag>
-		<TestFlag name="xfail" value="true"></TestFlag>
 	</TestFlags>
 
 	<ExpectedOutput>
@@ -17,4 +16,6 @@ function main(): i32 {
 	ret %0:i32
 }
 	</ExpectedOutput>
+
+	<ExecutableExpectedExitCode>20</ExecutableExpectedExitCode>
 </Test>

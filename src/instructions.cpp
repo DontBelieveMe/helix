@@ -311,6 +311,9 @@ std::string Helix::stringify_operand(Value* v, SlotTracker& slots)
 	if (VirtualRegisterName* vreg = value_cast<VirtualRegisterName>(v)) {
 		return fmt::format("%{}", slots.GetValueSlot(v));
 	}
+	if (Function* fn = value_cast<Function>(v)) {
+		return fn->GetName();
+	}
 
 	helix_unimplemented("stringify_operand, unknown value type");
 	return {};

@@ -9,12 +9,23 @@
 
 using namespace Helix;
 
+static bool CanBeTriviallyDead(const Instruction& insn)
+{
+	if (HLIR::IsBranch((HLIR::Opcode) insn.GetOpcode()))
+		return false;
+
+	return true;
+}
+
 void DCE::Execute(Function* fn, const PassRunInformation&)
 {
 	std::vector<Instruction*> KillList;
 
 	for (BasicBlock& bb : fn->blocks()) {
 		for (Instruction& insn : bb) {
+			if (!CanBeTriviallyDead(insn))
+				continue;
+
 			for (size_t op_index = 0; op_index < insn.GetCountOperands(); ++op_index) {
 				Value* op = insn.GetOperand(op_index);
 

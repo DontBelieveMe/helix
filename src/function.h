@@ -74,6 +74,8 @@ namespace Helix
 		void SetParent(Module* parent) { Parent = parent; }
 		Module* GetParent() const { return Parent; }
 
+		bool HasBody() const { return !m_Blocks.empty(); }
+
 	private:
 		BlockList    m_Blocks;
 		ParamList    m_Parameters;
@@ -83,4 +85,9 @@ namespace Helix
 	};
 
 	IMPLEMENT_VALUE_TRAITS(Function, kValue_Function);
+
+	inline bool is_function(Value* v)
+	{
+		return value_isa<Function>(v);
+	}
 }

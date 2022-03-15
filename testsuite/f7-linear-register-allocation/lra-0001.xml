@@ -10,20 +10,15 @@
 	<ExpectedOutput>
 function main(): void {
 .0:
-	stack_alloc [i32 x 1], %0:ptr
-	arm.movw_gl16 %1:ptr, @ci0:ptr
-	arm.movt_gu16 %1:ptr, @ci0:ptr
-	arm.ldr %2:i32, %1:ptr
-	arm.str %2:i32, %0:ptr
 	arm.br .1
 .1:
-	arm.ldr r0:i32, %0:ptr
+	arm.movwi %0:i32, 1:i32
+	arm.movti %0:i32, 0:i32
+	arm.set r0:i32, %0:i32
 	arm.ret
 }
 ********** Interval Analysis **********
-	%0 = 0:0 -> 1:0
-	%1 = 0:1 -> 0:3
-	%2 = 0:3 -> 0:4
+	%0 = 1:0 -> 1:2
 ***************************************
 	</ExpectedOutput>
 </Test>

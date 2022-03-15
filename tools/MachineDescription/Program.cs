@@ -107,7 +107,9 @@ namespace MachineDescription
             { "i16", "BuiltinTypes::GetInt16" },
             { "i32", "BuiltinTypes::GetInt32" },
             { "ptr", "BuiltinTypes::GetPointer" },
-            { "lbl", "BuiltinTypes::GetLabelType" }
+            { "lbl", "BuiltinTypes::GetLabelType" },
+            { "fn", "BuiltinTypes::GetFunctionType" },
+            { "void", "BuiltinTypes::GetVoidType" }
         };
 
         public void GenerateCodeToMatchTemplate(PrintingContext ctx)
