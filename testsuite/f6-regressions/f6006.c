@@ -5,7 +5,7 @@
 
 char flags[sizepl];
 
-int benchmark_main() {
+int main() {
     int i, prime, k, count, iter; 
     for (iter = 1; iter <= 10; iter ++) {
         count=0 ; 
