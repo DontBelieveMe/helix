@@ -6,9 +6,9 @@
 	#include <Windows.h>
 #endif
 
-HELIX_DEFINE_LOG_CHANNEL(general);
-
 std::vector<Helix::LogRegister*> Helix::LogRegister::s_loggers;
+
+HELIX_DEFINE_LOG_CHANNEL(general);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
