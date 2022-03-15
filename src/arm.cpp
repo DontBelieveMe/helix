@@ -22,18 +22,19 @@ enum MachineMode
 
 static MachineMode GetMachineMode(const Type* type)
 {
-	if (type->IsPointer()) {
-		return SImode;
-	}
+	const size_t size = ARMv7::TypeSize(type);
 
-	if (const IntegerType* int_type = type_cast<IntegerType>(type)) {
-		switch (int_type->GetBitWidth()) {
-		case 8:  return QImode;
-		case 16: return HImode;
-		case 32: return SImode;
-		case 64: return DImode;
-		}
-	}
+	if (size <= 1)
+		return QImode;
+
+	if (size <= 2)
+		return HImode;
+
+	if (size <= 4)
+		return SImode;
+
+	if (size <= 8)
+		return DImode;
 
 	helix_unreachable("no machine mode for type");
 	return UndefinedMode;
