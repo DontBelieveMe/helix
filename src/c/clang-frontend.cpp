@@ -1814,6 +1814,7 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 			{
 				"--target=armv7-pc-linux-eabi",
 				"-nostdlib",
+				"-Wno-incompatible-library-redeclaration",
 
 				// This might not be nessesary as it doesn't seem to be finding
 				// std headers anyway without it, but it matches -nostdlib
