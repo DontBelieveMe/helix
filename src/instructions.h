@@ -214,6 +214,9 @@ namespace Helix
 		Value* GetReturnValue() const { return this->GetOperand(0); }
 		Value* GetFunction() const { return this->GetOperand(1); }
 
+		size_t GetStartingArgumentIndex() const { return 2; }
+		size_t GetCountArguments() const { return GetCountOperands() - 2; }
+
 		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
