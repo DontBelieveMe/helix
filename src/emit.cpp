@@ -100,7 +100,7 @@ static void EmitDataDirective(FILE* file, Value* init_value)
 					fprintf(file, "%c", byte);
 				}
 				else {
-					fprintf(file, "\\%x", byte);
+					fprintf(file, "\\x%x", byte);
 				}
 			}
 			fprintf(file, "\"\n");

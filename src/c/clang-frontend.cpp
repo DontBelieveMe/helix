@@ -272,7 +272,7 @@ Helix::Value* CodeGenerator::DoStringLiteral(clang::StringLiteral* stringLiteral
 	characters.reserve(stringLiteral->getByteLength() + 1);
 
 	for (size_t i = 0; i < stringLiteral->getByteLength(); ++i) {
-		characters.push_back((char) stringLiteral->getCodeUnit(i));
+		characters.push_back((uint8_t) stringLiteral->getCodeUnit(i));
 	}
 
 	characters.push_back('\0');
