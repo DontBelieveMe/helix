@@ -969,6 +969,13 @@ Helix::Value* CodeGenerator::DoCastExpr(clang::CastExpr* castExpr)
 	case clang::CK_IntegralCast:
 		return this->DoScalarCast(this->DoExpr(subExpr), subExpr->getType(), castExpr->getType());
 
+	case clang::CK_NoOp:
+		return this->DoExpr(subExpr);
+
+	// #TODO(bwilks): This isn't quite right, probably want a dedicated bitcast instruction like LLVM?
+	case clang::CK_BitCast:
+		return this->DoExpr(subExpr);
+
 	default:
 		frontend_unimplemented_at("Unknown cast kind", castExpr->getExprLoc());
 		break;
