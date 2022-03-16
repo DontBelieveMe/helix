@@ -80,6 +80,8 @@ namespace Helix
 
 		size_t GetCountParameters() const { return m_Parameters.size(); }
 
+		Value* GetParameter(size_t index) const { return m_Parameters[index]; }
+
 	private:
 		BlockList    m_Blocks;
 		ParamList    m_Parameters;

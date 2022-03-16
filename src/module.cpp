@@ -26,6 +26,16 @@ void Module::RegisterGlobalVariable(GlobalVariable* gvar)
 	m_GlobalVariables.push_back(gvar);
 }
 
+Function* Module::FindFunctionByName(const std::string& name) const
+{
+	for (Function* fn : m_Functions) {
+		if (fn->GetName() == name)
+			return fn;
+	}
+
+	return nullptr;
+}
+
 static void PrintBasicBlockNode(SlotTracker& fnSlots, FILE* file, BasicBlock& bb)
 {
 	//const size_t slot = fnSlots.GetBasicBlockSlot(&bb);

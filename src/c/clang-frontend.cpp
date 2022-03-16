@@ -1610,37 +1610,52 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 
 	using namespace Helix;
 
-	Function::ParamList          parameterValues;
-	FunctionType::ParametersList parameterTypes;
+	const std::string functionName = functionDecl->getNameAsString();
 
-	for (clang::ParmVarDecl* param : functionDecl->parameters()) {
-		const Type*          ty            = this->ConvertType(param->getType());
+	Function* existingFunction = m_Module->FindFunctionByName(functionName);
 
-		parameterValues.push_back(VirtualRegisterName::Create(ty));
-		parameterTypes.push_back(ty);
+	if (existingFunction) {
+		m_CurrentFunction = existingFunction;
+
+		m_FunctionDecls.insert({
+			functionDecl,
+			m_CurrentFunction
+		});
+	}
+	else {
+		Function::ParamList          parameterValues;
+		FunctionType::ParametersList parameterTypes;
+
+		for (clang::ParmVarDecl* param : functionDecl->parameters()) {
+			const Type* ty = this->ConvertType(param->getType());
+
+			parameterValues.push_back(VirtualRegisterName::Create(ty));
+			parameterTypes.push_back(ty);
+		}
+
+		const Type* returnType = this->ConvertType(functionDecl->getReturnType());
+		const FunctionType* functionType = FunctionType::Create(returnType, parameterTypes);
+
+		m_CurrentFunction = Function::Create(functionType, functionDecl->getNameAsString(), parameterValues);
+
+		m_FunctionDecls.insert({
+			functionDecl,
+			m_CurrentFunction
+		});
+
+		// Add the new function to the list of functions that we've generated code for in
+		// this translation unit.
+		m_Module->RegisterFunction(m_CurrentFunction);
 	}
 
-	const Type* returnType = this->ConvertType(functionDecl->getReturnType());
-	const FunctionType* functionType = FunctionType::Create(returnType, parameterTypes);
-
-	m_CurrentFunction = Function::Create(functionType, functionDecl->getNameAsString(), parameterValues);
-	m_ValueMap.clear();
-
-	m_FunctionDecls.insert({
-		functionDecl,
-		m_CurrentFunction
-	});
-
-	// Add the new function to the list of functions that we've generated code for in
-	// this translation unit.
-	m_Module->RegisterFunction(m_CurrentFunction);
-
-	if (!functionDecl->hasBody()) {
+	if (!functionDecl->doesThisDeclarationHaveABody()) {
 		m_BasicBlockIterator.invalidate();
 		m_InstructionIterator.invalidate();
 		m_CurrentFunction = nullptr;
 		return;
 	}
+
+	m_ValueMap.clear();
 
 	// Reset the basic block insert point so that the next basic block will be created
 	// at the start of the new function.
@@ -1650,12 +1665,14 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 	m_BasicBlockIterator = m_CurrentFunction->begin();
 	EmitBasicBlock(CreateBasicBlock());
 
-	for (size_t i = 0; i < parameterValues.size(); ++i) {
-		const Type* ty = parameterValues[i]->GetType();
+	for (size_t i = 0; i < m_CurrentFunction->GetCountParameters(); ++i) {
+		Value* parameterValue = m_CurrentFunction->GetParameter(i);
+
+		const Type* ty = parameterValue->GetType();
 		VirtualRegisterName* addr = VirtualRegisterName::Create(BuiltinTypes::GetPointer());
 
 		this->EmitInsn(Helix::CreateStackAlloc(addr, ty));
-		this->EmitInsn(Helix::CreateStore(parameterValues[i], addr));
+		this->EmitInsn(Helix::CreateStore(parameterValue, addr));
 
 		m_ValueMap.insert({*(functionDecl->param_begin() + i), addr });
 	}
@@ -1703,6 +1720,8 @@ void CodeGenerator::DoFunctionDecl(clang::FunctionDecl* functionDecl)
 			if (functionDecl->getReturnType()->isVoidType()) {
 				this->EmitInsn(Helix::CreateRet());
 			} else {
+				const Type* returnType = m_CurrentFunction->GetReturnType();
+
 				// It's not really valid to return a void value here, but if you've
 				// not returned a value from a non void function then what are you doing
 				// anyway?!?!
