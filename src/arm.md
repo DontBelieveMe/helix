@@ -388,7 +388,7 @@
 
 (define-insn "$set-address"
 	[(HLIR::Set
-		(match_operand:ptr 0 "register")
+		(match_operand:* 0 "register")
 		(match_operand:ptr 1 "global"))]
 	"*expand_global_address_to_register")
 
