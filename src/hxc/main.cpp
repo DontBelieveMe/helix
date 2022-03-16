@@ -10,6 +10,9 @@
 
 HELIX_DEFINE_LOG_CHANNEL(driver);
 
+/* Define this to 1 to use the hxc libc implementation */
+#define HXC_LIBC 1
+
 struct ProcessOutput
 {
 	int exit_code = 0xDEADBEE;
@@ -188,15 +191,24 @@ static void FinaliseExecutable(Helix::Module* translationUnit)
 
 		"-nostdinc",      // Probably wont make that much of a difference, since the assembly we created
 		                  // should not include any files, but it never hurts to make sure
-		
-		"-static",        // Statically link the LibC that comes with GCC
-		                  // #FIXME: Eventually add -nostdlib here as well when we define our own standard library
 
 		"-march=armv8-a+crc", // Platform configuration options for the Raspberry Pi 4
 		"-mfloat-abi=hard",   // 
 		"-mfpu=vfp",          // #FIXME: These will need to change in the event of targeting something
 		"-mcpu=cortex-a72"    //         that is not the Pi4 (such as the STM chip)
 	};
+
+	if (!Helix::Options::GetNoStdLib()) {
+#if defined (HXC_LIBC)
+		gccParameters.push_back("-nostdlib");
+		gccParameters.push_back(CONFIG_LIBC_INCLUDE_DIRECTORY "/../bin/libc.a");
+#else
+		gccParameters.push_back("-static");
+#endif
+	}
+	else {
+		gccParameters.push_back("-nostdlib");
+	}
 
 	// #FIXME: This lets GCC choose its own defaults if -o isn't specified at all, but it probably makes sense
 	//         to inject our own defaults (just for consistency i guess)
