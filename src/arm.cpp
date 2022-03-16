@@ -83,6 +83,14 @@ static MachineInstruction* CreateMachineLoad(Value* dst, Value* src, MachineMode
 
 /*********************************************************************************************************************/
 
+MachineInstruction* ARMv7::expand_trunc(Instruction* insn)
+{
+	helix_unreachable("code generation for trunc is unsupported :-(");
+	return nullptr;
+}
+
+/*********************************************************************************************************************/
+
 MachineInstruction* ARMv7::expand_load(Instruction* insn)
 {
 	helix_assert(insn->GetOpcode() == HLIR::Load, "cannot expand load instruction that doesn't have kInsn_Load opcode");
@@ -122,6 +130,7 @@ MachineInstruction* ARMv7::expand_load(Instruction* insn)
 		// Can just fallthrough here, since it's the same logic for handling
 		// the zext & sext instructions themselves.
 		[[fallthrough]];
+		case HLIR::Trunc:
 		case HLIR::ZExt: {
 			CastInsn* castInstruction = static_cast<CastInsn*>(singleUser);
 

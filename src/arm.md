@@ -375,6 +375,12 @@
 	"uxtb {1}, {0}"
 	[(0 read) (1 write)])
 
+(define-insn "$trunc"
+	[(HLIR::Trunc
+		(match_operand:* 0 "register")
+		(match_operand:* 1 "register"))]
+	"*expand_trunc")
+
 ; *****************************************************************************
 ;                             Move Operations
 ; *****************************************************************************

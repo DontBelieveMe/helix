@@ -340,6 +340,26 @@ namespace Helix
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	class TruncInsn : public Instruction
+	{
+	public:
+		TruncInsn(Value* oldValue, Value* newValue)
+			: Instruction(HLIR::Trunc, 2)
+		{
+			this->SetOperand(0, oldValue);
+			this->SetOperand(1, newValue);
+		}
+
+		Value* GetOldValue() const { return this->GetOperand(0); }
+		Value* GetNewValue() const { return this->GetOperand(1); }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	TruncInsn* CreateTruncInsn(Value* oldValue, Value* newValue);
+
 	SetInsn* CreateSetInsn(Value* reg, Value* newValue);
 
 	/// Create a comparison instruction that compares 'lhs' and 'rhs' and stores the result to the given

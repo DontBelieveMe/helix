@@ -934,7 +934,11 @@ Helix::Value* CodeGenerator::DoScalarCast(Helix::Value* expr, clang::QualType or
 
 					return output;
 				} else {
-					frontend_unimplemented("casts from big types to smaller types are not supported");
+					// frontend_unimplemented("casts from big types to smaller types are not supported");
+
+					VirtualRegisterName* output = VirtualRegisterName::Create(dstType);
+					EmitInsn(Helix::CreateTruncInsn(expr, output));
+					return output;
 				}
 			}
 
