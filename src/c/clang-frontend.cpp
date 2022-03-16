@@ -1585,6 +1585,11 @@ Helix::Value* CodeGenerator::DoExpr(clang::Expr* expr)
 
 		break;
 	}
+
+	case clang::Stmt::CStyleCastExprClass: {
+		clang::CStyleCastExpr* castExpr = clang::cast<clang::CStyleCastExpr>(expr);
+		return this->DoCastExpr(castExpr);
+	}
 	
 	default:
 		frontend_unimplemented_at(
