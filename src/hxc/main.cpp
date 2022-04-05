@@ -10,8 +10,8 @@
 
 HELIX_DEFINE_LOG_CHANNEL(driver);
 
-/* Define this to 1 to use the hxc libc implementation */
-#define HXC_LIBC 1
+/* Define this to use the Helix libc implementation, comment out to use glibc */
+//#define HXC_LIBC 1
 
 struct ProcessOutput
 {
@@ -41,7 +41,7 @@ static bool ExecuteProcess(const std::string& name, const std::vector<std::strin
 
 	si.cb = sizeof(si);
 
-	// All this arsing about is nessesary because the lpCommandLine parameter of CreateProcess
+	// All this arsing about is necessary because the lpCommandLine parameter of CreateProcess
 	// requires a modifiable string... Documentation quoted below:
 	//
 	//   > The Unicode version of this function, CreateProcessW, can modify the contents of this string.
