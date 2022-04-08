@@ -259,23 +259,25 @@ void RegisterAllocator2::Execute(Function* function, const PassRunInformation& i
 		IR::ReplaceInstructionAndDestroyOriginal(insn, addInstruction);
 	}
 
-	// Finally inject function prologue/epilogue code that creates & destroys the stack
+	// Finally inject function prologue/epilogue code that creates & destroys the stack (if necessary)
 
-	ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), stackSize);
+	if (stackSize > 0) {
+		ConstantInt* stack_size_constant = ConstantInt::Create(BuiltinTypes::GetInt32(), stackSize);
 
-	BasicBlock* tail = function->GetTailBlock();
-	BasicBlock* head = function->GetHeadBlock();
+		BasicBlock* tail = function->GetTailBlock();
+		BasicBlock* head = function->GetHeadBlock();
 
-	// First thing we want to do is 'create' the stack - e.g. move the stack pointer so that it
-	// points to the 'bottom' of what we want the stack to be.
-	//
-	// The emit pass will inject any other prologue code before this (e.g. pushing the frame pointer/link register
-	// to the stack etc...)
-	head->InsertBefore(head->begin(),                ARMv7::CreateSub_r32i32(sp, stack_size_constant, sp));
+		// First thing we want to do is 'create' the stack - e.g. move the stack pointer so that it
+		// points to the 'bottom' of what we want the stack to be.
+		//
+		// The emit pass will inject any other prologue code before this (e.g. pushing the frame pointer/link register
+		// to the stack etc...)
+		head->InsertBefore(head->begin(), ARMv7::CreateSub_r32i32(sp, stack_size_constant, sp));
 
-	// Finally the last thing to do (before what is presumably the return instruction) is destroy the
-	// space on the stack we reserved, meaning that whichever function that comes next can reuse it.
-	tail->InsertBefore(tail->Where(tail->GetLast()), ARMv7::CreateAdd_r32i32(sp, stack_size_constant, sp));
+		// Finally the last thing to do (before what is presumably the return instruction) is destroy the
+		// space on the stack we reserved, meaning that whichever function that comes next can reuse it.
+		tail->InsertBefore(tail->Where(tail->GetLast()), ARMv7::CreateAdd_r32i32(sp, stack_size_constant, sp));
+	}
 }
 
 /*********************************************************************************************************************/
