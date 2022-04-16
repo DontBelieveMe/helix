@@ -38,6 +38,8 @@ namespace Helix
 		const_param_iterator params_begin() const { return m_Parameters.begin(); }
 		const_param_iterator params_end()   const { return m_Parameters.end();   }
 
+		iterator_range<param_iterator> params() { return iterator_range(params_begin(), params_end()); }
+
 		static Function* Create(const FunctionType* type, const std::string& name, const ParamList& params)
 		{
 			Function* fn = new Function(type);
@@ -75,6 +77,10 @@ namespace Helix
 		Module* GetParent() const { return Parent; }
 
 		bool HasBody() const { return !m_Blocks.empty(); }
+
+		size_t GetCountParameters() const { return m_Parameters.size(); }
+
+		Value* GetParameter(size_t index) const { return m_Parameters[index]; }
 
 	private:
 		BlockList    m_Blocks;

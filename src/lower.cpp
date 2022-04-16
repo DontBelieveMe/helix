@@ -194,6 +194,57 @@ void ReturnCombine::Execute(Function* fn, const PassRunInformation&)
 
 void CConv::Execute(Function* fn, const PassRunInformation&)
 {
+	helix_assert(fn->GetCountParameters() <= 4, "functions with more than 4 arguments are not supported");
+
+	PhysicalRegisterName* ParameterRegisters[] = {
+		PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R0),
+		PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R1),
+		PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R2),
+		PhysicalRegisters::GetRegister(BuiltinTypes::GetInt32(), PhysicalRegisters::R3)
+	};
+
+	size_t NextAvailableRegisterIndex = 0;
+
+	BasicBlock* HeadBlock = fn->GetHeadBlock();
+
+	for (Value* param : fn->params()) {
+		helix_assert(ARMv7::TypeSize(param->GetType()) <= 4, "Parameters larger than a word are not supported");
+
+		HeadBlock->InsertBefore(HeadBlock->begin(), Helix::CreateSetInsn(param, ParameterRegisters[NextAvailableRegisterIndex]));
+
+		NextAvailableRegisterIndex++;
+	}
+
+	std::vector<CallInsn*> WorkList;
+
+	for (BasicBlock& bb : fn->blocks()) {
+		for (Instruction& insn : bb.insns()) {
+			if (insn.GetOpcode() == HLIR::Call) {
+				CallInsn* callInsn = (CallInsn*)&insn;
+
+				helix_assert(callInsn->GetCountArguments() <= 4, "attempting to pass more than 4 arguments to function (unsupported)");
+
+				if (callInsn->GetCountArguments() == 0)
+					continue;
+
+				WorkList.push_back(callInsn);
+			}
+		}
+	}
+
+	for (CallInsn* Insn : WorkList) {
+		NextAvailableRegisterIndex = 0;
+
+		for (size_t i = Insn->GetStartingArgumentIndex(); i < Insn->GetCountOperands(); ++i) {
+			Value* Op = Insn->GetOperand(i);
+
+			helix_assert(ARMv7::TypeSize(Op->GetType()), "argument is bigger than a word (unsupported)");
+
+			IR::InsertBefore(Insn, Helix::CreateSetInsn(ParameterRegisters[NextAvailableRegisterIndex], Op));
+			NextAvailableRegisterIndex++;
+		}
+	}
+
 	// #FIXME: Maybe this can be simplified by assuming there is only one return?
 	//         (as per the ReturnCombine pass)
 
@@ -240,66 +291,6 @@ void CConv::Execute(Function* fn, const PassRunInformation&)
 
 		const FunctionType* voidFunctionType = existingFunctionType->CopyWithDifferentReturnType(BuiltinTypes::GetVoidType());
 		fn->SetType(voidFunctionType);
-	}
-}
-
-/*********************************************************************************************************************/
-
-GlobalVariable* ConstantHoisting::CreateOrGetGlobal(Module* mod, ConstantInt* cint) {
-	auto it = GlobalMap.find(cint);
-
-	if (it == GlobalMap.end()) {
-		static size_t index = 0;
-		const std::string name = "ci" + std::to_string(index);
-		index++;
-
-		GlobalVariable* gvar = GlobalVariable::Create(name, cint->GetType(), cint);
-		mod->RegisterGlobalVariable(gvar);
-
-		GlobalMap.insert({cint, gvar});
-	
-		return gvar;
-	}
-
-	return it->second;
-}
-
-/*********************************************************************************************************************/
-
-void ConstantHoisting::Execute(BasicBlock* bb, const PassRunInformation&)
-{
-	helix_assert(bb, "ConstantHoisting: NULl basic block");
-
-	struct ConstantRef { Instruction& insn; };
-
-	std::vector<ConstantRef> constantReferences;
-
-	for (Instruction& insn : *bb) {
-		for (size_t operandIndex = 0; operandIndex < insn.GetCountOperands(); ++operandIndex) {
-			Value* pOperand = insn.GetOperand(operandIndex);
-
-			if (pOperand->IsA<ConstantInt>()) {
-				constantReferences.push_back({insn});
-				break;
-			}
-		}
-	}
-
-	for (const ConstantRef& constantRef : constantReferences) {
-		Instruction& insn = constantRef.insn;
-
-		for (size_t operandIndex = 0; operandIndex < insn.GetCountOperands(); ++operandIndex) {
-			Value* pOperand = insn.GetOperand(operandIndex);
-
-			if (ConstantInt* cint = value_cast<ConstantInt>(pOperand)) {
-				VirtualRegisterName* v = VirtualRegisterName::Create(pOperand->GetType());
-				GlobalVariable* g = this->CreateOrGetGlobal(bb->GetParent()->GetParent(), cint);
-
-				bb->InsertBefore(bb->Where(&insn), Helix::CreateLoad(g, v));
-
-				insn.SetOperand(operandIndex, v);
-			}
-		}
 	}
 }
 

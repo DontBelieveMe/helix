@@ -14,7 +14,7 @@ namespace Testify
         public static Dictionary<string, Func<Testsuite>> Testsuites = new Dictionary<string, Func<Testsuite>>
         {
             { "helix",           () => { return new HelixTestsuite();       } },
-            // { "ctestsuite", () => { return new CTestsuite(); } },
+            { "ctestsuite", () => { return new CTestsuite(); } },
         };
 
         public static string GetLinkToTestsuite(string name)

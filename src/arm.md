@@ -277,7 +277,7 @@
 	[(HLIR::ConditionalBranch
 		(match_operand:lbl 0 "basic_block")
 		(match_operand:lbl 1 "basic_block")
-		(match_operand:i32 2 "register"))]
+		(match_operand:*   2 "register"))]
 	"*expand_conditional_branch")
 
 ; Unconditional branch to a internal basic block/label.
@@ -375,6 +375,12 @@
 	"uxtb {1}, {0}"
 	[(0 read) (1 write)])
 
+(define-insn "$trunc"
+	[(HLIR::Trunc
+		(match_operand:* 0 "register")
+		(match_operand:* 1 "register"))]
+	"*expand_trunc")
+
 ; *****************************************************************************
 ;                             Move Operations
 ; *****************************************************************************
@@ -388,7 +394,7 @@
 
 (define-insn "$set-address"
 	[(HLIR::Set
-		(match_operand:ptr 0 "register")
+		(match_operand:* 0 "register")
 		(match_operand:ptr 1 "global"))]
 	"*expand_global_address_to_register")
 

@@ -66,27 +66,12 @@ namespace Helix
 	};
 
 	/*********************************************************************************************************************/
-
-	class ConstantHoisting : public BasicBlockPass
-	{
-	public:
-		void Execute(BasicBlock* bb, const PassRunInformation& info);
-
-	private:
-		GlobalVariable* CreateOrGetGlobal(Module* bb, ConstantInt* cint);
-
-	private:
-		std::unordered_map<ConstantInt*, GlobalVariable*> GlobalMap;
-	};
-
-	/*********************************************************************************************************************/
 }
 
 /*********************************************************************************************************************/
 
 REGISTER_PASS(LegaliseStructs, structslegal, "[Generic] Legalise loading & storing struct types to/from virtual registers");
 REGISTER_PASS(LowerStructStackAllocation, lowerallocastructs, "[Generic] Lower the stack allocations of structs to arrays");
-REGISTER_PASS(ConstantHoisting, consthoist, "[ARM] Split and hoist constants to a form compatible with the ARM");
 REGISTER_PASS(ReturnCombine, retcomb, "[Generic] Combine multiple returns into a singular exit point");
 REGISTER_PASS(CConv, cconv, "[ARM] Lower IR to be compatible with the platform calling convention");
 REGISTER_PASS(GenericLegalizer, genlegal, "[Generic] Legalise illegal constructs IR to a legal equivilant");

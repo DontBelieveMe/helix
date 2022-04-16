@@ -61,6 +61,8 @@ namespace Helix
 
 		std::string GetInputSourceFile() const { return m_InputSourceFile; }
 
+		Function* FindFunctionByName(const std::string& name) const;
+
 	private:
 		FunctionList m_Functions;
 		StructList   m_Structs;

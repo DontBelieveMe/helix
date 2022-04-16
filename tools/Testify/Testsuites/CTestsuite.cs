@@ -47,10 +47,15 @@ namespace Testify
             string outputExecutableFilepath = _baseDirectory + Path.GetFileNameWithoutExtension(filepath);
             CompilationResult result = HelixCompiler.CompileSingleFile(filepath, new string[] { }, outputExecutableFilepath);
 
-            if (result.CompilerExitCode == 0)
-                return new TestRun(TestStatus.Pass, result, "", null);
-            else
-                return new TestRun(TestStatus.Fail, result, "", null);
+            if (result.CompilerExitCode != 0)
+                return CommonTestsuiteActions.FailedTest(TestStatus.Pass, result, "");
+
+            ProgramOutput execOutput = CommonTestsuiteActions.RunCompiledFile(result);
+
+            if (execOutput.ExitCode != 0)
+                return CommonTestsuiteActions.FailedTest(TestStatus.Pass, result, "", execOutput);
+
+            return new TestRun(TestStatus.Pass, result, "", null);
         }
     }
 }

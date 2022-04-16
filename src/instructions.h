@@ -214,6 +214,9 @@ namespace Helix
 		Value* GetReturnValue() const { return this->GetOperand(0); }
 		Value* GetFunction() const { return this->GetOperand(1); }
 
+		size_t GetStartingArgumentIndex() const { return 2; }
+		size_t GetCountArguments() const { return GetCountOperands() - 2; }
+
 		virtual OperandFlags GetOperandFlags(size_t index) const override;
 	};
 
@@ -336,6 +339,26 @@ namespace Helix
 	};
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	class TruncInsn : public Instruction
+	{
+	public:
+		TruncInsn(Value* oldValue, Value* newValue)
+			: Instruction(HLIR::Trunc, 2)
+		{
+			this->SetOperand(0, oldValue);
+			this->SetOperand(1, newValue);
+		}
+
+		Value* GetOldValue() const { return this->GetOperand(0); }
+		Value* GetNewValue() const { return this->GetOperand(1); }
+
+		virtual OperandFlags GetOperandFlags(size_t index) const override;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	TruncInsn* CreateTruncInsn(Value* oldValue, Value* newValue);
 
 	SetInsn* CreateSetInsn(Value* reg, Value* newValue);
 

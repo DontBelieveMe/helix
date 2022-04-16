@@ -66,6 +66,9 @@ BEGIN_INSN_CLASS(Cast)
 
 	/* Zero Extension */
 	DEF_INSN_FIXED(ZExt,     "zext",     2, FLG(READ), FLG(WRITE))
+
+	/* Truncate Integer */
+	DEF_INSN_FIXED(Trunc, "trunc", 2, FLG(READ), FLG(WRITE))
 END_INSN_CLASS(Cast)
 
 DEF_INSN_FIXED(Undefined, "undef", 0)
