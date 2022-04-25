@@ -85,6 +85,7 @@ static MachineInstruction* CreateMachineLoad(Value* dst, Value* src, MachineMode
 
 MachineInstruction* ARMv7::expand_trunc(Instruction* insn)
 {
+	(void) insn;
 	helix_unreachable("code generation for trunc is unsupported :-(");
 	return nullptr;
 }

@@ -132,7 +132,7 @@ static Helix::Module* ParseTranslationUnit(int argc, const char** argv)
 		break;
 	}
 
-	defualt:
+	default:
 		break;
 	};
 
