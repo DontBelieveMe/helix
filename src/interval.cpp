@@ -145,8 +145,9 @@ void Helix::ComputeIntervalsForFunction(Function* function, std::unordered_map<V
 					if (!Contains(uses, vreg))
 						continue;
 
-					if (!Contains(block_in, vreg) && !Contains(block_out, vreg)) {
+					if (!Contains(block_in, vreg) && !Contains(block_out, vreg) && !Contains(intervals, vreg)) {
 						uses[vreg].start = InstructionIndex(blockIndex, instructionIndex);
+
 						intervals[vreg] = uses[vreg];
 						uses.erase(vreg);
 					}
