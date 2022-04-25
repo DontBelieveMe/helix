@@ -16,6 +16,3 @@
 [submodule "extras/helix-benchmark"]
 	path = extras/helix-benchmark
 	url = https://github.com/DontBelieveMe/helix-benchmark
-[submodule "external/antlr4"]
-	path = external/antlr4
-	url = https://github.com/antlr/antlr4.git

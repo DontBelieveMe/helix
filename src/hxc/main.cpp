@@ -1,5 +1,4 @@
 #include "../c/clang-frontend.h"
-#include "../irc/ir-frontend.h"
 
 #include "../profile.h"
 #include "../helix.h"
@@ -119,14 +118,8 @@ static Helix::Module* ParseTranslationUnit(int argc, const char** argv)
 	
 	helix_trace(logs::driver, "Begin frontend compilation");
 
-	enum Frontend { CLANG, IR };
+	enum Frontend { CLANG, };
 	Frontend frontend = CLANG;
-
-	for (int i = 0; i < argc; ++i) {
-		if (strcmp(argv[i], "-ir") == 0) {
-			frontend = IR;
-		}
-	}
 
 	Helix::Module* pModule = nullptr;
 
@@ -138,12 +131,9 @@ static Helix::Module* ParseTranslationUnit(int argc, const char** argv)
 
 		break;
 	}
-	case IR: {
-		Helix::Frontend::IR::Initialise();
-		pModule = Helix::Frontend::IR::Run(argc, argv);
-		Helix::Frontend::IR::Shutdown();
+
+	defualt:
 		break;
-	}
 	};
 
 	helix_trace(logs::driver, "End frontend compilation");
