@@ -8,7 +8,6 @@
 
 /* Pass Internal Project Includes */
 #include "lower.h"
-#include "regalloc.h"
 #include "match.h"
 #include "validate.h"
 #include "emit.h"

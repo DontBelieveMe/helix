@@ -41,8 +41,6 @@ add_library(HelixCore
 	profile.h
 	match.cpp
 	match.h
-	regalloc.h
-	regalloc.cpp
 	validate.h
 	validate.cpp
 	opcodes.h
