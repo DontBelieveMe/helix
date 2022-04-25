@@ -48,11 +48,14 @@ namespace Helix
 			size_t Offset;
 		};
 
+		const Allocation* GetAllocationPtr(SlotIndex index) const;
+		bool IsValidSlot(SlotIndex index) const;
+
 		/// List of all individual elements in this stack frame
 		std::vector<Allocation> m_Allocations;
 
 		/// An offset (in bytes) from the start of the stack frame, where
 		/// we will put the next allocation
-		size_t                  m_NextAllocationOffset = 0;
+		size_t m_NextAllocationOffset = 0;
 	};
 }

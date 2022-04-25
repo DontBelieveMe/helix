@@ -50,6 +50,16 @@ namespace Helix
 			: m_begin(range_begin), m_end(range_end)
 		{ }
 
+		template <typename IterableType>
+		iterator_range(const IterableType& iterable)
+		    : m_begin(iterable.begin()), m_end(iterable.end())
+		{ }
+
+		template <typename IterableType>
+		iterator_range(IterableType& iterable)
+		    : m_begin(iterable.begin()), m_end(iterable.end())
+		{ }
+
 		T begin() const { return m_begin; }
 		T end()   const { return m_end;   }
 

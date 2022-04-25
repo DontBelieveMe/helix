@@ -413,6 +413,8 @@ static void ComputeOutputs(Node* node)
 
 /*********************************************************************************************************************/
 
+#if 0
+
 static void PrintNode(SlotTracker& slots, const Node& node)
 {
 	char buf[128] = {};
@@ -455,6 +457,8 @@ static void PrintNode(SlotTracker& slots, const Node& node)
 
 	fmt::print("\n");
 }
+
+#endif
 
 /*********************************************************************************************************************/
 

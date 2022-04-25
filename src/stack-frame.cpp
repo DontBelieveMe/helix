@@ -11,9 +11,10 @@
 
 using namespace Helix;
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
-static size_t Align(size_t input, size_t alignment)
+static size_t
+Align(size_t input, size_t alignment)
 {
 	if (input % alignment == 0) {
 		return input;
@@ -22,9 +23,28 @@ static size_t Align(size_t input, size_t alignment)
 	return input + (alignment - (input % alignment));
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
-StackFrame::SlotIndex StackFrame::Add(size_t bytes)
+bool
+StackFrame::IsValidSlot(SlotIndex index) const
+{
+	return index.IsValid() && (index.index < m_Allocations.size());
+}
+
+/******************************************************************************/
+
+const StackFrame::Allocation*
+StackFrame::GetAllocationPtr(SlotIndex index) const
+{
+	helix_assert(IsValidSlot(index), "StackSlot index is too big");
+
+	return &m_Allocations[index.index];
+}
+
+/******************************************************************************/
+
+StackFrame::SlotIndex
+StackFrame::Add(size_t bytes)
 {
 	const SlotIndex slot { m_Allocations.size() };
 
@@ -34,27 +54,28 @@ StackFrame::SlotIndex StackFrame::Add(size_t bytes)
 	return slot;
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
-size_t StackFrame::GetAllocationOffset(SlotIndex slotIndex) const
+size_t
+StackFrame::GetAllocationOffset(SlotIndex slotIndex) const
 {
-	helix_assert(slotIndex.index < m_Allocations.size(), "StackSlot index is too big");
-	return m_Allocations[slotIndex.index].Offset;
+	return GetAllocationPtr(slotIndex)->Offset;
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
-size_t StackFrame::GetAllocationSize(SlotIndex slotIndex) const
+size_t
+StackFrame::GetAllocationSize(SlotIndex slotIndex) const
 {
-	helix_assert(slotIndex.index < m_Allocations.size(), "StackSlot index is too big");
-	return m_Allocations[slotIndex.index].Size;
+	return GetAllocationPtr(slotIndex)->Size;
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
-size_t StackFrame::GetSizeAligned(size_t alignment) const
+size_t
+StackFrame::GetSizeAligned(size_t alignment) const
 {
 	return Align(m_NextAllocationOffset, alignment);
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/

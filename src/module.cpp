@@ -1,32 +1,59 @@
+/**
+ * @file module.cpp
+ * @author Barney Wilks
+ *
+ * Implements module.h
+ */
+
 #if defined(_MSC_VER)
 	#define _CRT_SECURE_NO_WARNINGS
 #endif
 
+/* Internal Project Includes */
 #include "module.h"
 #include "system.h"
 #include "print.h"
 
+/* C Standard Library Includes */
 #include <stdio.h>
 
 using namespace Helix;
 
-void Module::RegisterFunction(Function* fn)
+/******************************************************************************/
+
+Module::Module(const std::string& inputSourceFile)
+    : m_InputSourceFile(inputSourceFile)
+{ }
+
+/******************************************************************************/
+
+void
+Module::RegisterFunction(Function* fn)
 {
 	fn->SetParent(this);
 	m_Functions.push_back(fn);
 }
 
-void Module::RegisterStruct(const StructType* ty)
+/******************************************************************************/
+
+void
+Module::RegisterStruct(const StructType* ty)
 {
 	m_Structs.push_back(ty);
 }
 
-void Module::RegisterGlobalVariable(GlobalVariable* gvar)
+/******************************************************************************/
+
+void
+Module::RegisterGlobalVariable(GlobalVariable* gvar)
 {
 	m_GlobalVariables.push_back(gvar);
 }
 
-Function* Module::FindFunctionByName(const std::string& name) const
+/******************************************************************************/
+
+Function*
+Module::FindFunctionByName(const std::string& name) const
 {
 	for (Function* fn : m_Functions) {
 		if (fn->GetName() == name)
@@ -36,12 +63,11 @@ Function* Module::FindFunctionByName(const std::string& name) const
 	return nullptr;
 }
 
-static void PrintBasicBlockNode(SlotTracker& fnSlots, FILE* file, BasicBlock& bb)
-{
-	//const size_t slot = fnSlots.GetBasicBlockSlot(&bb);
-	//fprintf(file, "\".%zu\"", slot);
-//	fprintf(file, "\"0x%p\"", &bb);
+/******************************************************************************/
 
+static void
+PrintBasicBlockNode(SlotTracker& fnSlots, FILE* file, BasicBlock& bb)
+{
 	fprintf(file, "\"");
 
 	TextOutputStream stream(file);
@@ -50,21 +76,28 @@ static void PrintBasicBlockNode(SlotTracker& fnSlots, FILE* file, BasicBlock& bb
 	fprintf(file, "\"");
 }
 
-void Module::DumpControlFlowGraphToFile(const std::string& filepath)
+/******************************************************************************/
+
+void
+Module::DumpControlFlowGraphToFile(const std::string& filepath)
 {
 	FILE* file = fopen(filepath.c_str(), "w");
 
 	helix_debug(logs::general, "Dumping module CFG to graph '{}'", filepath);
 
 	if (!file) {
-		helix_warn(logs::general, "Couldn't open file '{}' for writing, skipping CFG dump", filepath);
+		helix_warn(
+		    logs::general,
+		    "Couldn't open file '{}' for writing, skipping CFG dump", filepath
+		);
+
 		return;
 	}
 
-	fprintf(file, "digraph module {\n");
-	fprintf(file, "\tlabeljust=l;\n");
-	fprintf(file, "\tnojustify=true;\n");
-	fprintf(file, "\tnodesep=1;\n");
+	fprintf(file, "digraph module {\n"
+	              "\tlabeljust=l;\n"
+	              "\tnojustify=true;\n"
+	              "\tnodesep=1;\n");
 
 	for (Function* fn : functions()) {
 		SlotTracker slots;
@@ -80,9 +113,8 @@ void Module::DumpControlFlowGraphToFile(const std::string& filepath)
 			for (auto it = fn->params_begin(); it != fn->params_end(); ++it) {
 				fprintf(file, "%s", GetTypeName((*it)->GetType()));
 
-				if (it < fn->params_end() - 1) {
+				if (it < fn->params_end() - 1)
 					fprintf(file, ", ");
-				}
 			}
 
 			fprintf(file, "): %s\";\n", returnTypeString);
@@ -104,18 +136,23 @@ void Module::DumpControlFlowGraphToFile(const std::string& filepath)
 				const ConditionalBranchInsn* cbr = (const ConditionalBranchInsn*) term;
 
 				fprintf(file, " -> ");
-				PrintBasicBlockNode(slots, file, *cbr->GetTrueBB()); fprintf(file, "\n");
+				PrintBasicBlockNode(slots, file, *cbr->GetTrueBB());
+				fprintf(file, "\n");
 
 				PrintBasicBlockNode(slots, file, bb);
 				fprintf(file, " -> ");
 				PrintBasicBlockNode(slots, file, *cbr->GetFalseBB());
+
 				break;
 			}
 
 			case HLIR::UnconditionalBranch: {
-				const UnconditionalBranchInsn* cbr = (const UnconditionalBranchInsn*)term;
+				const UnconditionalBranchInsn* br
+					= (const UnconditionalBranchInsn*) term;
+
 				fprintf(file, " -> ");
-				PrintBasicBlockNode(slots, file, *cbr->GetBB());
+				PrintBasicBlockNode(slots, file, *br->GetBB());
+
 				break;
 			}
 
@@ -132,3 +169,13 @@ void Module::DumpControlFlowGraphToFile(const std::string& filepath)
 	fprintf(file, "}\n");
 	fclose(file);
 }
+
+/******************************************************************************/
+
+Module*
+Helix::CreateModule(const std::string& inputSourceFile)
+{
+	return new Module(inputSourceFile);
+}
+
+/******************************************************************************/
