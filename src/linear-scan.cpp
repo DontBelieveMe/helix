@@ -11,7 +11,7 @@
 #include "target-info-armv7.h"
 #include "system.h"
 
-/* Standard Library Includes */
+/* C++ Standard Library Includes */
 #include <vector>
 #include <algorithm>
 #include <unordered_set>
@@ -37,8 +37,7 @@ static std::array<PhysicalRegisters::ArmV7RegisterID, 5> Registers =
 
 /******************************************************************************/
 
-LSRA::Context::Context(const std::unordered_map<VirtualRegisterName*,
-                       Interval>& intervals, StackFrame* stack)
+LSRA::Context::Context(const IntervalMap& intervals, StackFrame* stack)
 	: InputIntervals(intervals), Stack(stack)
 { }
 

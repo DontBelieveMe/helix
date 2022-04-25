@@ -28,21 +28,25 @@ namespace Helix
 			StackFrame::SlotIndex StackSlot;
 		};
 
+		using IntervalMap   = std::unordered_map<VirtualRegisterName*, Interval>;
+		using AllocationMap = std::unordered_map<VirtualRegisterName*, Allocation>;
+
 		struct Context
 		{
-			/// (Input) Map of variable (VirtualRegisterName*) to intervals, calculated in
-			/// a previous step.
-			std::unordered_map<VirtualRegisterName*, Interval> InputIntervals;
+			/// (Input) Map of variable (VirtualRegisterName*) to intervals,
+			/// calculated in a previous step.
+			IntervalMap InputIntervals;
 
-			/// (Output) After allocation has been performed this will be a map
-			/// of variables (VirtualRegisterName*) to the physical register allocated
-			/// to it.
-			std::unordered_map<VirtualRegisterName*, Allocation> Allocations;
+			/// (Output) After allocation has been performed this will be
+			/// a map of variables (VirtualRegisterName*) to the physical
+			/// register allocated to it.
+			AllocationMap Allocations;
 
-			/// The stack, spilled variables will have a stack slot allocated from here
+			/// The stack, spilled variables will have a stack slot
+			/// allocated from here
 			StackFrame* Stack = nullptr;
 
-			Context(const std::unordered_map<VirtualRegisterName*, Interval>& intervals, StackFrame* stack);
+			Context(const IntervalMap& intervals, StackFrame* stack);
 			Context() = default;
 		};
 
