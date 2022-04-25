@@ -1,13 +1,13 @@
+/* Internal Project Includes */
 #include "function.h"
 
+/* C++ Standard Library Includes */
 #include <algorithm>
 #include <iterator>
 
 using namespace Helix;
 
-//#pragma optimize("", off)
-
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 Function::iterator Function::InsertBefore(iterator where, BasicBlock* what)
 {
@@ -15,7 +15,7 @@ Function::iterator Function::InsertBefore(iterator where, BasicBlock* what)
 	return m_Blocks.insert_before(where, what);
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 Function::iterator Function::InsertAfter(iterator where, BasicBlock* what)
 {
@@ -23,7 +23,7 @@ Function::iterator Function::InsertAfter(iterator where, BasicBlock* what)
 	return m_Blocks.insert_after(where, what);
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 void Function::Append(BasicBlock* bb)
 {
@@ -31,7 +31,7 @@ void Function::Append(BasicBlock* bb)
 	m_Blocks.push_back(bb);
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 void Function::Remove(iterator where)
 {
@@ -39,7 +39,7 @@ void Function::Remove(iterator where)
 	m_Blocks.remove(where);
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 BasicBlock* Function::GetTailBlock()
 {
@@ -50,7 +50,7 @@ BasicBlock* Function::GetTailBlock()
 	return &m_Blocks.back();
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 BasicBlock* Function::GetHeadBlock()
 {
@@ -61,11 +61,11 @@ BasicBlock* Function::GetHeadBlock()
 	return &m_Blocks.front();
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 using LiveMap = std::unordered_map<BasicBlock*, std::set<VirtualRegisterName*>>;
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 // Return true if the IN set changes for this basic block
 static bool ComputeLiveInForBlock(BasicBlock* bb)
@@ -82,15 +82,17 @@ static bool ComputeLiveInForBlock(BasicBlock* bb)
 	const std::set<VirtualRegisterName*> defs = bb->CalculateDefs();
 
 	// 3) Then do the OUT[B] DIFFERENCE B.Defs operation
-	//    (calculating the difference between the OUT set for B and 'def' set for B)
+	//    (calculating the difference between the OUT set for B and
+	//    'def' set for B)
 	std::set<VirtualRegisterName*> difference;
 	std::set_difference(blockLiveOut.begin(), blockLiveOut.end(),
 	                   defs.begin(), defs.end(),
 					   std::inserter(difference, difference.begin()));
 
-	// #FIXME (bwilks): To check if the set changes we make a copy of the IN set
-	//                  before the union so we can compare it to the IN set after the
-	//                  union. This seems really quite poor...
+	// #FIXME (bwilks): To check if the set changes we make a copy of the
+	//                  IN set before the union so we can compare it to
+	//                  the IN set after the union. This seems really
+	//                  quite poor...
 	const std::set<VirtualRegisterName*> old = blockLiveIn;
 
 	// 4) Finalize the IN set for B (clear first so that we're overwriting
@@ -103,7 +105,7 @@ static bool ComputeLiveInForBlock(BasicBlock* bb)
 	return blockLiveIn != old;
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 static void ComputeLiveOutForBlock(BasicBlock* bb)
 {
@@ -115,7 +117,8 @@ static void ComputeLiveOutForBlock(BasicBlock* bb)
 	const std::vector<BasicBlock*> successors = bb->GetSuccessors();
 
 	for (BasicBlock* successor : successors) {
-		const std::set<VirtualRegisterName*>& successorLiveIn = successor->GetLiveIn();
+		const std::set<VirtualRegisterName*>&
+			successorLiveIn = successor->GetLiveIn();
 
 		std::set_union(blockLiveOut.begin(), blockLiveOut.end(),
 		               successorLiveIn.begin(), successorLiveIn.end(),
@@ -123,7 +126,7 @@ static void ComputeLiveOutForBlock(BasicBlock* bb)
 	}
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 void Function::RunLivenessAnalysis()
 {
@@ -154,7 +157,110 @@ void Function::RunLivenessAnalysis()
 		}
 	}
 
-	helix_debug(logs::general, "Liveness analysis finished in {} iterations", nIterations);
+	helix_debug(logs::general, "Liveness analysis finished in {} iterations",
+			nIterations);
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
+
+Function*
+Function::Create(const FunctionType* type, const std::string& name,
+    const ParamList& params)
+{
+	Function* fn = new Function(type);
+
+	fn->m_Name       = name;
+	fn->m_Parameters = params;
+
+	return fn;
+}
+
+/******************************************************************************/
+
+Value*
+Function::GetParameter(size_t index) const
+{
+	if (index >= m_Parameters.size())
+		return nullptr;
+
+	return m_Parameters[index];
+}
+
+/******************************************************************************/
+
+size_t
+Function::GetCountParameters() const
+{
+	return m_Parameters.size();
+}
+
+/******************************************************************************/
+
+bool
+Function::HasBody() const
+{
+	return !m_Blocks.empty();
+}
+
+/******************************************************************************/
+
+void
+Function::SetParent(Module* parent)
+{
+	m_Parent = parent;
+}
+
+/******************************************************************************/
+
+Module*
+Function::GetParent() const
+{
+	return m_Parent;
+}
+
+/******************************************************************************/
+
+bool
+Function::IsVoidReturn() const
+{
+	return GetReturnType() == BuiltinTypes::GetVoidType();
+}
+
+/******************************************************************************/
+
+const Type*
+Function::GetReturnType() const
+{
+	const FunctionType* type = type_cast<FunctionType>(GetType());
+
+	if (!type)
+		return nullptr;
+
+	return type->GetReturnType();
+}
+
+/******************************************************************************/
+
+std::string
+Function::GetName() const
+{
+	return m_Name;
+}
+
+/******************************************************************************/
+
+size_t
+Function::GetCountBlocks() const
+{
+	return m_Blocks.size();
+}
+
+/******************************************************************************/
+
+bool
+Helix::is_function(Value* v)
+{
+	return Helix::value_isa<Function>(v);
+}
+
+/******************************************************************************/
