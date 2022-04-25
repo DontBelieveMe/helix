@@ -9,7 +9,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "frontend.h"
+#include "clang-frontend.h"
+
 #include "../helix.h"
 #include "../system.h"
 #include "../target-info-armv7.h"
@@ -1782,7 +1783,7 @@ std::unique_ptr<clang::ASTConsumer> ParserAction::CreateASTConsumer(clang::Compi
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Helix::Frontend::Initialise()
+void Helix::Frontend::Clang::Initialise()
 {
 }
 
@@ -1795,7 +1796,7 @@ static void PrintVersion(llvm::raw_ostream& output_stream)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
+Helix::Module* Helix::Frontend::Clang::Run(int argc, const char** argv)
 {
 	HELIX_PROFILE_ZONE;
 
@@ -1871,7 +1872,7 @@ Helix::Module* Helix::Frontend::Run(int argc, const char** argv)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Helix::Frontend::Shutdown()
+void Helix::Frontend::Clang::Shutdown()
 {
 }
 
