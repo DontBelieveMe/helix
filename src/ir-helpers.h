@@ -8,9 +8,11 @@
 
 #pragma once
 
+/* Internal Project Includes */
 #include "basic-block.h"
+#include "intrusive-list.h"
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 namespace Helix::IR
 {
@@ -63,21 +65,52 @@ namespace Helix::IR
 	size_t GetCountWriteUsers(Value* v);
 
 	template <typename T>
-	inline void BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, OpcodeType opcode);
+	inline void BuildWorklist(std::vector<ParentedInsn<T>>& insns,
+	                          Function* fn, OpcodeType opcode);
 
 	template <typename T>
-	inline void FindAllInstructionsOfType(std::vector<T*>& insns, BasicBlock* bb, OpcodeType opcode);
+	inline void FindAllInstructionsOfType(std::vector<T*>& insns,
+	                                      BasicBlock* bb, OpcodeType opcode);
 
 	template <typename T>
 	inline T* FindFirstInstructionOfType(BasicBlock& bb, OpcodeType opcode);
 
 	std::vector<BasicBlock*> GetPredecessors(BasicBlock* bb);
+
+	class InsnSeq
+	{
+		using List = intrusive_list<Instruction>;
+
+	public:
+		using iterator       = List::iterator;
+		using const_iterator = List::const_iterator;
+
+		void Append(Instruction* insn);
+
+		Instruction* GetHead();
+		Instruction* GetTail();
+
+		size_t GetSize() const;
+		void Clear();
+
+		iterator begin() { return m_Instructions.begin(); }
+		iterator end()   { return m_Instructions.end(); }
+
+		const_iterator begin() const { return m_Instructions.begin(); }
+		const_iterator end()   const { return m_Instructions.end();   }
+
+	private:
+		List m_Instructions;
+	};
+
+	void ReplaceInstructionAndDestroyOriginal(Instruction* a, InsnSeq& b);
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 template <typename T>
-inline void Helix::IR::FindAllInstructionsOfType(std::vector<T*>& insns, BasicBlock* bb, OpcodeType opcode)
+inline void Helix::IR::FindAllInstructionsOfType(std::vector<T*>& insns,
+    BasicBlock* bb, OpcodeType opcode)
 {
 	for (Instruction& insn : *bb) {
 		if (insn.GetOpcode() == opcode) {
@@ -86,10 +119,12 @@ inline void Helix::IR::FindAllInstructionsOfType(std::vector<T*>& insns, BasicBl
 	}
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 template <typename T>
-inline T* Helix::IR::FindFirstInstructionOfType(BasicBlock& bb, OpcodeType opcode) {
+inline T* Helix::IR::FindFirstInstructionOfType(BasicBlock& bb,
+    OpcodeType opcode) {
+
 	for (Instruction& insn : bb) {
 		if (insn.GetOpcode() == opcode) {
 			return static_cast<T*>(&insn);
@@ -99,10 +134,11 @@ inline T* Helix::IR::FindFirstInstructionOfType(BasicBlock& bb, OpcodeType opcod
 	return nullptr;
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
 template <typename T>
-inline void Helix::IR::BuildWorklist(std::vector<ParentedInsn<T>>& insns, Function* fn, OpcodeType opcode)
+inline void Helix::IR::BuildWorklist(std::vector<ParentedInsn<T>>& insns,
+    Function* fn, OpcodeType opcode)
 {
 	for (BasicBlock& bb : fn->blocks()) {
 		for (Instruction& insn : bb.insns()) {
@@ -113,4 +149,4 @@ inline void Helix::IR::BuildWorklist(std::vector<ParentedInsn<T>>& insns, Functi
 	}
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/

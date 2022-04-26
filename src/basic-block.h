@@ -47,6 +47,8 @@ namespace Helix
 {
 	class Function;
 
+	namespace IR { class InsnSeq; }
+
 	class BasicBlock : public intrusive_list_node
 	{
 	private:
@@ -101,6 +103,8 @@ namespace Helix
 
 			Instructions.replace(original, newValue);
 		}
+
+		void Replace(Instruction* original, IR::InsnSeq& seq);
 
 		std::set<VirtualRegisterName*>& GetLiveIn() { return LiveIn; }
 		std::set<VirtualRegisterName*>& GetLiveOut() { return LiveOut; }

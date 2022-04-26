@@ -128,14 +128,11 @@ namespace Helix
 		 */
 		size_t size() const { return m_size; }
 
-		/**
-		 * Do an O(N) walk over the list to calculate its size. This is only useful if
-		 * the structure of the list has been modified externally, and the cached size needs
-		 * to be updated.
-		 */
-		void recompute_size()
+		/// WARNING: Only use if your doing manual manipulation of the list
+		///          structure!!!
+		void set_size(size_t new_size)
 		{
-			helix_unimplemented("intrusive_list::recompute_size() is not implemented");
+			m_size = new_size;
 		}
 
 		iterator insert_before(const iterator& where, T* value)

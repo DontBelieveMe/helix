@@ -9,6 +9,7 @@
 #include "instructions.h"
 #include "types.h"
 #include "mir.h"
+#include "ir-helpers.h"
 
 using namespace Helix;
 
@@ -204,3 +205,39 @@ void BasicBlock::Append(Instruction* insn)
 }
 
 /*********************************************************************************************************************/
+
+void
+BasicBlock::Replace(Instruction* insn, IR::InsnSeq& seq)
+{
+	if (seq.GetSize() == 0) {
+		Remove(Where(insn));
+		return;
+	}
+
+	// #FIXME(bwilks): Infinite loop here using it++ instead of
+	//                 ++it!!!
+	for (auto it = seq.begin(); it != seq.end(); ++it) {
+		Instruction* seq_insn = &(*it);
+		seq_insn->SetParent(this);
+	}
+
+	insn->SetParent(nullptr);
+
+	Instruction* head = seq.GetHead();
+	Instruction* tail = seq.GetTail();
+
+	head->set_prev(insn->get_prev());
+	tail->set_next(insn->get_next());
+
+	insn->get_prev()->set_next(head);
+	insn->get_next()->set_prev(tail);
+
+	insn->set_next(nullptr);
+	insn->set_prev(nullptr);
+
+	const size_t delta = seq.GetSize() - 1;
+
+	Instructions.set_size(Instructions.size() + delta);
+}
+
+
