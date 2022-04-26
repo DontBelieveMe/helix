@@ -6,7 +6,7 @@
 
 namespace Helix
 {
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/**************************************************************************/
 
 	class intrusive_list_node
 	{
@@ -31,12 +31,12 @@ namespace Helix
 		intrusive_list_node* m_prev = nullptr;
 	};
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/**************************************************************************/
 
 	template <typename T>
 	class intrusive_list;
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/**************************************************************************/
 
 	template <typename T>
 	class intrusive_list_iterator
@@ -83,7 +83,7 @@ namespace Helix
 		T* m_node;
 	};
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/**************************************************************************/
 
 	template <typename T>
 	class intrusive_list
@@ -106,24 +106,30 @@ namespace Helix
 		 */
 		bool empty() const { return begin() == end(); }
 
-		iterator       begin() { return iterator(static_cast<T*>(m_sentinel.get_next())); }
-		iterator       end()   { return iterator(static_cast<T*>(&m_sentinel));           }
+		iterator begin()
+			{ return iterator(static_cast<T*>(m_sentinel.get_next())); }
 
-		const_iterator begin() const { return const_iterator(static_cast<const T*>(m_sentinel.get_next())); }
-		const_iterator end()   const { return const_iterator(static_cast<const T*>(&m_sentinel)); }
+		iterator end()
+			{ return iterator(static_cast<T*>(&m_sentinel)); }
+
+		const_iterator begin() const
+			{ return const_iterator(static_cast<const T*>(m_sentinel.get_next())); }
+
+		const_iterator end() const
+			{ return const_iterator(static_cast<const T*>(&m_sentinel)); }
 
 		/**
 		 * Return the number of nodes in this list.
-		 * 
-		 * This is a O(1) operation, since it is cached and kept up to date
-		 * internally by functions that modify the lists internal state.
-		 * 
+		 *
+		 * This is a O(1) operation, since it is cached and kept up to
+		 * date internally by functions that modify the lists internal state.
+		 *
 		 * This value may be incorrect if the structure of the list is modified
-		 * externally (e.g. by using set_prev/set_next on nodes outside this class).
-		 * In the case that external modification causes the size of the list to change,
-		 * call recompute_size() to update the cached size with the actual
-		 * size of the list.
-		 * 
+		 * externally (e.g. by using set_prev/set_next on nodes outside
+		 * this class). In the case that external modification causes the
+		 * size of the list to change, call recompute_size() to update the
+		 * cached size with the actual size of the list.
+		 *
 		 * @return size_t The number of nodes in this list
 		 */
 		size_t size() const { return m_size; }
