@@ -3,6 +3,7 @@
  * @author Barney Wilks
  */
 
+/* Internal Project Includes */
 #include "match.h"
 #include "module.h"
 #include "mir.h"
@@ -10,34 +11,32 @@
 
 using namespace Helix;
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
-void MachineExpander::Execute(Module* mod, const PassRunInformation&)
+void MachineExpander::Execute(Function* fn, const PassRunInformation&)
 {
-	for (Function* fn : mod->functions()) {
-		for (BasicBlock& bb : fn->blocks()) {
-			BasicBlock::iterator it = bb.begin();
+	for (BasicBlock& bb : fn->blocks()) {
+		BasicBlock::iterator it = bb.begin();
 
-			while (it != bb.end()) {
-				Instruction* old = &(*it);
+		while (it != bb.end()) {
+			Instruction* old = &(*it);
 
-				if (old->GetOpcode() == HLIR::StackAlloc
-					|| Helix::IsMachineOpcode(old->GetOpcode())) {
-					it = bb.Where((Instruction*) old->get_next());
-					continue;
-				}
-
-				MachineInstruction* insn = ARMv7::Expand(old);
-
-				it = bb.Where((Instruction*) it->get_next());
-
-				if (insn->GetParent() != old->GetParent())
-					bb.Replace(old, insn);
-
-				IR::DestroyInstruction(old);
+			if (old->GetOpcode() == HLIR::StackAlloc
+				|| Helix::IsMachineOpcode(old->GetOpcode())) {
+				it = bb.Where((Instruction*) old->get_next());
+				continue;
 			}
+
+			MachineInstruction* insn = ARMv7::Expand(old);
+
+			it = bb.Where((Instruction*) it->get_next());
+
+			if (insn->GetParent() != old->GetParent())
+				bb.Replace(old, insn);
+
+			IR::DestroyInstruction(old);
 		}
 	}
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/

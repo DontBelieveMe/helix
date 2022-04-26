@@ -5,21 +5,24 @@
 
 #pragma once
 
+/* Internal Project Includes */
 #include "pass-manager.h"
 
-/*********************************************************************************************************************/
+/*****************************************************************************/
 
 namespace Helix
 {
-	class MachineExpander : public Pass
+	class MachineExpander : public FunctionPass
 	{
 	public:
-		virtual void Execute(Module* mod, const PassRunInformation& info) override;
+		virtual void Execute(Function* fn,
+		                     const PassRunInformation& info) override;
 	};
 }
 
-/*********************************************************************************************************************/
+/******************************************************************************/
 
-REGISTER_PASS(MachineExpander, match, "[ARM] Matches the IR to it's machine instructions and generates machine IR");
+REGISTER_PASS(MachineExpander, match, "[ARM] Matches the IR to it's machine "
+                                      "instructions and generates machine IR");
 
-/*********************************************************************************************************************/
+/*****************************************************************************/
