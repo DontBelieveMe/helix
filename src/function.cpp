@@ -86,8 +86,8 @@ static bool ComputeLiveInForBlock(BasicBlock* bb)
 	//    'def' set for B)
 	std::set<VirtualRegisterName*> difference;
 	std::set_difference(blockLiveOut.begin(), blockLiveOut.end(),
-	                   defs.begin(), defs.end(),
-					   std::inserter(difference, difference.begin()));
+	                    defs.begin(), defs.end(),
+	                    std::inserter(difference, difference.begin()));
 
 	// #FIXME (bwilks): To check if the set changes we make a copy of the
 	//                  IN set before the union so we can compare it to
@@ -100,7 +100,7 @@ static bool ComputeLiveInForBlock(BasicBlock* bb)
 	blockLiveIn.clear();
 	std::set_union(uses.begin(), uses.end(),
 	               difference.begin(), difference.end(),
-				   std::inserter(blockLiveIn, blockLiveIn.begin()));
+	               std::inserter(blockLiveIn, blockLiveIn.begin()));
 
 	return blockLiveIn != old;
 }
