@@ -2,7 +2,7 @@
 ## Overview
 > Compiler Optimization Techniques
 
-An optimising compiler for a subset of the C programming language. The project is specifically concerned with program optimisation and machine code generation. Clang is utilised as the C frontend, and the GCC ARM (Windows Cross) toolchain is utilised for assembling the output assembly, linking and as a runtime standard library (in whatever capacity it can be used).
+An optimising compiler for a subset of the C programming language, targeting ARMv7-A 32 bit hardware. The project is specifically concerned with program optimisation and machine code generation. Clang is utilised as the C frontend, and the GCC ARM (Windows Cross) toolchain is utilised for assembling the output assembly, linking and as a runtime standard library (in whatever capacity it can be used).
 
 Developed as the final year project for a BSc Computer Science degree at Sheffield Hallam University.
 
